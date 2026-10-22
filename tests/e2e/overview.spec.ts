@@ -555,6 +555,34 @@ test("size and growth: one marker per origin with a growth rate; the others are 
   await expect(card.locator("tbody tr")).toHaveCount(entries.length);
 });
 
+for (const width of [390, 768, 1440]) {
+  test(`size and growth at ${width}px: country names, the y axis title and the y tick labels never overlap; names stay inside the chart`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const card = page.locator('.chart-card[data-chart="size-growth"]');
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.locator("g.size-name text").first()).toBeVisible();
+    const boxes = await card.locator("svg").first().evaluate((svg) => {
+      const box = (element: Element) => { const r = element.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+      const pick = (selector: string, kind: string) => [...svg.querySelectorAll(selector)].map((element) => ({ kind, text: element.textContent ?? "", ...box(element) }));
+      return { frame: box(svg), labels: [...pick("g.size-name text", "name"), ...pick("g.size-axis-title text", "title"),
+        ...pick('g[aria-label="y-axis tick label"] text', "tick")] };
+    });
+    const names = boxes.labels.filter((label) => label.kind === "name");
+    expect(names.length).toBeGreaterThan(0);
+    for (const name of names) {
+      expect(name.left, name.text).toBeGreaterThanOrEqual(boxes.frame.left);
+      expect(name.right, name.text).toBeLessThanOrEqual(boxes.frame.right);
+    }
+    const overlaps: string[] = [];
+    boxes.labels.forEach((a, index) => boxes.labels.slice(index + 1).forEach((b) => {
+      if (a.kind === "tick" && b.kind === "tick") return;
+      if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) overlaps.push(`${a.text} / ${b.text}`);
+    }));
+    expect(overlaps).toEqual([]);
+  });
+}
+
 test("size and growth: the not-plotted note names a zero base too; the tooltip shows growth with the pipeline's decimals", async ({ page }) => {
   await editOverview(page, (data) => {
     data.size_growth[0].cagr10 = null;
