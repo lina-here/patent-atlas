@@ -304,18 +304,25 @@ export function scatterChart(points: ScatterPoint[], keys: { key: string; label:
   const highTick = xs.length === 0 ? lowTick + 1 : Math.max(lowTick + 1, Math.ceil(Math.log10(Math.max(...xs))));
   const xTicks = Array.from({ length: highTick - lowTick + 1 }, (_, index) => 10 ** (lowTick + index));
   const marginLeft = widest(["-88%", "88%"], theme) + gap * 2;
-  const topPad = theme.fontSize * 1.8; // room for the y axis title above the plot frame
+  const topPad = theme.fontSize * 2.4; // room for the y axis title above the plot frame, clear of the top tick label
   const legend = legendMarks(keys.map((entry, index) => ({ label: entry.label, symbol: symbols[index], fill: colours[index] })),
     theme, width, marginLeft, topPad);
   const height = fitHeight(opts.height, theme);
   const markerArea = Math.PI * (theme.dotRadius * MARKER_SCALE) ** 2;
+  // a name sits beside its marker, on the side facing the plot's middle: above it, a name ran over the y tick labels
+  // (leftmost points) or the axis title (fastest growers) on a narrow card
+  const leftHalf = (point: ScatterPoint): boolean => Math.log10(point.x) - lowTick < (highTick - lowTick) / 2;
+  const nameOffset = Math.sqrt(markerArea / Math.PI) + gap * 0.5;
+  const names = (points: ScatterPoint[], side: "start" | "end") => text(points, {
+    x: "x", y: "y", text: "label", textAnchor: side, dx: side === "start" ? nameOffset : -nameOffset, fill: theme.ink,
+    stroke: theme.surface, strokeWidth: theme.fontSize * 0.25, paintOrder: "stroke", className: "size-name" });
   return plot({
     width,
     height,
     marginTop: legend.height + topPad,
     marginBottom: theme.fontSize * 3.4,
     marginLeft,
-    marginRight: widest(named.map((point) => point.label), theme) / 2 + gap,
+    marginRight: nameOffset + gap, // names face inward: only the rightmost marker needs room
     x: { type: "log", domain: [10 ** lowTick, 10 ** highTick], label: null },
     y: { label: null, nice: true },
     symbol: { domain: keys.map((entry) => entry.key), range: symbols },
@@ -324,13 +331,15 @@ export function scatterChart(points: ScatterPoint[], keys: { key: string; label:
       gridY({ stroke: theme.grid, strokeOpacity: 1, ticks: theme.yTicks }),
       axisY({ ticks: theme.yTicks, tickSize: 0, tickFormat: opts.formatY, color: theme.muted, label: null }),
       // own title: Plot's top-anchored y label sits at the top of the svg, where the legend is
-      text([opts.yLabel], { frameAnchor: "top-left", dx: -marginLeft + gap, dy: -theme.fontSize * 0.9, textAnchor: "start", fill: theme.muted }),
+      text([opts.yLabel], { frameAnchor: "top-left", lineAnchor: "bottom", dx: -marginLeft + gap, dy: -theme.fontSize, textAnchor: "start", fill: theme.muted,
+        className: "size-axis-title" }),
       axisX({ ticks: xTicks, tickFormat: axisFormat, color: theme.muted, label: opts.xLabel, labelAnchor: "center", labelArrow: "none",
         labelOffset: theme.fontSize * 2.4 }),
       ruleY([0], { stroke: theme.muted }),
       dot(points, { x: "x", y: "y", symbol: "key", fill: "key", stroke: theme.surface, strokeWidth: 0.8,
         r: Math.sqrt(markerArea / Math.PI), className: "size-point" }),
-      text(named, { x: "x", y: "y", text: "label", dy: -gap * 1.6, textAnchor: "middle", fill: theme.ink }),
+      names(named.filter(leftHalf), "start"),
+      names(named.filter((point) => !leftHalf(point)), "end"),
       ...legend.marks as never[],
       tip(points, pointer({ x: "x", y: "y", fill: theme.surface, stroke: theme.grid,
         title: (point: ScatterPoint) => `${point.label}\n${formatCount(point.x)} applications\n${opts.formatTip(point.y)} a year` })),
