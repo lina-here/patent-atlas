@@ -33,7 +33,8 @@ MANIFEST_MEASURES = "absent_rows"  # {measure id: count}: the differing measure 
 TOP_KEY_IDS = {
     "pct_monthly": "pct_monthly", "pct_monthly_source": "pct_monthly",
     "method": "method", "coverage_rule": "method", "top_n": "method", "grower_min": "method",
-    **{key: "origin_apps" for key in ("top_origins", "fastest_growers", "size_growth", "rank_race", "top_year")},
+    **{key: "origin_apps" for key in ("top_origins", "top_grower", "fastest_growers", "size_growth", "rank_race",
+                                      "top_year")},
 }
 # keys naming an id by another word: world totals -> their series; overview gender.by_field
 KEY_ALIASES = {**{world: series_id for world, (series_id, _) in WORLD_SOURCES.items()},

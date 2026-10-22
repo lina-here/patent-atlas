@@ -14,6 +14,12 @@ Files (paths relative to the data root; JSON year keys are strings):
 - map/<series>.json: {values: {code: year map}, sources}: countries and former states, cut at world last_year.
 - overview.json `continent_share`: per series continent totals + unallocated band (groups.continent_share).
 - overview.json `series_breaks`: breaks.listing() + each code's `label` (footnotes on world and group charts).
+- overview.json key figures (spec 2a tiles): `world_yoy` {world_office|pct_world: {yoy, yoy_null_reason}} =
+  derive.yoy_growth of the published world series (cut at its world_last_year), a year in
+  breaks.world_break_years of its series null with reason "series_break"; golden growth figures check it
+  (crosscheck.GOLDEN_GROWTH_SERIES). `top_grower` {code, label, rank, value, cagr10, breaks} | null = highest
+  cagr10 to top_year among top_origins (tie: better rank, then code; null cagr skipped), `breaks` = its origin
+  series' break years after the CAGR base year up to top_year (tile footnote).
 - overview.json views: `rank_race` {first_year, top, rows: [{code, label, ranks}]} (countries ever in the top
   RANK_RACE_TOP, RANK_RACE_FROM..top_year; ranks below the top kept, null = no value); `size_growth`
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
@@ -184,6 +190,36 @@ def _fastest_growers(origin: SeriesData, world: World, labels: dict[str, str]) -
             for _, code, rate, value in growers[:TOP_N]]
 
 
+def _top_grower(origin: SeriesData, world: World, top_origins: list[dict]) -> dict | None:
+    """Fastest grower among the top_origins rows (spec 2a amendments: no small-base outliers): highest cagr10 to
+    world.last_year (top_year), null skipped; tie -> better rank, then code. `breaks` = break years of its origin
+    series inside the CAGR window: after the base year (a break there leaves both ends on one method), up to the
+    end year."""
+    end = world.last_year
+    totals = _totals(origin)
+    rates = [(derive.cagr(totals[row["code"]], end), row) for row in top_origins]
+    rated = [(rate, row) for rate, row in rates if rate is not None]
+    if not rated:
+        return None
+    rate, row = min(rated, key=lambda item: (-item[0], item[1]["rank"], item[1]["code"]))
+    window = range(end - derive.CAGR_YEARS + 1, end + 1)
+    return {"code": row["code"], "label": row["label"], "rank": row["rank"], "value": row["value"], "cagr10": rate,
+            "breaks": sorted(year for year in breaks.break_years(row["code"], origin.series.id) if year in window)}
+
+
+def _world_yoy(worlds: dict[str, World]) -> dict[str, dict]:
+    """Year-on-year change of each published world series as published (WD / ZZ, cut at its world_last_year);
+    a year in breaks.world_break_years of its series = null, reason in `yoy_null_reason`."""
+    result = {}
+    for key in PUBLISHED_WORLDS:
+        world = worlds[key]
+        yoy = derive.yoy_growth({year: value for year, value in world.published.items() if year <= world.last_year})
+        broken = sorted(year for year in breaks.world_break_years(WORLD_SOURCES[key][0]) if year in yoy)
+        yoy.update({year: None for year in broken})
+        result[key] = {"yoy": _years(yoy), "yoy_null_reason": {str(year): breaks.SERIES_BREAK for year in broken}}
+    return result
+
+
 def _size_growth(origin: SeriesData, world: World, labels: dict[str, str]) -> list[dict]:
     """Every country of `_sized`, largest first; null cagr10 listed (the chart lists it under the plot)."""
     return [{"code": code, "label": labels[code], "continent": m49.continent_of(code), "value": value,
@@ -215,6 +251,7 @@ def method_constants() -> dict:
     return {
         "cagr_years": derive.CAGR_YEARS,
         "golden_tolerance_pct": crosscheck.GOLDEN_TOLERANCE_PCT,
+        "golden_growth_tolerance_pp": crosscheck.GOLDEN_GROWTH_TOLERANCE_PP,
         "rounding": {
             "mode": derive.ROUNDING_MODE,
             "decimals": {"yoy": derive.YOY_DECIMALS, "cagr": derive.CAGR_DECIMALS,
@@ -670,13 +707,16 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
     for measure in gender.MEASURES:
         outputs[MAP_DIR / f"{measure}.json"] = _gender_map_file(measure, country_gender, collected)
     gender_overview = _gender_overview(collected)
+    top_origins = _top_origins(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"], labels)
     outputs[OVERVIEW] = {
         **{key: _years(worlds[key].published, worlds[key].last_year) for key in PUBLISHED_WORLDS},
         "coverage": {key: _years(worlds[key].coverage) for key in PUBLISHED_WORLDS},
         "world_last_year": {key: worlds[key].last_year for key in PUBLISHED_WORLDS},
         "top_year": worlds["world_origin"].last_year,
         "coverage_rule": {"min_ratio": COVERAGE_MIN_RATIO, "lookback_years": derive.PROVISIONAL_LOOKBACK_YEARS},
-        "top_origins": _top_origins(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"], labels),
+        "top_origins": top_origins,
+        "top_grower": _top_grower(data["origin_apps"], worlds["world_origin"], top_origins),
+        "world_yoy": _world_yoy(worlds),
         "share_denominator": {series_id: SHARE_DENOMINATOR_LABEL[key] for series_id, key in SHARE_DENOMINATOR.items()},
         "fastest_growers": _fastest_growers(data["origin_apps"], worlds["world_origin"], labels),
         "size_growth": _size_growth(data["origin_apps"], worlds["world_origin"], labels),
@@ -719,7 +759,13 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
 def published_value(outputs: dict[Path, dict], series_id: str, code_or_world: str, year: int) -> int | float | None:
     """Total as published: "world" = the overview world series of `series_id`, else the entity file. Ratio ids
     (scale.RATIO_IDS): overview `world_ratios`, else entity `ratios.<id>.value`. Gender measures (women_any,
-    women_share): overview `gender.world`, else entity `gender.<id>.value`."""
+    women_share): overview `gender.world`, else entity `gender.<id>.value`. Growth ids
+    (crosscheck.GOLDEN_GROWTH_SERIES): overview `world_yoy.<world>.yoy`, world only (else None)."""
+    if series_id in crosscheck.GOLDEN_GROWTH_SERIES:
+        if code_or_world != "world":
+            return None
+        world_yoy = outputs[OVERVIEW].get("world_yoy", {}).get(crosscheck.GOLDEN_GROWTH_SERIES[series_id], {})
+        return world_yoy.get("yoy", {}).get(str(year))
     if series_id in gender.MEASURES:
         if code_or_world == "world":
             return outputs[OVERVIEW]["gender"]["world"].get(series_id, {}).get(str(year))

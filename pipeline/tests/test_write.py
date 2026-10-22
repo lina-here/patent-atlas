@@ -210,6 +210,7 @@ def test_build_outputs_shapes():
     assert (overview["top_n"], overview["grower_min"]) == (write.TOP_N, write.GROWER_MIN)
     assert overview["method"] == {
         "cagr_years": derive.CAGR_YEARS, "golden_tolerance_pct": crosscheck.GOLDEN_TOLERANCE_PCT,
+        "golden_growth_tolerance_pp": crosscheck.GOLDEN_GROWTH_TOLERANCE_PP,
         "rounding": {"mode": "half away from zero",
                      "decimals": {"yoy": derive.YOY_DECIMALS, "cagr": derive.CAGR_DECIMALS,
                                   "share": derive.SHARE_DECIMALS, "resident_share": derive.SHARE_DECIMALS}},
@@ -379,6 +380,148 @@ def test_published_value():
     assert published_value(out, "women_share", "world", 2025) == 18.5  # (15 x 1000 + 20 x 3000 + 10 x 100) / 4100
     assert published_value(out, "women_any", "EP", 2024) is None  # not a country: no gender block
     assert published_value(out, "women_share", "XX", 2024) is None
+
+
+def test_published_value_growth():
+    """Golden growth ids (crosscheck.GOLDEN_GROWTH_SERIES) read overview world_yoy.<world>.yoy."""
+    out = outputs()
+    world_yoy = out[Path("overview.json")]["world_yoy"]
+    assert published_value(out, "world_office_yoy", "world", 2024) == 0.5  # WD 744000 / 740000: 0.54%
+    assert published_value(out, "pct_world_yoy", "world", 2025) == 0.3  # ZZ 62400 / 62200: 0.32%
+    for series_id, key in crosscheck.GOLDEN_GROWTH_SERIES.items():
+        for year in range(2014, 2026):
+            assert published_value(out, series_id, "world", year) == world_yoy[key]["yoy"].get(str(year))
+        assert published_value(out, series_id, "world", 2013) is None  # first year: no yoy
+        assert published_value(out, series_id, "CH", 2020) is None  # world figures only
+    assert published_value(out, "world_office_yoy", "world", 2017) is None  # WIPO's 2017 break (breaks.py)
+
+
+def world_series(overview, key):
+    return {int(year): value for year, value in overview[key].items()}
+
+
+def test_world_yoy_from_published_world():
+    """Spec 2a: tile change = derive.yoy_growth of the published world series (WD / ZZ); break years null."""
+    overview = outputs()[Path("overview.json")]
+    assert set(overview["world_yoy"]) == set(write.PUBLISHED_WORLDS) == set(crosscheck.GOLDEN_GROWTH_SERIES.values())
+    for key in write.PUBLISHED_WORLDS:
+        series = world_series(overview, key)
+        expected = derive.yoy_growth(series)
+        broken = breaks.world_break_years(worlds.WORLD_SOURCES[key][0])
+        expected.update({year: None for year in broken if year in expected})
+        block = overview["world_yoy"][key]
+        assert list(block["yoy"]) == [str(year) for year in sorted(series)[1:]], key  # years 2..last
+        assert block["yoy"] == {str(year): value for year, value in expected.items()}, key
+        assert block["yoy_null_reason"] == {str(year): breaks.SERIES_BREAK for year in sorted(broken)
+                                            if str(year) in block["yoy"]}, key
+    assert overview["world_yoy"]["world_office"]["yoy"]["2024"] == 0.5  # (744000 - 740000) / 740000 = 0.54%
+    assert overview["world_yoy"]["pct_world"]["yoy"]["2025"] == 0.3  # (62400 - 62200) / 62200 = 0.32%
+
+
+def test_world_yoy_break_year_null_with_reason(monkeypatch):
+    """A break listing office_apps (any code) nulls the world office change of that year; PCT untouched."""
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {"code": "CH", "year": 2020, "series": ["office_apps"], "note": "n", "citation": "c", "url": "u", "page": "p"}])
+    assert breaks.world_break_years("office_apps") == {2020}
+    assert breaks.world_break_years("pct_origin") == set()
+    world_yoy = outputs()[Path("overview.json")]["world_yoy"]
+    office = world_yoy["world_office"]
+    assert office["yoy"]["2020"] is None
+    assert office["yoy_null_reason"] == {"2020": "series_break"}
+    assert office["yoy"]["2019"] == 0.6 and office["yoy"]["2021"] == 0.5  # 4000 / 720000, 4000 / 728000
+    assert office["yoy"]["2017"] is not None  # repo breaks replaced: only the fixture's year is null
+    pct = world_yoy["pct_world"]
+    assert pct["yoy_null_reason"] == {} and all(value is not None for value in pct["yoy"].values())
+
+
+def test_world_break_years_every_code_listing_the_series(monkeypatch):
+    entry = {"note": "n", "citation": "c", "url": "u", "page": "p"}
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {**entry, "code": "CN", "year": 2017, "series": ["office_apps", "origin_apps"]},
+        {**entry, "code": "CH", "year": 2005, "series": ["office_apps"]},
+        {**entry, "code": "US", "year": 2010, "series": ["origin_apps"]}])
+    assert breaks.world_break_years("office_apps") == {2005, 2017}
+    assert breaks.world_break_years("origin_apps") == {2010, 2017}
+    assert breaks.world_break_years("pct_origin") == set()
+
+
+def test_world_yoy_cut_at_world_last_year():
+    data = make_data()
+    data["pct_origin"].values["CH"]["total"][2025] = None  # PCT 2025 reported by 1 of 2 origins -> provisional
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["world_last_year"]["pct_world"] == 2024
+    pct = overview["world_yoy"]["pct_world"]["yoy"]
+    assert "2025" not in pct and list(pct)[-1] == "2024"
+    assert list(overview["world_yoy"]["world_office"]["yoy"])[-1] == "2024"
+
+
+def add_origin(origin, code, total):
+    origin.values[code] = {"total": total, "resident": nulls(), "abroad": nulls()}
+    origin.labels[code] = code
+
+
+def test_top_grower_among_top_origins(monkeypatch):
+    """Spec 2a amendments: fastest grower among the top_n origins (no small-base outliers): MG (cagr 27.1, rank 4)
+    is outside the top 3; JP (rank 1) has no base year (null cagr): skipped."""
+    monkeypatch.setattr(write, "TOP_N", 3)
+    data = make_data()
+    add_origin(data["origin_apps"], "JP", {**nulls(), 2024: 10**6})
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert [row["code"] for row in overview["top_origins"]] == ["JP", "US", "CH"]
+    assert derive.cagr({**ramp(0, 1), 2013: 0}, 2024) == 27.1  # MG: (11 / 1) ** 0.1 - 1, rank 4
+    assert overview["top_grower"] == {"code": "CH", "label": "Switzerland", "rank": 3, "value": 2100,
+                                      "cagr10": 6.7, "breaks": []}  # (2100 / 1100) ** 0.1 - 1 = 6.68%
+
+
+@pytest.mark.parametrize("tied, expected", [
+    ("DE", "DE"),  # same cagr10 as CH, better rank (6300 > 2100): rank wins
+    ("AT", "AT"),  # same cagr10 and same value as CH: shared rank, code order
+])
+def test_top_grower_tie(monkeypatch, tied, expected):
+    monkeypatch.setattr(write, "TOP_N", 3)
+    data = make_data()
+    factor = {"DE": 3, "AT": 1}[tied]  # CH's path (1000 + 100 a year) times factor: same ratio, same cagr10
+    add_origin(data["origin_apps"], tied, ramp(1000 * factor, 100 * factor))
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    top = {row["code"]: row["rank"] for row in overview["top_origins"]}
+    assert "CH" in top and tied in top
+    assert overview["top_grower"]["code"] == expected and overview["top_grower"]["cagr10"] == 6.7
+
+
+def test_top_grower_none_when_no_cagr():
+    data = make_data()
+    for code in ("CH", "US", "MG"):  # no base year: every top origin's cagr10 null
+        data["origin_apps"].values[code]["total"][2014] = None
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["top_origins"] and overview["top_grower"] is None
+
+
+def test_top_grower_breaks_in_window(monkeypatch):
+    """Tile footnote: break years of the chosen code's origin series after the CAGR base year, up to top_year (base
+    < year <= end: a break at the base year leaves both ends on one method)."""
+    monkeypatch.setattr(write, "TOP_N", 3)
+    entry = {"code": "CN", "series": ["origin_apps"], "note": "n", "citation": "c", "url": "u", "page": "p"}
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {**entry, "year": year} for year in (2013, 2014, 2015, 2017, 2024)] + [
+        {**entry, "code": "CH", "year": 2018}, {**entry, "year": 2016, "series": ["office_apps"]}])
+    data = make_data()
+    add_origin(data["origin_apps"], "CN", ramp(1000, 1000))  # 2014 2000 -> 2024 12000: cagr10 19.6
+    data["origin_apps"].labels["CN"] = "China"
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["top_grower"] == {"code": "CN", "label": "China", "rank": 1, "value": 12000, "cagr10": 19.6,
+                                      "breaks": [2015, 2017, 2024]}
+
+
+def test_top_grower_ends_at_top_year():
+    """origin 2024 provisional (1 of 3 countries) -> top_year 2023: cagr10 ends there, as fastest_growers."""
+    data = make_data()
+    for code in ("US", "MG"):
+        data["origin_apps"].values[code]["total"][2024] = None
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["top_year"] == 2023
+    # base 2013: MG 0 (null cagr), US 5000 -> 5500 (1.0), CH 1000 -> 2000 (7.18%)
+    assert overview["top_grower"] == {"code": "CH", "label": "Switzerland", "rank": 2, "value": 2000,
+                                      "cagr10": 7.2, "breaks": []}
 
 
 def test_write_files_sorted_two_space(tmp_path):

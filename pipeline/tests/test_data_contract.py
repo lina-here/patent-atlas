@@ -64,10 +64,12 @@ def test_overview_publishes_wipo_worlds_only():
 
 
 def test_overview_method_constants_for_methods_page():
-    method = load(DATA / "overview.json")["method"]  # methods.ts states these; never typed into the page
+    overview = load(DATA / "overview.json")
+    method = overview["method"]  # methods.ts states these; never typed into the page
     expected = V01_METHOD_KEYS | (GROUP_METHOD_KEYS if (DATA / "groups.json").is_file() else set())
     expected |= {"ratios"} if HAS_RATIOS else set()
     expected |= {"gender"} if HAS_GENDER else set()
+    expected |= {"golden_growth_tolerance_pp"} if "world_yoy" in overview else set()  # v2a, same refresh
     assert set(method) == expected
     assert set(method["rounding"]["decimals"]) == {"yoy", "cagr", "share", "resident_share"}
 
@@ -88,6 +90,49 @@ def test_series_breaks_when_published():
             year = str(entry["year"])
             assert derived[series_id]["derived"]["yoy"][year] is None, (entry["code"], series_id)
             assert derived[series_id]["derived"]["yoy_null_reason"][year] == "series_break", (entry["code"], series_id)
+
+
+def test_world_yoy_when_published():
+    """Spec 2a key-figure tiles: world change recomputed from the committed world series (derive.yoy_growth); a
+    year of a series break listing the world's series null, reason series_break. Skipped until a refresh writes
+    `world_yoy` (v2a data refresh)."""
+    from pipeline import derive
+    from pipeline.worlds import WORLD_SOURCES
+    from pipeline.write import PUBLISHED_WORLDS
+    overview = load(DATA / "overview.json")
+    if "world_yoy" not in overview:
+        pytest.skip("site/data predates world_yoy (written by the next refresh)")
+    assert set(overview["world_yoy"]) == set(PUBLISHED_WORLDS)
+    for key in PUBLISHED_WORLDS:
+        series_id = WORLD_SOURCES[key][0]
+        series = {int(year): value for year, value in overview[key].items()}
+        broken = {entry["year"] for entry in overview["series_breaks"] if series_id in entry["series"]}
+        expected = derive.yoy_growth(series)
+        expected.update({year: None for year in broken if year in expected})
+        block = overview["world_yoy"][key]
+        assert block["yoy"] == {str(year): value for year, value in expected.items()}, key
+        assert block["yoy_null_reason"] == {str(year): "series_break" for year in sorted(broken)
+                                            if year in expected}, key
+
+
+def test_top_grower_when_published():
+    """Top grower = the top_origins row (same code, rank, value) with the highest cagr10 to top_year, recomputed
+    from the committed entity totals (derive.cagr); null when no row has one."""
+    from pipeline import derive
+    overview = load(DATA / "overview.json")
+    if "top_grower" not in overview:
+        pytest.skip("site/data predates top_grower (written by the next refresh)")
+    totals = entity_totals()
+    rates = {row["code"]: derive.cagr({int(year): value for year, value in totals[row["code"]]["origin_apps"].items()},
+                                      overview["top_year"]) for row in overview["top_origins"]}
+    grower = overview["top_grower"]
+    if grower is None:
+        assert all(rate is None for rate in rates.values())
+        return
+    row = {item["code"]: item for item in overview["top_origins"]}[grower["code"]]
+    assert (grower["label"], grower["rank"], grower["value"]) == (row["label"], row["rank"], row["value"])
+    assert grower["cagr10"] == rates[grower["code"]] == max(rate for rate in rates.values() if rate is not None)
+    assert all(isinstance(year, int) for year in grower["breaks"])
 
 
 def test_files_under_size_limit():
