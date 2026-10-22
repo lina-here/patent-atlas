@@ -1,0 +1,17 @@
+[
+  {
+    "changed": [
+      "all"
+    ],
+    "pipeline_sha": "0a9bd59277cab4e6272e0d7a22df2cd2233be7e5",
+    "version": "2026-10-22",
+    "wdi_last_updated": {
+      "gdp_ppp": "2026-10-08",
+      "population": "2026-10-08"
+    },
+    "wipo_releases": {
+      "ips": "Last updated: May 2026",
+      "pmh": "Last updated: October 2026"
+    }
+  }
+]
