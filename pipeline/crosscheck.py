@@ -58,6 +58,7 @@ GOLDEN_GROWTH_SERIES: dict[str, str] = {"world_office_yoy": "world_office", "pct
 # One printed rounding unit: WIPO prints growth from its own counts, ours comes from the published WD / ZZ series.
 GOLDEN_GROWTH_TOLERANCE_PP = 0.1
 GOLDEN_GROWTH_DECIMALS = 1  # as printed; a value with more decimals is a typo (load_golden refuses it)
+# == derive.YOY_DECIMALS (test_crosscheck): live yoy on the printed grid, else the tolerance unit drifts
 
 # Live 2026-10-19: office sum exceeds WIPO's World (WD) by 0.06-2.0% in these years only (WD = WIPO
 # estimate; 1980-1984 WD blank). Reported as warnings; an excess in any other year blocks.

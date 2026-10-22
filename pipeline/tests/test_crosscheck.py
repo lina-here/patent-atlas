@@ -357,6 +357,12 @@ def test_golden_growth_two_decimals_rejected(tmp_path, value):
         load_golden(write_golden(tmp_path, [{**GROWTH, "value": value}]))
 
 
+def test_golden_growth_decimals_match_yoy_rounding():
+    """Live growth (derive.yoy_growth) sits on the printed one-decimal grid: tolerance = one printed unit."""
+    from pipeline import derive
+    assert crosscheck.GOLDEN_GROWTH_DECIMALS == derive.YOY_DECIMALS
+
+
 def test_golden_growth_within_tolerance_passes():
     """|live - published| <= GOLDEN_GROWTH_TOLERANCE_PP (absolute pp, exact Decimal): one printed rounding unit."""
     assert crosscheck.GOLDEN_GROWTH_TOLERANCE_PP == 0.1

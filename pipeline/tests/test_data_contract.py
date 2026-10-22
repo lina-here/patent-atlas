@@ -126,13 +126,17 @@ def test_top_grower_when_published():
     rates = {row["code"]: derive.cagr({int(year): value for year, value in totals[row["code"]]["origin_apps"].items()},
                                       overview["top_year"]) for row in overview["top_origins"]}
     grower = overview["top_grower"]
+    rated = [row for row in overview["top_origins"] if rates[row["code"]] is not None]
     if grower is None:
-        assert all(rate is None for rate in rates.values())
+        assert rated == []
         return
-    row = {item["code"]: item for item in overview["top_origins"]}[grower["code"]]
-    assert (grower["label"], grower["rank"], grower["value"]) == (row["label"], row["rank"], row["value"])
-    assert grower["cagr10"] == rates[grower["code"]] == max(rate for rate in rates.values() if rate is not None)
-    assert all(isinstance(year, int) for year in grower["breaks"])
+    row = min(rated, key=lambda item: (-rates[item["code"]], item["rank"], item["code"]))  # tie: rank, then code
+    assert (grower["code"], grower["label"], grower["rank"], grower["value"], grower["cagr10"]) == (
+        row["code"], row["label"], row["rank"], row["value"], rates[row["code"]])
+    top_year, years = overview["top_year"], overview["method"]["cagr_years"]
+    assert grower["breaks"] == sorted(  # tile footnote: breaks after the CAGR base year, up to top_year
+        entry["year"] for entry in overview["series_breaks"] if entry["code"] == grower["code"]
+        and "origin_apps" in entry["series"] and top_year - years < entry["year"] <= top_year)
 
 
 def test_files_under_size_limit():
