@@ -1,6 +1,6 @@
 // Patent Atlas overview charts: rank race, continent share, size vs growth, PCT monthly heat strip. Split from charts.ts;
 // theme reading and layout helpers are shared from there. Every visual value comes from the theme (see charts.ts).
-import { areaY, axisX, axisY, cell, dot, gridY, line, plot, pointer, rect, ruleY, text, tip } from "@observablehq/plot";
+import { areaY, axisX, axisY, cell, dot, gridY, line, plot, pointer, rect, ruleY, scale, text, tip } from "@observablehq/plot";
 import { formatCount } from "./dom";
 import {
   FALLBACK_WIDTH, axisFormat, cssLength, fitHeight, readTheme, textWidth, widest, type ChartTheme,
@@ -309,22 +309,54 @@ export function scatterChart(points: ScatterPoint[], keys: { key: string; label:
     theme, width, marginLeft, topPad);
   const height = fitHeight(opts.height, theme);
   const markerArea = Math.PI * (theme.dotRadius * MARKER_SCALE) ** 2;
-  // a name sits beside its marker, on the side facing the plot's middle: above it, a name ran over the y tick labels
-  // (leftmost points) or the axis title (fastest growers) on a narrow card
-  const leftHalf = (point: ScatterPoint): boolean => Math.log10(point.x) - lowTick < (highTick - lowTick) / 2;
-  const nameOffset = Math.sqrt(markerArea / Math.PI) + gap * 0.5;
-  const names = (points: ScatterPoint[], side: "start" | "end") => text(points, {
-    x: "x", y: "y", text: "label", textAnchor: side, dx: side === "start" ? nameOffset : -nameOffset, fill: theme.ink,
-    stroke: theme.surface, strokeWidth: theme.fontSize * 0.25, paintOrder: "stroke", className: "size-name" });
+  const offset = theme.dotRadius * MARKER_SCALE + theme.fontSize * 0.3; // a name's gap from its marker's centre
+  // Names placed in pixels, measured in the font in use (wide fallback fonts too), each at the first free spot of: beside
+  // its marker facing the plot's middle, the other side, above, below; inside the plot and clear of names already
+  // placed, else left out (the tooltip and the figures table still name it). Centred above its marker, a name ran over
+  // the y tick labels, the axis title or another name on a narrow card.
+  const marginRight = offset + gap; // names never go right of the plot: only the rightmost marker needs room
+  const marginTop = legend.height + topPad;
+  const marginBottom = theme.fontSize * 3.4;
+  const plotLeft = marginLeft;
+  const plotRight = width - marginRight;
+  const plotTop = marginTop;
+  const plotBottom = height - marginBottom;
+  const decades = highTick - lowTick;
+  const toPixel = (value: number): number => plotLeft + ((Math.log10(value) - lowTick) / decades) * (plotRight - plotLeft);
+  const toValue = (pixel: number): number => 10 ** (lowTick + ((pixel - plotLeft) / (plotRight - plotLeft)) * decades);
+  // the y domain fixed here (0 always in it: the zero rule), so the pixels computed below are the ones Plot draws
+  const ys = [0, ...points.map((point) => point.y)];
+  const yScale = scale({ y: { domain: [Math.min(...ys), Math.max(...ys)], range: [plotBottom, plotTop], nice: true } }) as
+    unknown as { domain: number[]; apply: (value: number) => number; invert: (pixel: number) => number };
+  const lineHeight = theme.fontSize * 1.2;
+  const taken: { left: number; right: number; top: number; bottom: number }[] = [];
+  const nameMarks: ScatterPoint[] = [];
+  for (const point of named) {
+    const px = toPixel(point.x);
+    const py = yScale.apply(point.y);
+    const labelWidth = widest([point.label], theme);
+    const centred = Math.max(plotLeft, Math.min(px - labelWidth / 2, plotRight - labelWidth));
+    const besideStart = { left: px + offset, middle: py };
+    const besideEnd = { left: px - offset - labelWidth, middle: py };
+    const sides = px - plotLeft < (plotRight - plotLeft) / 2 ? [besideStart, besideEnd] : [besideEnd, besideStart];
+    const candidates = [...sides, { left: centred, middle: py - offset - lineHeight / 2 }, { left: centred, middle: py + offset + lineHeight / 2 }];
+    const spot = candidates.map((candidate) => ({ left: candidate.left, right: candidate.left + labelWidth,
+      top: candidate.middle - lineHeight / 2, bottom: candidate.middle + lineHeight / 2 })).find((box) =>
+      box.left >= plotLeft && box.right <= plotRight && box.top >= plotTop && box.bottom <= plotBottom &&
+      taken.every((other) => box.right <= other.left || other.right <= box.left || box.bottom <= other.top || other.bottom <= box.top));
+    if (!spot) continue;
+    taken.push(spot);
+    nameMarks.push({ ...point, x: toValue(spot.left), y: yScale.invert((spot.top + spot.bottom) / 2) });
+  }
   return plot({
     width,
     height,
-    marginTop: legend.height + topPad,
-    marginBottom: theme.fontSize * 3.4,
+    marginTop,
+    marginBottom,
     marginLeft,
-    marginRight: nameOffset + gap, // names face inward: only the rightmost marker needs room
+    marginRight,
     x: { type: "log", domain: [10 ** lowTick, 10 ** highTick], label: null },
-    y: { label: null, nice: true },
+    y: { label: null, domain: yScale.domain },
     symbol: { domain: keys.map((entry) => entry.key), range: symbols },
     color: { domain: keys.map((entry) => entry.key), range: colours },
     marks: [
@@ -338,8 +370,8 @@ export function scatterChart(points: ScatterPoint[], keys: { key: string; label:
       ruleY([0], { stroke: theme.muted }),
       dot(points, { x: "x", y: "y", symbol: "key", fill: "key", stroke: theme.surface, strokeWidth: 0.8,
         r: Math.sqrt(markerArea / Math.PI), className: "size-point" }),
-      names(named.filter(leftHalf), "start"),
-      names(named.filter((point) => !leftHalf(point)), "end"),
+      text(nameMarks, { x: "x", y: "y", text: "label", textAnchor: "start", lineAnchor: "middle", fill: theme.ink,
+        stroke: theme.surface, strokeWidth: theme.fontSize * 0.25, paintOrder: "stroke", className: "size-name" }),
       ...legend.marks as never[],
       tip(points, pointer({ x: "x", y: "y", fill: theme.surface, stroke: theme.grid,
         title: (point: ScatterPoint) => `${point.label}\n${formatCount(point.x)} applications\n${opts.formatTip(point.y)} a year` })),

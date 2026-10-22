@@ -1,6 +1,7 @@
 import { test, expect, type Locator, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 import { fixtureBreak, includesBreakNote, routeSeriesBreaks } from "./seriesBreaks";
+import { FONT_VARIANTS, useWideFonts } from "./wideFonts";
 
 const manifest = JSON.parse(readFileSync("site/data/manifest.json", "utf8"));
 const config = JSON.parse(readFileSync("site/config.json", "utf8"));
@@ -555,8 +556,9 @@ test("size and growth: one marker per origin with a growth rate; the others are 
   await expect(card.locator("tbody tr")).toHaveCount(entries.length);
 });
 
-for (const width of [390, 768, 1440]) {
-  test(`size and growth at ${width}px: country names, the y axis title and the y tick labels never overlap; names stay inside the chart`, async ({ page }) => {
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [390, 768, 1440]) {
+  test(`size and growth at ${width}px: country names, the y axis title and the y tick labels never overlap; names stay inside the chart${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     const card = page.locator('.chart-card[data-chart="size-growth"]');
