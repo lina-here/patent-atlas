@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Preview Patent Atlas",
+      "detail": "Serve site/ on http://localhost:8123 and open it in the browser. Stop with the trash icon in the terminal.",
+      "type": "shell",
+      "command": "(sleep 1 && python3 -m webbrowser http://localhost:8123) & python3 -m http.server 8123 -b 127.0.0.1 -d site",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

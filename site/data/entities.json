@@ -1,0 +1,1493 @@
+[
+  {
+    "code": "AD",
+    "iso3": "AND",
+    "iso_numeric": "020",
+    "kind": "country",
+    "label": "Andorra"
+  },
+  {
+    "code": "AE",
+    "iso3": "ARE",
+    "iso_numeric": "784",
+    "kind": "country",
+    "label": "United Arab Emirates"
+  },
+  {
+    "code": "AF",
+    "iso3": "AFG",
+    "iso_numeric": "004",
+    "kind": "country",
+    "label": "Afghanistan"
+  },
+  {
+    "code": "AG",
+    "iso3": "ATG",
+    "iso_numeric": "028",
+    "kind": "country",
+    "label": "Antigua and Barbuda"
+  },
+  {
+    "code": "AL",
+    "iso3": "ALB",
+    "iso_numeric": "008",
+    "kind": "country",
+    "label": "Albania"
+  },
+  {
+    "code": "AM",
+    "iso3": "ARM",
+    "iso_numeric": "051",
+    "kind": "country",
+    "label": "Armenia"
+  },
+  {
+    "code": "AN",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "historical",
+    "label": "Netherlands Antilles"
+  },
+  {
+    "code": "AO",
+    "iso3": "AGO",
+    "iso_numeric": "024",
+    "kind": "country",
+    "label": "Angola"
+  },
+  {
+    "code": "AP",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "regional_office",
+    "label": "African Regional Intellectual Property Organization"
+  },
+  {
+    "code": "AR",
+    "iso3": "ARG",
+    "iso_numeric": "032",
+    "kind": "country",
+    "label": "Argentina"
+  },
+  {
+    "code": "AT",
+    "iso3": "AUT",
+    "iso_numeric": "040",
+    "kind": "country",
+    "label": "Austria"
+  },
+  {
+    "code": "AU",
+    "iso3": "AUS",
+    "iso_numeric": "036",
+    "kind": "country",
+    "label": "Australia"
+  },
+  {
+    "code": "AZ",
+    "iso3": "AZE",
+    "iso_numeric": "031",
+    "kind": "country",
+    "label": "Azerbaijan"
+  },
+  {
+    "code": "BA",
+    "iso3": "BIH",
+    "iso_numeric": "070",
+    "kind": "country",
+    "label": "Bosnia and Herzegovina"
+  },
+  {
+    "code": "BB",
+    "iso3": "BRB",
+    "iso_numeric": "052",
+    "kind": "country",
+    "label": "Barbados"
+  },
+  {
+    "code": "BD",
+    "iso3": "BGD",
+    "iso_numeric": "050",
+    "kind": "country",
+    "label": "Bangladesh"
+  },
+  {
+    "code": "BE",
+    "iso3": "BEL",
+    "iso_numeric": "056",
+    "kind": "country",
+    "label": "Belgium"
+  },
+  {
+    "code": "BF",
+    "iso3": "BFA",
+    "iso_numeric": "854",
+    "kind": "country",
+    "label": "Burkina Faso"
+  },
+  {
+    "code": "BG",
+    "iso3": "BGR",
+    "iso_numeric": "100",
+    "kind": "country",
+    "label": "Bulgaria"
+  },
+  {
+    "code": "BH",
+    "iso3": "BHR",
+    "iso_numeric": "048",
+    "kind": "country",
+    "label": "Bahrain"
+  },
+  {
+    "code": "BI",
+    "iso3": "BDI",
+    "iso_numeric": "108",
+    "kind": "country",
+    "label": "Burundi"
+  },
+  {
+    "code": "BJ",
+    "iso3": "BEN",
+    "iso_numeric": "204",
+    "kind": "country",
+    "label": "Benin"
+  },
+  {
+    "code": "BN",
+    "iso3": "BRN",
+    "iso_numeric": "096",
+    "kind": "country",
+    "label": "Brunei Darussalam"
+  },
+  {
+    "code": "BO",
+    "iso3": "BOL",
+    "iso_numeric": "068",
+    "kind": "country",
+    "label": "Bolivia (Plurinational State of)"
+  },
+  {
+    "code": "BQ",
+    "iso3": "BES",
+    "iso_numeric": "535",
+    "kind": "country",
+    "label": "Bonaire, Sint Eustatius and Saba"
+  },
+  {
+    "code": "BR",
+    "iso3": "BRA",
+    "iso_numeric": "076",
+    "kind": "country",
+    "label": "Brazil"
+  },
+  {
+    "code": "BS",
+    "iso3": "BHS",
+    "iso_numeric": "044",
+    "kind": "country",
+    "label": "Bahamas"
+  },
+  {
+    "code": "BT",
+    "iso3": "BTN",
+    "iso_numeric": "064",
+    "kind": "country",
+    "label": "Bhutan"
+  },
+  {
+    "code": "BW",
+    "iso3": "BWA",
+    "iso_numeric": "072",
+    "kind": "country",
+    "label": "Botswana"
+  },
+  {
+    "code": "BY",
+    "iso3": "BLR",
+    "iso_numeric": "112",
+    "kind": "country",
+    "label": "Belarus"
+  },
+  {
+    "code": "BZ",
+    "iso3": "BLZ",
+    "iso_numeric": "084",
+    "kind": "country",
+    "label": "Belize"
+  },
+  {
+    "code": "CA",
+    "iso3": "CAN",
+    "iso_numeric": "124",
+    "kind": "country",
+    "label": "Canada"
+  },
+  {
+    "code": "CD",
+    "iso3": "COD",
+    "iso_numeric": "180",
+    "kind": "country",
+    "label": "Democratic Republic of the Congo"
+  },
+  {
+    "code": "CF",
+    "iso3": "CAF",
+    "iso_numeric": "140",
+    "kind": "country",
+    "label": "Central African Republic"
+  },
+  {
+    "code": "CG",
+    "iso3": "COG",
+    "iso_numeric": "178",
+    "kind": "country",
+    "label": "Congo"
+  },
+  {
+    "code": "CH",
+    "iso3": "CHE",
+    "iso_numeric": "756",
+    "kind": "country",
+    "label": "Switzerland"
+  },
+  {
+    "code": "CI",
+    "iso3": "CIV",
+    "iso_numeric": "384",
+    "kind": "country",
+    "label": "Côte d'Ivoire"
+  },
+  {
+    "code": "CK",
+    "iso3": "COK",
+    "iso_numeric": "184",
+    "kind": "country",
+    "label": "Cook Islands"
+  },
+  {
+    "code": "CL",
+    "iso3": "CHL",
+    "iso_numeric": "152",
+    "kind": "country",
+    "label": "Chile"
+  },
+  {
+    "code": "CM",
+    "iso3": "CMR",
+    "iso_numeric": "120",
+    "kind": "country",
+    "label": "Cameroon"
+  },
+  {
+    "code": "CN",
+    "iso3": "CHN",
+    "iso_numeric": "156",
+    "kind": "country",
+    "label": "China"
+  },
+  {
+    "code": "CO",
+    "iso3": "COL",
+    "iso_numeric": "170",
+    "kind": "country",
+    "label": "Colombia"
+  },
+  {
+    "code": "CR",
+    "iso3": "CRI",
+    "iso_numeric": "188",
+    "kind": "country",
+    "label": "Costa Rica"
+  },
+  {
+    "code": "CS",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "historical",
+    "label": "Czechoslovakia"
+  },
+  {
+    "code": "CU",
+    "iso3": "CUB",
+    "iso_numeric": "192",
+    "kind": "country",
+    "label": "Cuba"
+  },
+  {
+    "code": "CV",
+    "iso3": "CPV",
+    "iso_numeric": "132",
+    "kind": "country",
+    "label": "Cabo Verde"
+  },
+  {
+    "code": "CW",
+    "iso3": "CUW",
+    "iso_numeric": "531",
+    "kind": "country",
+    "label": "Curaçao"
+  },
+  {
+    "code": "CY",
+    "iso3": "CYP",
+    "iso_numeric": "196",
+    "kind": "country",
+    "label": "Cyprus"
+  },
+  {
+    "code": "CZ",
+    "iso3": "CZE",
+    "iso_numeric": "203",
+    "kind": "country",
+    "label": "Czech Republic"
+  },
+  {
+    "code": "DD",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "historical",
+    "label": "German Democratic Republic"
+  },
+  {
+    "code": "DE",
+    "iso3": "DEU",
+    "iso_numeric": "276",
+    "kind": "country",
+    "label": "Germany"
+  },
+  {
+    "code": "DJ",
+    "iso3": "DJI",
+    "iso_numeric": "262",
+    "kind": "country",
+    "label": "Djibouti"
+  },
+  {
+    "code": "DK",
+    "iso3": "DNK",
+    "iso_numeric": "208",
+    "kind": "country",
+    "label": "Denmark"
+  },
+  {
+    "code": "DM",
+    "iso3": "DMA",
+    "iso_numeric": "212",
+    "kind": "country",
+    "label": "Dominica"
+  },
+  {
+    "code": "DO",
+    "iso3": "DOM",
+    "iso_numeric": "214",
+    "kind": "country",
+    "label": "Dominican Republic"
+  },
+  {
+    "code": "DZ",
+    "iso3": "DZA",
+    "iso_numeric": "012",
+    "kind": "country",
+    "label": "Algeria"
+  },
+  {
+    "code": "EA",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "regional_office",
+    "label": "Eurasian Patent Organization"
+  },
+  {
+    "code": "EC",
+    "iso3": "ECU",
+    "iso_numeric": "218",
+    "kind": "country",
+    "label": "Ecuador"
+  },
+  {
+    "code": "EE",
+    "iso3": "EST",
+    "iso_numeric": "233",
+    "kind": "country",
+    "label": "Estonia"
+  },
+  {
+    "code": "EG",
+    "iso3": "EGY",
+    "iso_numeric": "818",
+    "kind": "country",
+    "label": "Egypt"
+  },
+  {
+    "code": "EP",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "regional_office",
+    "label": "European Patent Office"
+  },
+  {
+    "code": "ER",
+    "iso3": "ERI",
+    "iso_numeric": "232",
+    "kind": "country",
+    "label": "Eritrea"
+  },
+  {
+    "code": "ES",
+    "iso3": "ESP",
+    "iso_numeric": "724",
+    "kind": "country",
+    "label": "Spain"
+  },
+  {
+    "code": "ET",
+    "iso3": "ETH",
+    "iso_numeric": "231",
+    "kind": "country",
+    "label": "Ethiopia"
+  },
+  {
+    "code": "FI",
+    "iso3": "FIN",
+    "iso_numeric": "246",
+    "kind": "country",
+    "label": "Finland"
+  },
+  {
+    "code": "FJ",
+    "iso3": "FJI",
+    "iso_numeric": "242",
+    "kind": "country",
+    "label": "Fiji"
+  },
+  {
+    "code": "FM",
+    "iso3": "FSM",
+    "iso_numeric": "583",
+    "kind": "country",
+    "label": "Micronesia (Federated States of)"
+  },
+  {
+    "code": "FR",
+    "iso3": "FRA",
+    "iso_numeric": "250",
+    "kind": "country",
+    "label": "France"
+  },
+  {
+    "code": "GA",
+    "iso3": "GAB",
+    "iso_numeric": "266",
+    "kind": "country",
+    "label": "Gabon"
+  },
+  {
+    "code": "GB",
+    "iso3": "GBR",
+    "iso_numeric": "826",
+    "kind": "country",
+    "label": "United Kingdom"
+  },
+  {
+    "code": "GC",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "regional_office",
+    "label": "Patent Office of the Cooperation Council for the Arab States of the Gulf"
+  },
+  {
+    "code": "GD",
+    "iso3": "GRD",
+    "iso_numeric": "308",
+    "kind": "country",
+    "label": "Grenada"
+  },
+  {
+    "code": "GE",
+    "iso3": "GEO",
+    "iso_numeric": "268",
+    "kind": "country",
+    "label": "Georgia"
+  },
+  {
+    "code": "GG",
+    "iso3": "GGY",
+    "iso_numeric": "831",
+    "kind": "country",
+    "label": "Guernsey"
+  },
+  {
+    "code": "GH",
+    "iso3": "GHA",
+    "iso_numeric": "288",
+    "kind": "country",
+    "label": "Ghana"
+  },
+  {
+    "code": "GM",
+    "iso3": "GMB",
+    "iso_numeric": "270",
+    "kind": "country",
+    "label": "Gambia"
+  },
+  {
+    "code": "GN",
+    "iso3": "GIN",
+    "iso_numeric": "324",
+    "kind": "country",
+    "label": "Guinea"
+  },
+  {
+    "code": "GQ",
+    "iso3": "GNQ",
+    "iso_numeric": "226",
+    "kind": "country",
+    "label": "Equatorial Guinea"
+  },
+  {
+    "code": "GR",
+    "iso3": "GRC",
+    "iso_numeric": "300",
+    "kind": "country",
+    "label": "Greece"
+  },
+  {
+    "code": "GT",
+    "iso3": "GTM",
+    "iso_numeric": "320",
+    "kind": "country",
+    "label": "Guatemala"
+  },
+  {
+    "code": "GW",
+    "iso3": "GNB",
+    "iso_numeric": "624",
+    "kind": "country",
+    "label": "Guinea-Bissau"
+  },
+  {
+    "code": "GY",
+    "iso3": "GUY",
+    "iso_numeric": "328",
+    "kind": "country",
+    "label": "Guyana"
+  },
+  {
+    "code": "HK",
+    "iso3": "HKG",
+    "iso_numeric": "344",
+    "kind": "country",
+    "label": "China, Hong Kong SAR"
+  },
+  {
+    "code": "HN",
+    "iso3": "HND",
+    "iso_numeric": "340",
+    "kind": "country",
+    "label": "Honduras"
+  },
+  {
+    "code": "HR",
+    "iso3": "HRV",
+    "iso_numeric": "191",
+    "kind": "country",
+    "label": "Croatia"
+  },
+  {
+    "code": "HT",
+    "iso3": "HTI",
+    "iso_numeric": "332",
+    "kind": "country",
+    "label": "Haiti"
+  },
+  {
+    "code": "HU",
+    "iso3": "HUN",
+    "iso_numeric": "348",
+    "kind": "country",
+    "label": "Hungary"
+  },
+  {
+    "code": "ID",
+    "iso3": "IDN",
+    "iso_numeric": "360",
+    "kind": "country",
+    "label": "Indonesia"
+  },
+  {
+    "code": "IE",
+    "iso3": "IRL",
+    "iso_numeric": "372",
+    "kind": "country",
+    "label": "Ireland"
+  },
+  {
+    "code": "IL",
+    "iso3": "ISR",
+    "iso_numeric": "376",
+    "kind": "country",
+    "label": "Israel"
+  },
+  {
+    "code": "IN",
+    "iso3": "IND",
+    "iso_numeric": "356",
+    "kind": "country",
+    "label": "India"
+  },
+  {
+    "code": "IQ",
+    "iso3": "IRQ",
+    "iso_numeric": "368",
+    "kind": "country",
+    "label": "Iraq"
+  },
+  {
+    "code": "IR",
+    "iso3": "IRN",
+    "iso_numeric": "364",
+    "kind": "country",
+    "label": "Iran (Islamic Republic of)"
+  },
+  {
+    "code": "IS",
+    "iso3": "ISL",
+    "iso_numeric": "352",
+    "kind": "country",
+    "label": "Iceland"
+  },
+  {
+    "code": "IT",
+    "iso3": "ITA",
+    "iso_numeric": "380",
+    "kind": "country",
+    "label": "Italy"
+  },
+  {
+    "code": "JM",
+    "iso3": "JAM",
+    "iso_numeric": "388",
+    "kind": "country",
+    "label": "Jamaica"
+  },
+  {
+    "code": "JO",
+    "iso3": "JOR",
+    "iso_numeric": "400",
+    "kind": "country",
+    "label": "Jordan"
+  },
+  {
+    "code": "JP",
+    "iso3": "JPN",
+    "iso_numeric": "392",
+    "kind": "country",
+    "label": "Japan"
+  },
+  {
+    "code": "KE",
+    "iso3": "KEN",
+    "iso_numeric": "404",
+    "kind": "country",
+    "label": "Kenya"
+  },
+  {
+    "code": "KG",
+    "iso3": "KGZ",
+    "iso_numeric": "417",
+    "kind": "country",
+    "label": "Kyrgyzstan"
+  },
+  {
+    "code": "KH",
+    "iso3": "KHM",
+    "iso_numeric": "116",
+    "kind": "country",
+    "label": "Cambodia"
+  },
+  {
+    "code": "KI",
+    "iso3": "KIR",
+    "iso_numeric": "296",
+    "kind": "country",
+    "label": "Kiribati"
+  },
+  {
+    "code": "KM",
+    "iso3": "COM",
+    "iso_numeric": "174",
+    "kind": "country",
+    "label": "Comoros"
+  },
+  {
+    "code": "KN",
+    "iso3": "KNA",
+    "iso_numeric": "659",
+    "kind": "country",
+    "label": "Saint Kitts and Nevis"
+  },
+  {
+    "code": "KP",
+    "iso3": "PRK",
+    "iso_numeric": "408",
+    "kind": "country",
+    "label": "Democratic People's Republic of Korea"
+  },
+  {
+    "code": "KR",
+    "iso3": "KOR",
+    "iso_numeric": "410",
+    "kind": "country",
+    "label": "Republic of Korea"
+  },
+  {
+    "code": "KW",
+    "iso3": "KWT",
+    "iso_numeric": "414",
+    "kind": "country",
+    "label": "Kuwait"
+  },
+  {
+    "code": "KZ",
+    "iso3": "KAZ",
+    "iso_numeric": "398",
+    "kind": "country",
+    "label": "Kazakhstan"
+  },
+  {
+    "code": "LA",
+    "iso3": "LAO",
+    "iso_numeric": "418",
+    "kind": "country",
+    "label": "Lao People's Democratic Republic"
+  },
+  {
+    "code": "LB",
+    "iso3": "LBN",
+    "iso_numeric": "422",
+    "kind": "country",
+    "label": "Lebanon"
+  },
+  {
+    "code": "LC",
+    "iso3": "LCA",
+    "iso_numeric": "662",
+    "kind": "country",
+    "label": "Saint Lucia"
+  },
+  {
+    "code": "LI",
+    "iso3": "LIE",
+    "iso_numeric": "438",
+    "kind": "country",
+    "label": "Liechtenstein"
+  },
+  {
+    "code": "LK",
+    "iso3": "LKA",
+    "iso_numeric": "144",
+    "kind": "country",
+    "label": "Sri Lanka"
+  },
+  {
+    "code": "LR",
+    "iso3": "LBR",
+    "iso_numeric": "430",
+    "kind": "country",
+    "label": "Liberia"
+  },
+  {
+    "code": "LS",
+    "iso3": "LSO",
+    "iso_numeric": "426",
+    "kind": "country",
+    "label": "Lesotho"
+  },
+  {
+    "code": "LT",
+    "iso3": "LTU",
+    "iso_numeric": "440",
+    "kind": "country",
+    "label": "Lithuania"
+  },
+  {
+    "code": "LU",
+    "iso3": "LUX",
+    "iso_numeric": "442",
+    "kind": "country",
+    "label": "Luxembourg"
+  },
+  {
+    "code": "LV",
+    "iso3": "LVA",
+    "iso_numeric": "428",
+    "kind": "country",
+    "label": "Latvia"
+  },
+  {
+    "code": "LY",
+    "iso3": "LBY",
+    "iso_numeric": "434",
+    "kind": "country",
+    "label": "Libya"
+  },
+  {
+    "code": "MA",
+    "iso3": "MAR",
+    "iso_numeric": "504",
+    "kind": "country",
+    "label": "Morocco"
+  },
+  {
+    "code": "MC",
+    "iso3": "MCO",
+    "iso_numeric": "492",
+    "kind": "country",
+    "label": "Monaco"
+  },
+  {
+    "code": "MD",
+    "iso3": "MDA",
+    "iso_numeric": "498",
+    "kind": "country",
+    "label": "Republic of Moldova"
+  },
+  {
+    "code": "ME",
+    "iso3": "MNE",
+    "iso_numeric": "499",
+    "kind": "country",
+    "label": "Montenegro"
+  },
+  {
+    "code": "MG",
+    "iso3": "MDG",
+    "iso_numeric": "450",
+    "kind": "country",
+    "label": "Madagascar"
+  },
+  {
+    "code": "MH",
+    "iso3": "MHL",
+    "iso_numeric": "584",
+    "kind": "country",
+    "label": "Marshall Islands"
+  },
+  {
+    "code": "MK",
+    "iso3": "MKD",
+    "iso_numeric": "807",
+    "kind": "country",
+    "label": "North Macedonia"
+  },
+  {
+    "code": "ML",
+    "iso3": "MLI",
+    "iso_numeric": "466",
+    "kind": "country",
+    "label": "Mali"
+  },
+  {
+    "code": "MM",
+    "iso3": "MMR",
+    "iso_numeric": "104",
+    "kind": "country",
+    "label": "Myanmar"
+  },
+  {
+    "code": "MN",
+    "iso3": "MNG",
+    "iso_numeric": "496",
+    "kind": "country",
+    "label": "Mongolia"
+  },
+  {
+    "code": "MO",
+    "iso3": "MAC",
+    "iso_numeric": "446",
+    "kind": "country",
+    "label": "China, Macao SAR"
+  },
+  {
+    "code": "MR",
+    "iso3": "MRT",
+    "iso_numeric": "478",
+    "kind": "country",
+    "label": "Mauritania"
+  },
+  {
+    "code": "MT",
+    "iso3": "MLT",
+    "iso_numeric": "470",
+    "kind": "country",
+    "label": "Malta"
+  },
+  {
+    "code": "MU",
+    "iso3": "MUS",
+    "iso_numeric": "480",
+    "kind": "country",
+    "label": "Mauritius"
+  },
+  {
+    "code": "MV",
+    "iso3": "MDV",
+    "iso_numeric": "462",
+    "kind": "country",
+    "label": "Maldives"
+  },
+  {
+    "code": "MW",
+    "iso3": "MWI",
+    "iso_numeric": "454",
+    "kind": "country",
+    "label": "Malawi"
+  },
+  {
+    "code": "MX",
+    "iso3": "MEX",
+    "iso_numeric": "484",
+    "kind": "country",
+    "label": "Mexico"
+  },
+  {
+    "code": "MY",
+    "iso3": "MYS",
+    "iso_numeric": "458",
+    "kind": "country",
+    "label": "Malaysia"
+  },
+  {
+    "code": "MZ",
+    "iso3": "MOZ",
+    "iso_numeric": "508",
+    "kind": "country",
+    "label": "Mozambique"
+  },
+  {
+    "code": "NA",
+    "iso3": "NAM",
+    "iso_numeric": "516",
+    "kind": "country",
+    "label": "Namibia"
+  },
+  {
+    "code": "NE",
+    "iso3": "NER",
+    "iso_numeric": "562",
+    "kind": "country",
+    "label": "Niger"
+  },
+  {
+    "code": "NG",
+    "iso3": "NGA",
+    "iso_numeric": "566",
+    "kind": "country",
+    "label": "Nigeria"
+  },
+  {
+    "code": "NI",
+    "iso3": "NIC",
+    "iso_numeric": "558",
+    "kind": "country",
+    "label": "Nicaragua"
+  },
+  {
+    "code": "NL",
+    "iso3": "NLD",
+    "iso_numeric": "528",
+    "kind": "country",
+    "label": "Netherlands (Kingdom of the)"
+  },
+  {
+    "code": "NO",
+    "iso3": "NOR",
+    "iso_numeric": "578",
+    "kind": "country",
+    "label": "Norway"
+  },
+  {
+    "code": "NP",
+    "iso3": "NPL",
+    "iso_numeric": "524",
+    "kind": "country",
+    "label": "Nepal"
+  },
+  {
+    "code": "NR",
+    "iso3": "NRU",
+    "iso_numeric": "520",
+    "kind": "country",
+    "label": "Nauru"
+  },
+  {
+    "code": "NU",
+    "iso3": "NIU",
+    "iso_numeric": "570",
+    "kind": "country",
+    "label": "Niue"
+  },
+  {
+    "code": "NZ",
+    "iso3": "NZL",
+    "iso_numeric": "554",
+    "kind": "country",
+    "label": "New Zealand"
+  },
+  {
+    "code": "OA",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "regional_office",
+    "label": "African Intellectual Property Organization"
+  },
+  {
+    "code": "OM",
+    "iso3": "OMN",
+    "iso_numeric": "512",
+    "kind": "country",
+    "label": "Oman"
+  },
+  {
+    "code": "PA",
+    "iso3": "PAN",
+    "iso_numeric": "591",
+    "kind": "country",
+    "label": "Panama"
+  },
+  {
+    "code": "PE",
+    "iso3": "PER",
+    "iso_numeric": "604",
+    "kind": "country",
+    "label": "Peru"
+  },
+  {
+    "code": "PG",
+    "iso3": "PNG",
+    "iso_numeric": "598",
+    "kind": "country",
+    "label": "Papua New Guinea"
+  },
+  {
+    "code": "PH",
+    "iso3": "PHL",
+    "iso_numeric": "608",
+    "kind": "country",
+    "label": "Philippines"
+  },
+  {
+    "code": "PK",
+    "iso3": "PAK",
+    "iso_numeric": "586",
+    "kind": "country",
+    "label": "Pakistan"
+  },
+  {
+    "code": "PL",
+    "iso3": "POL",
+    "iso_numeric": "616",
+    "kind": "country",
+    "label": "Poland"
+  },
+  {
+    "code": "PT",
+    "iso3": "PRT",
+    "iso_numeric": "620",
+    "kind": "country",
+    "label": "Portugal"
+  },
+  {
+    "code": "PW",
+    "iso3": "PLW",
+    "iso_numeric": "585",
+    "kind": "country",
+    "label": "Palau"
+  },
+  {
+    "code": "PY",
+    "iso3": "PRY",
+    "iso_numeric": "600",
+    "kind": "country",
+    "label": "Paraguay"
+  },
+  {
+    "code": "QA",
+    "iso3": "QAT",
+    "iso_numeric": "634",
+    "kind": "country",
+    "label": "Qatar"
+  },
+  {
+    "code": "RO",
+    "iso3": "ROU",
+    "iso_numeric": "642",
+    "kind": "country",
+    "label": "Romania"
+  },
+  {
+    "code": "RS",
+    "iso3": "SRB",
+    "iso_numeric": "688",
+    "kind": "country",
+    "label": "Serbia"
+  },
+  {
+    "code": "RU",
+    "iso3": "RUS",
+    "iso_numeric": "643",
+    "kind": "country",
+    "label": "Russian Federation"
+  },
+  {
+    "code": "RW",
+    "iso3": "RWA",
+    "iso_numeric": "646",
+    "kind": "country",
+    "label": "Rwanda"
+  },
+  {
+    "code": "SA",
+    "iso3": "SAU",
+    "iso_numeric": "682",
+    "kind": "country",
+    "label": "Saudi Arabia"
+  },
+  {
+    "code": "SB",
+    "iso3": "SLB",
+    "iso_numeric": "090",
+    "kind": "country",
+    "label": "Solomon Islands"
+  },
+  {
+    "code": "SC",
+    "iso3": "SYC",
+    "iso_numeric": "690",
+    "kind": "country",
+    "label": "Seychelles"
+  },
+  {
+    "code": "SD",
+    "iso3": "SDN",
+    "iso_numeric": "729",
+    "kind": "country",
+    "label": "Sudan"
+  },
+  {
+    "code": "SE",
+    "iso3": "SWE",
+    "iso_numeric": "752",
+    "kind": "country",
+    "label": "Sweden"
+  },
+  {
+    "code": "SG",
+    "iso3": "SGP",
+    "iso_numeric": "702",
+    "kind": "country",
+    "label": "Singapore"
+  },
+  {
+    "code": "SI",
+    "iso3": "SVN",
+    "iso_numeric": "705",
+    "kind": "country",
+    "label": "Slovenia"
+  },
+  {
+    "code": "SK",
+    "iso3": "SVK",
+    "iso_numeric": "703",
+    "kind": "country",
+    "label": "Slovakia"
+  },
+  {
+    "code": "SL",
+    "iso3": "SLE",
+    "iso_numeric": "694",
+    "kind": "country",
+    "label": "Sierra Leone"
+  },
+  {
+    "code": "SM",
+    "iso3": "SMR",
+    "iso_numeric": "674",
+    "kind": "country",
+    "label": "San Marino"
+  },
+  {
+    "code": "SN",
+    "iso3": "SEN",
+    "iso_numeric": "686",
+    "kind": "country",
+    "label": "Senegal"
+  },
+  {
+    "code": "SO",
+    "iso3": "SOM",
+    "iso_numeric": "706",
+    "kind": "country",
+    "label": "Somalia"
+  },
+  {
+    "code": "SR",
+    "iso3": "SUR",
+    "iso_numeric": "740",
+    "kind": "country",
+    "label": "Suriname"
+  },
+  {
+    "code": "SS",
+    "iso3": "SSD",
+    "iso_numeric": "728",
+    "kind": "country",
+    "label": "South Sudan"
+  },
+  {
+    "code": "ST",
+    "iso3": "STP",
+    "iso_numeric": "678",
+    "kind": "country",
+    "label": "Sao Tome and Principe"
+  },
+  {
+    "code": "SU",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "historical",
+    "label": "Soviet Union"
+  },
+  {
+    "code": "SV",
+    "iso3": "SLV",
+    "iso_numeric": "222",
+    "kind": "country",
+    "label": "El Salvador"
+  },
+  {
+    "code": "SX",
+    "iso3": "SXM",
+    "iso_numeric": "534",
+    "kind": "country",
+    "label": "Sint Maarten (Dutch Part)"
+  },
+  {
+    "code": "SY",
+    "iso3": "SYR",
+    "iso_numeric": "760",
+    "kind": "country",
+    "label": "Syrian Arab Republic"
+  },
+  {
+    "code": "SZ",
+    "iso3": "SWZ",
+    "iso_numeric": "748",
+    "kind": "country",
+    "label": "Eswatini"
+  },
+  {
+    "code": "TD",
+    "iso3": "TCD",
+    "iso_numeric": "148",
+    "kind": "country",
+    "label": "Chad"
+  },
+  {
+    "code": "TG",
+    "iso3": "TGO",
+    "iso_numeric": "768",
+    "kind": "country",
+    "label": "Togo"
+  },
+  {
+    "code": "TH",
+    "iso3": "THA",
+    "iso_numeric": "764",
+    "kind": "country",
+    "label": "Thailand"
+  },
+  {
+    "code": "TJ",
+    "iso3": "TJK",
+    "iso_numeric": "762",
+    "kind": "country",
+    "label": "Tajikistan"
+  },
+  {
+    "code": "TL",
+    "iso3": "TLS",
+    "iso_numeric": "626",
+    "kind": "country",
+    "label": "Timor-Leste"
+  },
+  {
+    "code": "TM",
+    "iso3": "TKM",
+    "iso_numeric": "795",
+    "kind": "country",
+    "label": "Turkmenistan"
+  },
+  {
+    "code": "TN",
+    "iso3": "TUN",
+    "iso_numeric": "788",
+    "kind": "country",
+    "label": "Tunisia"
+  },
+  {
+    "code": "TO",
+    "iso3": "TON",
+    "iso_numeric": "776",
+    "kind": "country",
+    "label": "Tonga"
+  },
+  {
+    "code": "TR",
+    "iso3": "TUR",
+    "iso_numeric": "792",
+    "kind": "country",
+    "label": "Türkiye"
+  },
+  {
+    "code": "TT",
+    "iso3": "TTO",
+    "iso_numeric": "780",
+    "kind": "country",
+    "label": "Trinidad and Tobago"
+  },
+  {
+    "code": "TV",
+    "iso3": "TUV",
+    "iso_numeric": "798",
+    "kind": "country",
+    "label": "Tuvalu"
+  },
+  {
+    "code": "TZ",
+    "iso3": "TZA",
+    "iso_numeric": "834",
+    "kind": "country",
+    "label": "United Republic of Tanzania"
+  },
+  {
+    "code": "UA",
+    "iso3": "UKR",
+    "iso_numeric": "804",
+    "kind": "country",
+    "label": "Ukraine"
+  },
+  {
+    "code": "UG",
+    "iso3": "UGA",
+    "iso_numeric": "800",
+    "kind": "country",
+    "label": "Uganda"
+  },
+  {
+    "code": "US",
+    "iso3": "USA",
+    "iso_numeric": "840",
+    "kind": "country",
+    "label": "United States of America"
+  },
+  {
+    "code": "UY",
+    "iso3": "URY",
+    "iso_numeric": "858",
+    "kind": "country",
+    "label": "Uruguay"
+  },
+  {
+    "code": "UZ",
+    "iso3": "UZB",
+    "iso_numeric": "860",
+    "kind": "country",
+    "label": "Uzbekistan"
+  },
+  {
+    "code": "VA",
+    "iso3": "VAT",
+    "iso_numeric": "336",
+    "kind": "country",
+    "label": "Holy See"
+  },
+  {
+    "code": "VC",
+    "iso3": "VCT",
+    "iso_numeric": "670",
+    "kind": "country",
+    "label": "Saint Vincent and the Grenadines"
+  },
+  {
+    "code": "VE",
+    "iso3": "VEN",
+    "iso_numeric": "862",
+    "kind": "country",
+    "label": "Venezuela (Bolivarian Republic of)"
+  },
+  {
+    "code": "VN",
+    "iso3": "VNM",
+    "iso_numeric": "704",
+    "kind": "country",
+    "label": "Viet Nam"
+  },
+  {
+    "code": "VU",
+    "iso3": "VUT",
+    "iso_numeric": "548",
+    "kind": "country",
+    "label": "Vanuatu"
+  },
+  {
+    "code": "WS",
+    "iso3": "WSM",
+    "iso_numeric": "882",
+    "kind": "country",
+    "label": "Samoa"
+  },
+  {
+    "code": "YE",
+    "iso3": "YEM",
+    "iso_numeric": "887",
+    "kind": "country",
+    "label": "Yemen"
+  },
+  {
+    "code": "YU",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "historical",
+    "label": "Yugoslavia"
+  },
+  {
+    "code": "ZA",
+    "iso3": "ZAF",
+    "iso_numeric": "710",
+    "kind": "country",
+    "label": "South Africa"
+  },
+  {
+    "code": "ZM",
+    "iso3": "ZMB",
+    "iso_numeric": "894",
+    "kind": "country",
+    "label": "Zambia"
+  },
+  {
+    "code": "ZR",
+    "iso3": null,
+    "iso_numeric": null,
+    "kind": "historical",
+    "label": "Zaire"
+  },
+  {
+    "code": "ZW",
+    "iso3": "ZWE",
+    "iso_numeric": "716",
+    "kind": "country",
+    "label": "Zimbabwe"
+  }
+]

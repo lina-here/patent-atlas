@@ -1,0 +1,16 @@
+{
+  "_comment": "WIPO's printed continent (WIPO region) women-inventor figures, hand-entered from the PDF text; only values printed as numbers (bars without a value label are not entered). Read by pipeline/gender.py load_published; these years win over computed values (ruling C1).",
+  "source": {
+    "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf"
+  },
+  "women_any": {},
+  "women_share": {
+    "latin-america-caribbean": {"2025": {"value": 24.5, "figure": "A24", "page": "p. 9 (PDF p. 10), text 'LAC recorded the highest share, with women representing 24.5% of PCT inventors' citing figure A24 (p. 29, PDF p. 30)"}},
+    "asia": {"2025": {"value": 18.8, "figure": "A24", "page": "p. 9 (PDF p. 10), text 'Asia (18.8%)' citing figure A24 (p. 29, PDF p. 30)"}},
+    "northern-america": {"2025": {"value": 18.2, "figure": "A24", "page": "p. 9 (PDF p. 10), text 'Northern America (18.2%)' citing figure A24 (p. 29, PDF p. 30)"}},
+    "africa": {"2025": {"value": 18.1, "figure": "A24", "page": "p. 9 (PDF p. 10), text 'Africa (18.1%)' citing figure A24 (p. 29, PDF p. 30)"}},
+    "oceania": {"2025": {"value": 16.7, "figure": "A24", "page": "p. 9 (PDF p. 10), text 'Oceania (16.7%)' citing figure A24 (p. 29, PDF p. 30)"}},
+    "europe": {"2025": {"value": 16.3, "figure": "A24", "page": "p. 9 (PDF p. 10), text 'Europe (16.3%)' citing figure A24 (p. 29, PDF p. 30)"}}
+  }
+}

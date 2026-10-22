@@ -1,0 +1,27 @@
+{
+ "_fixture": "hand-made",
+ "ipsOfficeLabel": "Office",
+ "ipsOriginList": null,
+ "ipsOffList": {
+  "CH": "Switzerland",
+  "EP": "European Patent Office",
+  "US": "United States of America",
+  "VA": "Holy See",
+  "WD": "World"
+ },
+ "ipsTechList": {
+  "900": " Total",
+  "902": "Non-resident",
+  "901": "Resident"
+ },
+ "ipsTechLabel": "Type",
+ "ipsOriginListSeq": null,
+ "ipsOffListSeq": {
+  "CH": 1,
+  "EP": 2,
+  "US": 3,
+  "VA": 4,
+  "WD": 5
+ },
+ "ipsOriginLabel": null
+}

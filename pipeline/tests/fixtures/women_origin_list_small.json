@@ -1,0 +1,28 @@
+{
+ "_fixture": "hand-made",
+ "pmhClassLabel": null,
+ "pmhOfficeLabel": null,
+ "pmhOriginLabel": "Origin",
+ "pmhOriginList": {
+  "ZZ": "Total",
+  "**": "Unknown",
+  "AM": "Armenia",
+  "CH": "Switzerland",
+  "DE": "Germany",
+  "US": "United States of America",
+  "VA": "Holy See",
+  "R3": "Europe",
+  "R6": "Oceania"
+ },
+ "pmhOriginListSeq": {
+  "ZZ": 1,
+  "**": 2,
+  "AM": 3,
+  "CH": 4,
+  "DE": 5,
+  "US": 6,
+  "VA": 7,
+  "R3": 8,
+  "R6": 9
+ }
+}

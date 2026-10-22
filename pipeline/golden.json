@@ -1,0 +1,101 @@
+[
+  {
+    "id": "world_patent_applications_2024",
+    "description": "Patent applications worldwide, 2024: WIPO world total (office counts incl. WIPO estimates for missing offices; rounded to hundreds). Compared with the published world series (Data Center office report, row World = WD).",
+    "value": 3725000,
+    "year": 2024,
+    "series": "office_apps",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf",
+    "page": "p. 7 (PDF p. 9), table 'IP filing activity by origin', row 'Applications worldwide', column 2024"
+  },
+  {
+    "id": "top_origin_patent_applications_2024",
+    "description": "Patent applications by applicants residing in China (top origin), 2024, absolute count (resident + abroad; WIPI 2025 p. 13: origin data are absolute counts, a regional filing counted once). Same definition as the Data Center report 'Total count by applicant's origin'.",
+    "value": 1795715,
+    "year": 2024,
+    "series": "origin_apps",
+    "code_or_world": "CN",
+    "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf",
+    "page": "p. 7 (PDF p. 9), table 'IP filing activity by origin', row 'China', column 2024"
+  },
+  {
+    "id": "pct_applications_2024",
+    "description": "PCT applications filed in 2024, by international filing date, all origins incl. unknown (WIPO estimate, rounded to hundreds). Compared with the published PCT world series (Data Center PCT yearly report, origin Total = ZZ, receiving office Total).",
+    "value": 273900,
+    "year": 2024,
+    "series": "pct_origin",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (2025). PCT Yearly Review 2025: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.584031 (as printed; repository record tind.wipo.int/record/58403)",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2025-en-patent-cooperation-treaty-yearly-review-2025.pdf",
+    "page": "p. 24 (PDF p. 25), table A9 'PCT applications for the top origins by region, 2022-2024', row 'Total', column 2024; also p. 6 'Key numbers for 2024'"
+  },
+  {
+    "id": "pct_applications_2025",
+    "description": "PCT applications filed in 2025, by international filing date, all origins incl. unknown (WIPO estimate, rounded to hundreds). Compared with the published PCT world series (Data Center PCT yearly report, origin Total = ZZ, receiving office Total).",
+    "value": 275900,
+    "year": 2025,
+    "series": "pct_origin",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf",
+    "page": "p. 16 (PDF p. 17), table A9 row 'Total', column 2025; also p. 6 (PDF p. 7) key numbers"
+  },
+  {
+    "id": "per_gdp_cn_2024",
+    "description": "Resident patent applications per USD 100 billion GDP (2021 PPP dollars), China, 2024 (WIPI rounds to whole numbers; Data Center one decimal). Compared with the published ratio (Data Center ips indicator 100 by origin, WIPO's value as published).",
+    "value": 4977,
+    "year": 2024,
+    "series": "per_gdp",
+    "code_or_world": "CN",
+    "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf",
+    "page": "p. 45 (PDF p. 47), figure A37 'Resident patent applications per USD 100 billion GDP for the top 20 origins, 2014 and 2024', bar 'China', 2024; also p. 14 (PDF p. 16) text"
+  },
+  {
+    "id": "per_million_kr_2024",
+    "description": "Resident patent applications per million population, Republic of Korea, 2024 (WIPI rounds to whole numbers; Data Center one decimal). Compared with the published ratio (Data Center ips indicator 101 by origin, WIPO's value as published).",
+    "value": 3783,
+    "year": 2024,
+    "series": "per_million",
+    "code_or_world": "KR",
+    "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf",
+    "page": "p. 45 (PDF p. 47), figure A38 'Resident patent applications per million population for the top 20 origins, 2014 and 2024', bar 'Republic of Korea', 2024; also p. 15 (PDF p. 17) text"
+  },
+  {
+    "id": "women_any_world_2025",
+    "description": "Share of PCT applications with at least one woman inventor, 2025, by publication year, all origins. Compared with the published World share (Data Center pmh 1040 by origin, row Total = ZZ, WIPO's value as published). Golden tolerance is relative to the printed share (GOLDEN_TOLERANCE_PCT, crosscheck.py), a fraction of a percentage point.",
+    "value": 38.1,
+    "year": 2025,
+    "series": "women_any",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf",
+    "page": "p. 28 (PDF p. 29), text above figure A23 '38.1% listed at least one woman as inventor' (x-axis 'Publication year'); also p. 9 (PDF p. 10) text"
+  },
+  {
+    "id": "women_share_world_2025",
+    "description": "Women's share of PCT inventors, 2025, by publication year, all origins. Compared with the published World share (Data Center pmh 1042 by origin, row Total = ZZ, WIPO's value as published). Golden tolerance is relative to the printed share (GOLDEN_TOLERANCE_PCT, crosscheck.py), a fraction of a percentage point.",
+    "value": 18.1,
+    "year": 2025,
+    "series": "women_share",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf",
+    "page": "p. 28 (PDF p. 29), figure A22 heading 'In 2025, only 18.1% of inventors were women.' (x-axis 'Publication year'); also p. 9 (PDF p. 10) text"
+  },
+  {
+    "id": "women_share_es_2025",
+    "description": "Women's share of PCT inventors, Spain, 2025, by publication year (top share among the top 20 origins). Compared with the published entity share (Data Center pmh 1042 by origin, row ES, WIPO's value as published). Golden tolerance is relative to the printed share (GOLDEN_TOLERANCE_PCT, crosscheck.py), a fraction of a percentage point.",
+    "value": 28.7,
+    "year": 2025,
+    "series": "women_share",
+    "code_or_world": "ES",
+    "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf",
+    "page": "p. 9 (PDF p. 10), text 'Spain (28.7%)' citing figure A25; also figure A25 (p. 29, PDF p. 30) value label"
+  }
+]

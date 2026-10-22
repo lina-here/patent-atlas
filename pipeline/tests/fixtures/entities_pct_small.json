@@ -1,0 +1,30 @@
+{
+ "_fixture": "hand-made",
+ "pmhClassLabel": null,
+ "pmhOfficeLabel": "Receiving Office",
+ "pmhOriginLabel": "Origin",
+ "pmhOriginList": {
+  "CH": "Switzerland",
+  "US": "United States of America",
+  "VA": "Holy See",
+  "ZZ": "Total",
+  "R6": "Oceania"
+ },
+ "pmhOriginListSeq": {
+  "ZZ": 1,
+  "CH": 2,
+  "US": 3,
+  "VA": 4,
+  "R6": 5
+ },
+ "pmhOffList": {
+  "ZZ": "Total",
+  "CH": "Switzerland",
+  "US": "United States of America"
+ },
+ "pmhOffListSeq": {
+  "ZZ": 1,
+  "CH": 2,
+  "US": 3
+ }
+}

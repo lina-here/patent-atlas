@@ -1,0 +1,32 @@
+{
+ "_fixture": "hand-made",
+ "pmhClassLabel": "Publication language",
+ "pmhOfficeLabel": null,
+ "pmhOriginLabel": "Origin",
+ "pmhOriginList": {
+  "ZZ": "Total",
+  "**": "Unknown",
+  "AM": "Armenia",
+  "CH": "Switzerland",
+  "DE": "Germany",
+  "US": "United States of America",
+  "VA": "Holy See"
+ },
+ "pmhOriginListSeq": {
+  "ZZ": 1,
+  "**": 2,
+  "AM": 3,
+  "CH": 4,
+  "DE": 5,
+  "US": 6,
+  "VA": 7
+ },
+ "pmhClassList": {
+  "109": "Total",
+  "112": "English"
+ },
+ "pmhClassListSeq": {
+  "109": 1,
+  "112": 2
+ }
+}

@@ -1,0 +1,177 @@
+{
+ "_fixture": "hand-made",
+ "recordInfo": {
+  "propertyRight": "PCT",
+  "reportType": "Monthly statistics",
+  "yearRange": "2025 - 2026",
+  "indicator": "1 - PCT applications by filing date"
+ },
+ "columns": [
+  {
+   "code": "selectedOffice",
+   "sortProperty": "selectedOffice_SeqOrder",
+   "value": "selectedOffice",
+   "type": "text"
+  },
+  {
+   "code": "selectedOrigin",
+   "sortProperty": "selectedOrigin_SeqOrder",
+   "value": "selectedOrigin",
+   "type": "text"
+  },
+  {
+   "code": "2025/1",
+   "sortProperty": "2025/1_SeqOrder",
+   "value": "2025/1",
+   "type": "number"
+  },
+  {
+   "code": "2025/2",
+   "sortProperty": "2025/2_SeqOrder",
+   "value": "2025/2",
+   "type": "number"
+  },
+  {
+   "code": "2025/3",
+   "sortProperty": "2025/3_SeqOrder",
+   "value": "2025/3",
+   "type": "number"
+  },
+  {
+   "code": "2025/4",
+   "sortProperty": "2025/4_SeqOrder",
+   "value": "2025/4",
+   "type": "number"
+  },
+  {
+   "code": "2025/5",
+   "sortProperty": "2025/5_SeqOrder",
+   "value": "2025/5",
+   "type": "number"
+  },
+  {
+   "code": "2025/6",
+   "sortProperty": "2025/6_SeqOrder",
+   "value": "2025/6",
+   "type": "number"
+  },
+  {
+   "code": "2025/7",
+   "sortProperty": "2025/7_SeqOrder",
+   "value": "2025/7",
+   "type": "number"
+  },
+  {
+   "code": "2025/8",
+   "sortProperty": "2025/8_SeqOrder",
+   "value": "2025/8",
+   "type": "number"
+  },
+  {
+   "code": "2025/9",
+   "sortProperty": "2025/9_SeqOrder",
+   "value": "2025/9",
+   "type": "number"
+  },
+  {
+   "code": "2025/10",
+   "sortProperty": "2025/10_SeqOrder",
+   "value": "2025/10",
+   "type": "number"
+  },
+  {
+   "code": "2025/11",
+   "sortProperty": "2025/11_SeqOrder",
+   "value": "2025/11",
+   "type": "number"
+  },
+  {
+   "code": "2025/12",
+   "sortProperty": "2025/12_SeqOrder",
+   "value": "2025/12",
+   "type": "number"
+  },
+  {
+   "code": "2026/1",
+   "sortProperty": "2026/1_SeqOrder",
+   "value": "2026/1",
+   "type": "number"
+  },
+  {
+   "code": "2026/2",
+   "sortProperty": "2026/2_SeqOrder",
+   "value": "2026/2",
+   "type": "number"
+  },
+  {
+   "code": "2026/3",
+   "sortProperty": "2026/3_SeqOrder",
+   "value": "2026/3",
+   "type": "number"
+  },
+  {
+   "code": "2026/4",
+   "sortProperty": "2026/4_SeqOrder",
+   "value": "2026/4",
+   "type": "number"
+  },
+  {
+   "code": "2026/5",
+   "sortProperty": "2026/5_SeqOrder",
+   "value": "2026/5",
+   "type": "number"
+  },
+  {
+   "code": "2026/6",
+   "sortProperty": "2026/6_SeqOrder",
+   "value": "2026/6",
+   "type": "number"
+  },
+  {
+   "code": "2026/7",
+   "sortProperty": "2026/7_SeqOrder",
+   "value": "2026/7",
+   "type": "number"
+  },
+  {
+   "code": "2026/8",
+   "sortProperty": "2026/8_SeqOrder",
+   "value": "2026/8",
+   "type": "number"
+  },
+  {
+   "code": "2026/9",
+   "sortProperty": "2026/9_SeqOrder",
+   "value": "2026/9",
+   "type": "number"
+  }
+ ],
+ "records": [
+  {
+   "selectedOffice": "Total",
+   "selectedOrigin": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2025/1": "21,000",
+   "2025/2": "20,000",
+   "2025/3": "24,000",
+   "2025/4": "22,000",
+   "2025/5": "21,500",
+   "2025/6": "23,000",
+   "2025/7": "22,500",
+   "2025/8": "20,500",
+   "2025/9": "25,000",
+   "2025/10": "23,000",
+   "2025/11": "22,500",
+   "2025/12": "29,000",
+   "2026/1": "20,000",
+   "2026/2": "19,000",
+   "2026/3": "27,000",
+   "2026/4": "22,500",
+   "2026/5": "21,000",
+   "2026/6": "24,500",
+   "2026/7": "25,000",
+   "2026/8": null,
+   "2026/9": null
+  }
+ ]
+}

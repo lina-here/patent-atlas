@@ -1,0 +1,30 @@
+{
+  "name": "patent-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "geo:build": "python3 scripts/build_geo.py",
+    "build": "esbuild site/src/main.ts --bundle --format=esm --platform=browser --minify --outdir=site/js",
+    "typecheck": "tsc --noEmit",
+    "check:built": "npm run build && test -z \"$(git status --porcelain site/js)\"",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@observablehq/plot": "^0.6.17",
+    "d3-geo": "^3.1.1",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/d3-geo": "^3.1.1",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^22.20.5",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0"
+  }
+}

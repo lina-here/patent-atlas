@@ -1,0 +1,39 @@
+{
+  "siteName": "Patent Atlas",
+  "author": "Lina",
+  "contact": "",
+  "defaultTheme": "atlas",
+  "themes": ["atlas", "paper", "wallboard", "embed"],
+  "baseUrl": "https://lina-here.github.io/patent-atlas/",
+  "embedTheme": "embed",
+  "embedHeight": 600,
+  "rotation": {
+    "minSeconds": 20,
+    "resumeAfterSeconds": 120,
+    "pauseMovePixels": 24,
+    "views": ["chart=world-trend", "chart=pct-world-trend", "chart=top-origins", "chart=fastest-growers", "chart=rank-race", "chart=continent-share", "chart=size-growth", "chart=pct-monthly", "country=CN", "country=US", "chart=world-map", "chart=world-map&metric=per_million", "view=women-inventors"]
+  },
+  "wallboard": {
+    "seconds": 30,
+    "hideControlsSeconds": 4,
+    "fetchTimeoutSeconds": 15,
+    "safeAreaPercent": 3,
+    "minTextPx": 24,
+    "minTitlePx": 48,
+    "minFinePrintPx": 16,
+    "slides": [
+      { "id": "world-trend", "label": "Patent applications worldwide", "params": "chart=world-trend" },
+      { "id": "pct-world-trend", "label": "PCT international applications", "params": "chart=pct-world-trend" },
+      { "id": "top-origins", "label": "Top countries of origin", "params": "chart=top-origins" },
+      { "id": "fastest-growers", "label": "Fastest growers", "params": "chart=fastest-growers" },
+      { "id": "rank-race", "label": "Rank race", "params": "chart=rank-race" },
+      { "id": "continent-share", "label": "Share by continent", "params": "chart=continent-share" },
+      { "id": "size-growth", "label": "Size and growth", "params": "chart=size-growth" },
+      { "id": "pct-monthly", "label": "PCT filings by month", "params": "chart=pct-monthly" },
+      { "id": "map-origin", "label": "World map: applications by origin", "params": "chart=world-map&metric=origin_apps" },
+      { "id": "map-per-million", "label": "World map: per million people", "params": "chart=world-map&metric=per_million" }
+    ]
+  },
+  "map": { "logBase": 10, "bins": 7, "ratio": { "logBase": 10, "bins": 5, "lowest": 0.1 },
+    "share": { "women_any": { "step": 10, "bins": 6 }, "women_share": { "step": 5, "bins": 6 } } }
+}

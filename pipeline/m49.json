@@ -1,0 +1,1133 @@
+{
+ "sources": [
+  {
+   "name": "UN Statistics Division: Standard country or area codes for statistical use (M49)",
+   "url": "https://unstats.un.org/unsd/methodology/m49/overview/",
+   "table": "#downloadTableEN",
+   "retrieved": "2026-10-20",
+   "use": "mapping only (ISO2 -> M49 numeric, region, continent; group labels); UNSD table not copied"
+  }
+ ],
+ "continents": {
+  "africa": {
+   "label": "Africa"
+  },
+  "northern-america": {
+   "label": "Northern America"
+  },
+  "latin-america-caribbean": {
+   "label": "Latin America and the Caribbean"
+  },
+  "asia": {
+   "label": "Asia"
+  },
+  "europe": {
+   "label": "Europe"
+  },
+  "oceania": {
+   "label": "Oceania"
+  }
+ },
+ "regions": {
+  "005": {
+   "label": "South America",
+   "continent": "latin-america-caribbean"
+  },
+  "011": {
+   "label": "Western Africa",
+   "continent": "africa"
+  },
+  "013": {
+   "label": "Central America",
+   "continent": "latin-america-caribbean"
+  },
+  "014": {
+   "label": "Eastern Africa",
+   "continent": "africa"
+  },
+  "015": {
+   "label": "Northern Africa",
+   "continent": "africa"
+  },
+  "017": {
+   "label": "Middle Africa",
+   "continent": "africa"
+  },
+  "018": {
+   "label": "Southern Africa",
+   "continent": "africa"
+  },
+  "021": {
+   "label": "Northern America",
+   "continent": "northern-america"
+  },
+  "029": {
+   "label": "Caribbean",
+   "continent": "latin-america-caribbean"
+  },
+  "030": {
+   "label": "Eastern Asia",
+   "continent": "asia"
+  },
+  "034": {
+   "label": "Southern Asia",
+   "continent": "asia"
+  },
+  "035": {
+   "label": "South-eastern Asia",
+   "continent": "asia"
+  },
+  "039": {
+   "label": "Southern Europe",
+   "continent": "europe"
+  },
+  "053": {
+   "label": "Australia and New Zealand",
+   "continent": "oceania"
+  },
+  "054": {
+   "label": "Melanesia",
+   "continent": "oceania"
+  },
+  "057": {
+   "label": "Micronesia",
+   "continent": "oceania"
+  },
+  "061": {
+   "label": "Polynesia",
+   "continent": "oceania"
+  },
+  "143": {
+   "label": "Central Asia",
+   "continent": "asia"
+  },
+  "145": {
+   "label": "Western Asia",
+   "continent": "asia"
+  },
+  "151": {
+   "label": "Eastern Europe",
+   "continent": "europe"
+  },
+  "154": {
+   "label": "Northern Europe",
+   "continent": "europe"
+  },
+  "155": {
+   "label": "Western Europe",
+   "continent": "europe"
+  }
+ },
+ "countries": {
+  "AD": {
+   "numeric": "020",
+   "region": "039",
+   "continent": "europe"
+  },
+  "AE": {
+   "numeric": "784",
+   "region": "145",
+   "continent": "asia"
+  },
+  "AF": {
+   "numeric": "004",
+   "region": "034",
+   "continent": "asia"
+  },
+  "AG": {
+   "numeric": "028",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "AL": {
+   "numeric": "008",
+   "region": "039",
+   "continent": "europe"
+  },
+  "AM": {
+   "numeric": "051",
+   "region": "145",
+   "continent": "asia"
+  },
+  "AO": {
+   "numeric": "024",
+   "region": "017",
+   "continent": "africa"
+  },
+  "AR": {
+   "numeric": "032",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "AT": {
+   "numeric": "040",
+   "region": "155",
+   "continent": "europe"
+  },
+  "AU": {
+   "numeric": "036",
+   "region": "053",
+   "continent": "oceania"
+  },
+  "AZ": {
+   "numeric": "031",
+   "region": "145",
+   "continent": "asia"
+  },
+  "BA": {
+   "numeric": "070",
+   "region": "039",
+   "continent": "europe"
+  },
+  "BB": {
+   "numeric": "052",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "BD": {
+   "numeric": "050",
+   "region": "034",
+   "continent": "asia"
+  },
+  "BE": {
+   "numeric": "056",
+   "region": "155",
+   "continent": "europe"
+  },
+  "BF": {
+   "numeric": "854",
+   "region": "011",
+   "continent": "africa"
+  },
+  "BG": {
+   "numeric": "100",
+   "region": "151",
+   "continent": "europe"
+  },
+  "BH": {
+   "numeric": "048",
+   "region": "145",
+   "continent": "asia"
+  },
+  "BI": {
+   "numeric": "108",
+   "region": "014",
+   "continent": "africa"
+  },
+  "BJ": {
+   "numeric": "204",
+   "region": "011",
+   "continent": "africa"
+  },
+  "BN": {
+   "numeric": "096",
+   "region": "035",
+   "continent": "asia"
+  },
+  "BO": {
+   "numeric": "068",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "BQ": {
+   "numeric": "535",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "BR": {
+   "numeric": "076",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "BS": {
+   "numeric": "044",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "BT": {
+   "numeric": "064",
+   "region": "034",
+   "continent": "asia"
+  },
+  "BW": {
+   "numeric": "072",
+   "region": "018",
+   "continent": "africa"
+  },
+  "BY": {
+   "numeric": "112",
+   "region": "151",
+   "continent": "europe"
+  },
+  "BZ": {
+   "numeric": "084",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "CA": {
+   "numeric": "124",
+   "region": "021",
+   "continent": "northern-america"
+  },
+  "CD": {
+   "numeric": "180",
+   "region": "017",
+   "continent": "africa"
+  },
+  "CF": {
+   "numeric": "140",
+   "region": "017",
+   "continent": "africa"
+  },
+  "CG": {
+   "numeric": "178",
+   "region": "017",
+   "continent": "africa"
+  },
+  "CH": {
+   "numeric": "756",
+   "region": "155",
+   "continent": "europe"
+  },
+  "CI": {
+   "numeric": "384",
+   "region": "011",
+   "continent": "africa"
+  },
+  "CK": {
+   "numeric": "184",
+   "region": "061",
+   "continent": "oceania"
+  },
+  "CL": {
+   "numeric": "152",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "CM": {
+   "numeric": "120",
+   "region": "017",
+   "continent": "africa"
+  },
+  "CN": {
+   "numeric": "156",
+   "region": "030",
+   "continent": "asia"
+  },
+  "CO": {
+   "numeric": "170",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "CR": {
+   "numeric": "188",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "CU": {
+   "numeric": "192",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "CV": {
+   "numeric": "132",
+   "region": "011",
+   "continent": "africa"
+  },
+  "CW": {
+   "numeric": "531",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "CY": {
+   "numeric": "196",
+   "region": "145",
+   "continent": "asia"
+  },
+  "CZ": {
+   "numeric": "203",
+   "region": "151",
+   "continent": "europe"
+  },
+  "DE": {
+   "numeric": "276",
+   "region": "155",
+   "continent": "europe"
+  },
+  "DJ": {
+   "numeric": "262",
+   "region": "014",
+   "continent": "africa"
+  },
+  "DK": {
+   "numeric": "208",
+   "region": "154",
+   "continent": "europe"
+  },
+  "DM": {
+   "numeric": "212",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "DO": {
+   "numeric": "214",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "DZ": {
+   "numeric": "012",
+   "region": "015",
+   "continent": "africa"
+  },
+  "EC": {
+   "numeric": "218",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "EE": {
+   "numeric": "233",
+   "region": "154",
+   "continent": "europe"
+  },
+  "EG": {
+   "numeric": "818",
+   "region": "015",
+   "continent": "africa"
+  },
+  "ER": {
+   "numeric": "232",
+   "region": "014",
+   "continent": "africa"
+  },
+  "ES": {
+   "numeric": "724",
+   "region": "039",
+   "continent": "europe"
+  },
+  "ET": {
+   "numeric": "231",
+   "region": "014",
+   "continent": "africa"
+  },
+  "FI": {
+   "numeric": "246",
+   "region": "154",
+   "continent": "europe"
+  },
+  "FJ": {
+   "numeric": "242",
+   "region": "054",
+   "continent": "oceania"
+  },
+  "FM": {
+   "numeric": "583",
+   "region": "057",
+   "continent": "oceania"
+  },
+  "FR": {
+   "numeric": "250",
+   "region": "155",
+   "continent": "europe"
+  },
+  "GA": {
+   "numeric": "266",
+   "region": "017",
+   "continent": "africa"
+  },
+  "GB": {
+   "numeric": "826",
+   "region": "154",
+   "continent": "europe"
+  },
+  "GD": {
+   "numeric": "308",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "GE": {
+   "numeric": "268",
+   "region": "145",
+   "continent": "asia"
+  },
+  "GG": {
+   "numeric": "831",
+   "region": "154",
+   "continent": "europe"
+  },
+  "GH": {
+   "numeric": "288",
+   "region": "011",
+   "continent": "africa"
+  },
+  "GM": {
+   "numeric": "270",
+   "region": "011",
+   "continent": "africa"
+  },
+  "GN": {
+   "numeric": "324",
+   "region": "011",
+   "continent": "africa"
+  },
+  "GQ": {
+   "numeric": "226",
+   "region": "017",
+   "continent": "africa"
+  },
+  "GR": {
+   "numeric": "300",
+   "region": "039",
+   "continent": "europe"
+  },
+  "GT": {
+   "numeric": "320",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "GW": {
+   "numeric": "624",
+   "region": "011",
+   "continent": "africa"
+  },
+  "GY": {
+   "numeric": "328",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "HK": {
+   "numeric": "344",
+   "region": "030",
+   "continent": "asia"
+  },
+  "HN": {
+   "numeric": "340",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "HR": {
+   "numeric": "191",
+   "region": "039",
+   "continent": "europe"
+  },
+  "HT": {
+   "numeric": "332",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "HU": {
+   "numeric": "348",
+   "region": "151",
+   "continent": "europe"
+  },
+  "ID": {
+   "numeric": "360",
+   "region": "035",
+   "continent": "asia"
+  },
+  "IE": {
+   "numeric": "372",
+   "region": "154",
+   "continent": "europe"
+  },
+  "IL": {
+   "numeric": "376",
+   "region": "145",
+   "continent": "asia"
+  },
+  "IN": {
+   "numeric": "356",
+   "region": "034",
+   "continent": "asia"
+  },
+  "IQ": {
+   "numeric": "368",
+   "region": "145",
+   "continent": "asia"
+  },
+  "IR": {
+   "numeric": "364",
+   "region": "034",
+   "continent": "asia"
+  },
+  "IS": {
+   "numeric": "352",
+   "region": "154",
+   "continent": "europe"
+  },
+  "IT": {
+   "numeric": "380",
+   "region": "039",
+   "continent": "europe"
+  },
+  "JM": {
+   "numeric": "388",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "JO": {
+   "numeric": "400",
+   "region": "145",
+   "continent": "asia"
+  },
+  "JP": {
+   "numeric": "392",
+   "region": "030",
+   "continent": "asia"
+  },
+  "KE": {
+   "numeric": "404",
+   "region": "014",
+   "continent": "africa"
+  },
+  "KG": {
+   "numeric": "417",
+   "region": "143",
+   "continent": "asia"
+  },
+  "KH": {
+   "numeric": "116",
+   "region": "035",
+   "continent": "asia"
+  },
+  "KI": {
+   "numeric": "296",
+   "region": "057",
+   "continent": "oceania"
+  },
+  "KM": {
+   "numeric": "174",
+   "region": "014",
+   "continent": "africa"
+  },
+  "KN": {
+   "numeric": "659",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "KP": {
+   "numeric": "408",
+   "region": "030",
+   "continent": "asia"
+  },
+  "KR": {
+   "numeric": "410",
+   "region": "030",
+   "continent": "asia"
+  },
+  "KW": {
+   "numeric": "414",
+   "region": "145",
+   "continent": "asia"
+  },
+  "KZ": {
+   "numeric": "398",
+   "region": "143",
+   "continent": "asia"
+  },
+  "LA": {
+   "numeric": "418",
+   "region": "035",
+   "continent": "asia"
+  },
+  "LB": {
+   "numeric": "422",
+   "region": "145",
+   "continent": "asia"
+  },
+  "LC": {
+   "numeric": "662",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "LI": {
+   "numeric": "438",
+   "region": "155",
+   "continent": "europe"
+  },
+  "LK": {
+   "numeric": "144",
+   "region": "034",
+   "continent": "asia"
+  },
+  "LR": {
+   "numeric": "430",
+   "region": "011",
+   "continent": "africa"
+  },
+  "LS": {
+   "numeric": "426",
+   "region": "018",
+   "continent": "africa"
+  },
+  "LT": {
+   "numeric": "440",
+   "region": "154",
+   "continent": "europe"
+  },
+  "LU": {
+   "numeric": "442",
+   "region": "155",
+   "continent": "europe"
+  },
+  "LV": {
+   "numeric": "428",
+   "region": "154",
+   "continent": "europe"
+  },
+  "LY": {
+   "numeric": "434",
+   "region": "015",
+   "continent": "africa"
+  },
+  "MA": {
+   "numeric": "504",
+   "region": "015",
+   "continent": "africa"
+  },
+  "MC": {
+   "numeric": "492",
+   "region": "155",
+   "continent": "europe"
+  },
+  "MD": {
+   "numeric": "498",
+   "region": "151",
+   "continent": "europe"
+  },
+  "ME": {
+   "numeric": "499",
+   "region": "039",
+   "continent": "europe"
+  },
+  "MG": {
+   "numeric": "450",
+   "region": "014",
+   "continent": "africa"
+  },
+  "MH": {
+   "numeric": "584",
+   "region": "057",
+   "continent": "oceania"
+  },
+  "MK": {
+   "numeric": "807",
+   "region": "039",
+   "continent": "europe"
+  },
+  "ML": {
+   "numeric": "466",
+   "region": "011",
+   "continent": "africa"
+  },
+  "MM": {
+   "numeric": "104",
+   "region": "035",
+   "continent": "asia"
+  },
+  "MN": {
+   "numeric": "496",
+   "region": "030",
+   "continent": "asia"
+  },
+  "MO": {
+   "numeric": "446",
+   "region": "030",
+   "continent": "asia"
+  },
+  "MR": {
+   "numeric": "478",
+   "region": "011",
+   "continent": "africa"
+  },
+  "MT": {
+   "numeric": "470",
+   "region": "039",
+   "continent": "europe"
+  },
+  "MU": {
+   "numeric": "480",
+   "region": "014",
+   "continent": "africa"
+  },
+  "MV": {
+   "numeric": "462",
+   "region": "034",
+   "continent": "asia"
+  },
+  "MW": {
+   "numeric": "454",
+   "region": "014",
+   "continent": "africa"
+  },
+  "MX": {
+   "numeric": "484",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "MY": {
+   "numeric": "458",
+   "region": "035",
+   "continent": "asia"
+  },
+  "MZ": {
+   "numeric": "508",
+   "region": "014",
+   "continent": "africa"
+  },
+  "NA": {
+   "numeric": "516",
+   "region": "018",
+   "continent": "africa"
+  },
+  "NE": {
+   "numeric": "562",
+   "region": "011",
+   "continent": "africa"
+  },
+  "NG": {
+   "numeric": "566",
+   "region": "011",
+   "continent": "africa"
+  },
+  "NI": {
+   "numeric": "558",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "NL": {
+   "numeric": "528",
+   "region": "155",
+   "continent": "europe"
+  },
+  "NO": {
+   "numeric": "578",
+   "region": "154",
+   "continent": "europe"
+  },
+  "NP": {
+   "numeric": "524",
+   "region": "034",
+   "continent": "asia"
+  },
+  "NR": {
+   "numeric": "520",
+   "region": "057",
+   "continent": "oceania"
+  },
+  "NU": {
+   "numeric": "570",
+   "region": "061",
+   "continent": "oceania"
+  },
+  "NZ": {
+   "numeric": "554",
+   "region": "053",
+   "continent": "oceania"
+  },
+  "OM": {
+   "numeric": "512",
+   "region": "145",
+   "continent": "asia"
+  },
+  "PA": {
+   "numeric": "591",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "PE": {
+   "numeric": "604",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "PG": {
+   "numeric": "598",
+   "region": "054",
+   "continent": "oceania"
+  },
+  "PH": {
+   "numeric": "608",
+   "region": "035",
+   "continent": "asia"
+  },
+  "PK": {
+   "numeric": "586",
+   "region": "034",
+   "continent": "asia"
+  },
+  "PL": {
+   "numeric": "616",
+   "region": "151",
+   "continent": "europe"
+  },
+  "PT": {
+   "numeric": "620",
+   "region": "039",
+   "continent": "europe"
+  },
+  "PW": {
+   "numeric": "585",
+   "region": "057",
+   "continent": "oceania"
+  },
+  "PY": {
+   "numeric": "600",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "QA": {
+   "numeric": "634",
+   "region": "145",
+   "continent": "asia"
+  },
+  "RO": {
+   "numeric": "642",
+   "region": "151",
+   "continent": "europe"
+  },
+  "RS": {
+   "numeric": "688",
+   "region": "039",
+   "continent": "europe"
+  },
+  "RU": {
+   "numeric": "643",
+   "region": "151",
+   "continent": "europe"
+  },
+  "RW": {
+   "numeric": "646",
+   "region": "014",
+   "continent": "africa"
+  },
+  "SA": {
+   "numeric": "682",
+   "region": "145",
+   "continent": "asia"
+  },
+  "SB": {
+   "numeric": "090",
+   "region": "054",
+   "continent": "oceania"
+  },
+  "SC": {
+   "numeric": "690",
+   "region": "014",
+   "continent": "africa"
+  },
+  "SD": {
+   "numeric": "729",
+   "region": "015",
+   "continent": "africa"
+  },
+  "SE": {
+   "numeric": "752",
+   "region": "154",
+   "continent": "europe"
+  },
+  "SG": {
+   "numeric": "702",
+   "region": "035",
+   "continent": "asia"
+  },
+  "SI": {
+   "numeric": "705",
+   "region": "039",
+   "continent": "europe"
+  },
+  "SK": {
+   "numeric": "703",
+   "region": "151",
+   "continent": "europe"
+  },
+  "SL": {
+   "numeric": "694",
+   "region": "011",
+   "continent": "africa"
+  },
+  "SM": {
+   "numeric": "674",
+   "region": "039",
+   "continent": "europe"
+  },
+  "SN": {
+   "numeric": "686",
+   "region": "011",
+   "continent": "africa"
+  },
+  "SO": {
+   "numeric": "706",
+   "region": "014",
+   "continent": "africa"
+  },
+  "SR": {
+   "numeric": "740",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "SS": {
+   "numeric": "728",
+   "region": "014",
+   "continent": "africa"
+  },
+  "ST": {
+   "numeric": "678",
+   "region": "017",
+   "continent": "africa"
+  },
+  "SV": {
+   "numeric": "222",
+   "region": "013",
+   "continent": "latin-america-caribbean"
+  },
+  "SX": {
+   "numeric": "534",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "SY": {
+   "numeric": "760",
+   "region": "145",
+   "continent": "asia"
+  },
+  "SZ": {
+   "numeric": "748",
+   "region": "018",
+   "continent": "africa"
+  },
+  "TD": {
+   "numeric": "148",
+   "region": "017",
+   "continent": "africa"
+  },
+  "TG": {
+   "numeric": "768",
+   "region": "011",
+   "continent": "africa"
+  },
+  "TH": {
+   "numeric": "764",
+   "region": "035",
+   "continent": "asia"
+  },
+  "TJ": {
+   "numeric": "762",
+   "region": "143",
+   "continent": "asia"
+  },
+  "TL": {
+   "numeric": "626",
+   "region": "035",
+   "continent": "asia"
+  },
+  "TM": {
+   "numeric": "795",
+   "region": "143",
+   "continent": "asia"
+  },
+  "TN": {
+   "numeric": "788",
+   "region": "015",
+   "continent": "africa"
+  },
+  "TO": {
+   "numeric": "776",
+   "region": "061",
+   "continent": "oceania"
+  },
+  "TR": {
+   "numeric": "792",
+   "region": "145",
+   "continent": "asia"
+  },
+  "TT": {
+   "numeric": "780",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "TV": {
+   "numeric": "798",
+   "region": "061",
+   "continent": "oceania"
+  },
+  "TZ": {
+   "numeric": "834",
+   "region": "014",
+   "continent": "africa"
+  },
+  "UA": {
+   "numeric": "804",
+   "region": "151",
+   "continent": "europe"
+  },
+  "UG": {
+   "numeric": "800",
+   "region": "014",
+   "continent": "africa"
+  },
+  "US": {
+   "numeric": "840",
+   "region": "021",
+   "continent": "northern-america"
+  },
+  "UY": {
+   "numeric": "858",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "UZ": {
+   "numeric": "860",
+   "region": "143",
+   "continent": "asia"
+  },
+  "VA": {
+   "numeric": "336",
+   "region": "039",
+   "continent": "europe"
+  },
+  "VC": {
+   "numeric": "670",
+   "region": "029",
+   "continent": "latin-america-caribbean"
+  },
+  "VE": {
+   "numeric": "862",
+   "region": "005",
+   "continent": "latin-america-caribbean"
+  },
+  "VN": {
+   "numeric": "704",
+   "region": "035",
+   "continent": "asia"
+  },
+  "VU": {
+   "numeric": "548",
+   "region": "054",
+   "continent": "oceania"
+  },
+  "WS": {
+   "numeric": "882",
+   "region": "061",
+   "continent": "oceania"
+  },
+  "YE": {
+   "numeric": "887",
+   "region": "145",
+   "continent": "asia"
+  },
+  "ZA": {
+   "numeric": "710",
+   "region": "018",
+   "continent": "africa"
+  },
+  "ZM": {
+   "numeric": "894",
+   "region": "014",
+   "continent": "africa"
+  },
+  "ZW": {
+   "numeric": "716",
+   "region": "014",
+   "continent": "africa"
+  }
+ }
+}

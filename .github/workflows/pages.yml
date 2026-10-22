@@ -1,0 +1,105 @@
+name: Deploy Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # the refresh bot's push starts no push workflow: deploy after a refresh on main (main's HEAD = its data; the gates re-run there)
+  workflow_run:
+    workflows: ["Refresh data"]
+    types: [completed]
+    branches: [main]
+
+# Publishes site/ to GitHub Pages (Settings > Pages > Source = GitHub Actions). The most privileged workflow: only the
+# deploy job holds pages/id-token, and it runs no repository code. The artifact is packed by a job of its own (pack: no
+# npm, no pip), so code run by the gates cannot replace it. Actions pinned to full commit SHAs
+# (pipeline/tests/test_workflows.py).
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false  # a deployment in progress finishes; the next waits
+
+jobs:
+  # pack, gates and deploy are separate jobs (separate VMs). The deploy waits on both by `needs:` in this run, not on
+  # ci.yml via workflow_run: the gates then pass on the very commit packed here, a manual dispatch is gated too, and no
+  # filter on a workflow_run event (fork-PR CI runs fire it as well) can be got wrong. Cost: the gates run twice on a
+  # push to main (here and in ci.yml).
+  pack:
+    # - public repo only: the private archive never deploys
+    # - push and dispatch: default branch only (a branch dispatch must not deploy or queue ahead of main in `pages`)
+    # - workflow_run: only this repo's refresh-data.yml (a fork PR can add a workflow named "Refresh data"), never a
+    #   pull_request run
+    # - no success condition: the gates re-run on main's HEAD, so a refresh whose tag step failed after its data push
+    #   still deploys that data; a failed refresh left main unchanged
+    if: >-
+      !github.event.repository.private &&
+      (github.event_name == 'workflow_run' ||
+        github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) &&
+      (github.event_name != 'workflow_run' || (
+        github.event.workflow_run.path == '.github/workflows/refresh-data.yml' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      # site/ as committed, packed in a job that runs no npm or pip code: nothing the gates run can reach this artifact
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  gates:
+    # - public repo only: the private archive never deploys
+    # - push and dispatch: default branch only (a branch dispatch must not deploy or queue ahead of main in `pages`)
+    # - workflow_run: only this repo's refresh-data.yml (a fork PR can add a workflow named "Refresh data"), never a
+    #   pull_request run
+    # - no success condition: the gates re-run on main's HEAD, so a refresh whose tag step failed after its data push
+    #   still deploys that data; a failed refresh left main unchanged
+    if: >-
+      !github.event.repository.private &&
+      (github.event_name == 'workflow_run' ||
+        github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) &&
+      (github.event_name != 'workflow_run' || (
+        github.event.workflow_run.path == '.github/workflows/refresh-data.yml' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0  # repo_guard --all scans every commit
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.10"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      # npm ci before pytest: the built-points test needs node_modules/world-atlas
+      - run: pip install --require-hashes -r requirements-dev.txt
+      - run: python -m pytest
+      - run: python scripts/repo_guard.py --all
+      - run: npm run typecheck
+      - run: npm run check:built
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  deploy:
+    needs: [pack, gates]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write     # to deploy to Pages
+      id-token: write  # deploy-pages proves the deployment's origin with an OIDC token
+    environment:
+      name: github-pages  # deployment branches: main only (repo settings)
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

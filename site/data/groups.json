@@ -1,0 +1,802 @@
+{
+  "items": [
+    {
+      "continent": "africa",
+      "id": "africa",
+      "kind": "continent",
+      "label": "Africa",
+      "members": [
+        "AO",
+        "BF",
+        "BI",
+        "BJ",
+        "BW",
+        "CD",
+        "CF",
+        "CG",
+        "CI",
+        "CM",
+        "CV",
+        "DJ",
+        "DZ",
+        "EG",
+        "ER",
+        "ET",
+        "GA",
+        "GH",
+        "GM",
+        "GN",
+        "GQ",
+        "GW",
+        "KE",
+        "KM",
+        "LR",
+        "LS",
+        "LY",
+        "MA",
+        "MG",
+        "ML",
+        "MR",
+        "MU",
+        "MW",
+        "MZ",
+        "NA",
+        "NE",
+        "NG",
+        "RW",
+        "SC",
+        "SD",
+        "SL",
+        "SN",
+        "SO",
+        "SS",
+        "ST",
+        "SZ",
+        "TD",
+        "TG",
+        "TN",
+        "TZ",
+        "UG",
+        "ZA",
+        "ZM",
+        "ZW"
+      ]
+    },
+    {
+      "continent": "northern-america",
+      "id": "northern-america",
+      "kind": "continent",
+      "label": "Northern America",
+      "members": [
+        "CA",
+        "US"
+      ]
+    },
+    {
+      "continent": "latin-america-caribbean",
+      "id": "latin-america-caribbean",
+      "kind": "continent",
+      "label": "Latin America and the Caribbean",
+      "members": [
+        "AG",
+        "AR",
+        "BB",
+        "BO",
+        "BQ",
+        "BR",
+        "BS",
+        "BZ",
+        "CL",
+        "CO",
+        "CR",
+        "CU",
+        "CW",
+        "DM",
+        "DO",
+        "EC",
+        "GD",
+        "GT",
+        "GY",
+        "HN",
+        "HT",
+        "JM",
+        "KN",
+        "LC",
+        "MX",
+        "NI",
+        "PA",
+        "PE",
+        "PY",
+        "SR",
+        "SV",
+        "SX",
+        "TT",
+        "UY",
+        "VC",
+        "VE"
+      ]
+    },
+    {
+      "continent": "asia",
+      "id": "asia",
+      "kind": "continent",
+      "label": "Asia",
+      "members": [
+        "AE",
+        "AF",
+        "AM",
+        "AZ",
+        "BD",
+        "BH",
+        "BN",
+        "BT",
+        "CN",
+        "CY",
+        "GE",
+        "HK",
+        "ID",
+        "IL",
+        "IN",
+        "IQ",
+        "IR",
+        "JO",
+        "JP",
+        "KG",
+        "KH",
+        "KP",
+        "KR",
+        "KW",
+        "KZ",
+        "LA",
+        "LB",
+        "LK",
+        "MM",
+        "MN",
+        "MO",
+        "MV",
+        "MY",
+        "NP",
+        "OM",
+        "PH",
+        "PK",
+        "QA",
+        "SA",
+        "SG",
+        "SY",
+        "TH",
+        "TJ",
+        "TL",
+        "TM",
+        "TR",
+        "UZ",
+        "VN",
+        "YE"
+      ]
+    },
+    {
+      "continent": "europe",
+      "id": "europe",
+      "kind": "continent",
+      "label": "Europe",
+      "members": [
+        "AD",
+        "AL",
+        "AT",
+        "BA",
+        "BE",
+        "BG",
+        "BY",
+        "CH",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GG",
+        "GR",
+        "HR",
+        "HU",
+        "IE",
+        "IS",
+        "IT",
+        "LI",
+        "LT",
+        "LU",
+        "LV",
+        "MC",
+        "MD",
+        "ME",
+        "MK",
+        "MT",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "RO",
+        "RS",
+        "RU",
+        "SE",
+        "SI",
+        "SK",
+        "SM",
+        "UA",
+        "VA"
+      ]
+    },
+    {
+      "continent": "oceania",
+      "id": "oceania",
+      "kind": "continent",
+      "label": "Oceania",
+      "members": [
+        "AU",
+        "CK",
+        "FJ",
+        "FM",
+        "KI",
+        "MH",
+        "NR",
+        "NU",
+        "NZ",
+        "PG",
+        "PW",
+        "SB",
+        "TO",
+        "TV",
+        "VU",
+        "WS"
+      ]
+    },
+    {
+      "continent": "latin-america-caribbean",
+      "id": "005",
+      "kind": "region",
+      "label": "South America",
+      "members": [
+        "AR",
+        "BO",
+        "BR",
+        "CL",
+        "CO",
+        "EC",
+        "GY",
+        "PE",
+        "PY",
+        "SR",
+        "UY",
+        "VE"
+      ]
+    },
+    {
+      "continent": "africa",
+      "id": "011",
+      "kind": "region",
+      "label": "Western Africa",
+      "members": [
+        "BF",
+        "BJ",
+        "CI",
+        "CV",
+        "GH",
+        "GM",
+        "GN",
+        "GW",
+        "LR",
+        "ML",
+        "MR",
+        "NE",
+        "NG",
+        "SL",
+        "SN",
+        "TG"
+      ]
+    },
+    {
+      "continent": "latin-america-caribbean",
+      "id": "013",
+      "kind": "region",
+      "label": "Central America",
+      "members": [
+        "BZ",
+        "CR",
+        "GT",
+        "HN",
+        "MX",
+        "NI",
+        "PA",
+        "SV"
+      ]
+    },
+    {
+      "continent": "africa",
+      "id": "014",
+      "kind": "region",
+      "label": "Eastern Africa",
+      "members": [
+        "BI",
+        "DJ",
+        "ER",
+        "ET",
+        "KE",
+        "KM",
+        "MG",
+        "MU",
+        "MW",
+        "MZ",
+        "RW",
+        "SC",
+        "SO",
+        "SS",
+        "TZ",
+        "UG",
+        "ZM",
+        "ZW"
+      ]
+    },
+    {
+      "continent": "africa",
+      "id": "015",
+      "kind": "region",
+      "label": "Northern Africa",
+      "members": [
+        "DZ",
+        "EG",
+        "LY",
+        "MA",
+        "SD",
+        "TN"
+      ]
+    },
+    {
+      "continent": "africa",
+      "id": "017",
+      "kind": "region",
+      "label": "Middle Africa",
+      "members": [
+        "AO",
+        "CD",
+        "CF",
+        "CG",
+        "CM",
+        "GA",
+        "GQ",
+        "ST",
+        "TD"
+      ]
+    },
+    {
+      "continent": "africa",
+      "id": "018",
+      "kind": "region",
+      "label": "Southern Africa",
+      "members": [
+        "BW",
+        "LS",
+        "NA",
+        "SZ",
+        "ZA"
+      ]
+    },
+    {
+      "continent": "northern-america",
+      "id": "021",
+      "kind": "region",
+      "label": "Northern America",
+      "members": [
+        "CA",
+        "US"
+      ]
+    },
+    {
+      "continent": "latin-america-caribbean",
+      "id": "029",
+      "kind": "region",
+      "label": "Caribbean",
+      "members": [
+        "AG",
+        "BB",
+        "BQ",
+        "BS",
+        "CU",
+        "CW",
+        "DM",
+        "DO",
+        "GD",
+        "HT",
+        "JM",
+        "KN",
+        "LC",
+        "SX",
+        "TT",
+        "VC"
+      ]
+    },
+    {
+      "continent": "asia",
+      "id": "030",
+      "kind": "region",
+      "label": "Eastern Asia",
+      "members": [
+        "CN",
+        "HK",
+        "JP",
+        "KP",
+        "KR",
+        "MN",
+        "MO"
+      ]
+    },
+    {
+      "continent": "asia",
+      "id": "034",
+      "kind": "region",
+      "label": "Southern Asia",
+      "members": [
+        "AF",
+        "BD",
+        "BT",
+        "IN",
+        "IR",
+        "LK",
+        "MV",
+        "NP",
+        "PK"
+      ]
+    },
+    {
+      "continent": "asia",
+      "id": "035",
+      "kind": "region",
+      "label": "South-eastern Asia",
+      "members": [
+        "BN",
+        "ID",
+        "KH",
+        "LA",
+        "MM",
+        "MY",
+        "PH",
+        "SG",
+        "TH",
+        "TL",
+        "VN"
+      ]
+    },
+    {
+      "continent": "europe",
+      "id": "039",
+      "kind": "region",
+      "label": "Southern Europe",
+      "members": [
+        "AD",
+        "AL",
+        "BA",
+        "ES",
+        "GR",
+        "HR",
+        "IT",
+        "ME",
+        "MK",
+        "MT",
+        "PT",
+        "RS",
+        "SI",
+        "SM",
+        "VA"
+      ]
+    },
+    {
+      "continent": "oceania",
+      "id": "053",
+      "kind": "region",
+      "label": "Australia and New Zealand",
+      "members": [
+        "AU",
+        "NZ"
+      ]
+    },
+    {
+      "continent": "oceania",
+      "id": "054",
+      "kind": "region",
+      "label": "Melanesia",
+      "members": [
+        "FJ",
+        "PG",
+        "SB",
+        "VU"
+      ]
+    },
+    {
+      "continent": "oceania",
+      "id": "057",
+      "kind": "region",
+      "label": "Micronesia",
+      "members": [
+        "FM",
+        "KI",
+        "MH",
+        "NR",
+        "PW"
+      ]
+    },
+    {
+      "continent": "oceania",
+      "id": "061",
+      "kind": "region",
+      "label": "Polynesia",
+      "members": [
+        "CK",
+        "NU",
+        "TO",
+        "TV",
+        "WS"
+      ]
+    },
+    {
+      "continent": "asia",
+      "id": "143",
+      "kind": "region",
+      "label": "Central Asia",
+      "members": [
+        "KG",
+        "KZ",
+        "TJ",
+        "TM",
+        "UZ"
+      ]
+    },
+    {
+      "continent": "asia",
+      "id": "145",
+      "kind": "region",
+      "label": "Western Asia",
+      "members": [
+        "AE",
+        "AM",
+        "AZ",
+        "BH",
+        "CY",
+        "GE",
+        "IL",
+        "IQ",
+        "JO",
+        "KW",
+        "LB",
+        "OM",
+        "QA",
+        "SA",
+        "SY",
+        "TR",
+        "YE"
+      ]
+    },
+    {
+      "continent": "europe",
+      "id": "151",
+      "kind": "region",
+      "label": "Eastern Europe",
+      "members": [
+        "BG",
+        "BY",
+        "CZ",
+        "HU",
+        "MD",
+        "PL",
+        "RO",
+        "RU",
+        "SK",
+        "UA"
+      ]
+    },
+    {
+      "continent": "europe",
+      "id": "154",
+      "kind": "region",
+      "label": "Northern Europe",
+      "members": [
+        "DK",
+        "EE",
+        "FI",
+        "GB",
+        "GG",
+        "IE",
+        "IS",
+        "LT",
+        "LV",
+        "NO",
+        "SE"
+      ]
+    },
+    {
+      "continent": "europe",
+      "id": "155",
+      "kind": "region",
+      "label": "Western Europe",
+      "members": [
+        "AT",
+        "BE",
+        "CH",
+        "DE",
+        "FR",
+        "LI",
+        "LU",
+        "MC",
+        "NL"
+      ]
+    }
+  ],
+  "no_group": {
+    "AQ": "Antarctica: M49 lists no region"
+  },
+  "sources": {
+    "former_entities": [
+      {
+        "name": "Patent Atlas data check: former entities (WIPO labels and data years, WIPO Statistics Database)",
+        "path": "docs/research/2026-10-20-v0.2a-data-check.md",
+        "retrieved": "2026-10-20",
+        "section": "3. Former entities"
+      }
+    ],
+    "groupings": [
+      {
+        "name": "UN Statistics Division: Standard country or area codes for statistical use (M49)",
+        "retrieved": "2026-10-20",
+        "table": "#downloadTableEN",
+        "url": "https://unstats.un.org/unsd/methodology/m49/overview/",
+        "use": "mapping only (ISO2 -> M49 numeric, region, continent; group labels); UNSD table not copied"
+      }
+    ]
+  },
+  "successors": {
+    "AN": [
+      {
+        "code": "CW",
+        "from_year": 1980,
+        "to_year": 2011
+      },
+      {
+        "code": "SX",
+        "from_year": 1980,
+        "to_year": 2011
+      },
+      {
+        "code": "BQ",
+        "from_year": 1980,
+        "to_year": 2011
+      }
+    ],
+    "CS": [
+      {
+        "code": "CZ",
+        "from_year": 1980,
+        "to_year": 1992
+      },
+      {
+        "code": "SK",
+        "from_year": 1980,
+        "to_year": 1992
+      }
+    ],
+    "DD": [],
+    "SU": [
+      {
+        "code": "AM",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "AZ",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "BY",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "EE",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "GE",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "KZ",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "KG",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "LV",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "LT",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "MD",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "RU",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "TJ",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "TM",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "UA",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "UZ",
+        "from_year": 1980,
+        "to_year": 1991
+      }
+    ],
+    "YU": [
+      {
+        "code": "SI",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "HR",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "BA",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "MK",
+        "from_year": 1980,
+        "to_year": 1991
+      },
+      {
+        "code": "RS",
+        "from_year": 1980,
+        "to_year": 2003
+      },
+      {
+        "code": "ME",
+        "from_year": 1980,
+        "to_year": 2003
+      }
+    ],
+    "ZR": [
+      {
+        "code": "CD",
+        "from_year": 1980,
+        "to_year": 1996
+      }
+    ]
+  }
+}

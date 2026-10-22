@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Rebuild the site and (re)start the local preview at http://localhost:8124 in the background.
+# Port 8124, not 8123: the e2e tests own 8123. No auto-reload: refresh the browser after running this.
+set -euo pipefail
+cd "$(dirname "$0")"
+PORT=8124
+npm run -s build
+old=$(lsof -ti tcp:"$PORT" -sTCP:LISTEN || true)
+[ -n "$old" ] && kill $old && sleep 0.5
+nohup python3 -m http.server "$PORT" -b 127.0.0.1 -d site >/dev/null 2>&1 &
+echo "Preview: http://localhost:$PORT  (refresh the page)"

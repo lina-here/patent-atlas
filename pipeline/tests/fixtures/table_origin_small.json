@@ -1,0 +1,151 @@
+{
+ "_fixture": "hand-made",
+ "recordInfo": {
+  "propertyRight": "Patent",
+  "reportType": "Total count by applicant&#39;s origin",
+  "yearRange": "2022 - 2024",
+  "indicator": "1 - Total patent applications (direct and PCT national phase entries)"
+ },
+ "columns": [
+  {
+   "code": "selectedOrigin",
+   "sortProperty": "selectedOrigin_SeqOrder",
+   "value": "Origin",
+   "type": "text"
+  },
+  {
+   "code": "selectedTechnology",
+   "sortProperty": "selectedTechnology_SeqOrder",
+   "value": "Type",
+   "type": "text"
+  },
+  {
+   "code": "2022",
+   "sortProperty": "2022_SeqOrder",
+   "value": "2022",
+   "type": "number"
+  },
+  {
+   "code": "2023",
+   "sortProperty": "2023_SeqOrder",
+   "value": "2023",
+   "type": "number"
+  },
+  {
+   "code": "2024",
+   "sortProperty": "2024_SeqOrder",
+   "value": "2024",
+   "type": "number"
+  }
+ ],
+ "records": [
+  {
+   "selectedOrigin": "Switzerland",
+   "selectedTechnology": "Total",
+   "selectedTechnology_SeqOrder": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "40000",
+   "2022_SeqOrder": 40000.0,
+   "2023": "41,500",
+   "2023_SeqOrder": 41500.0,
+   "2024": "42000.0",
+   "2024_SeqOrder": 42000.0
+  },
+  {
+   "selectedOrigin": "Switzerland",
+   "selectedTechnology": "Resident",
+   "selectedTechnology_SeqOrder": "Resident",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "10000",
+   "2022_SeqOrder": 10000.0,
+   "2023": "10500",
+   "2023_SeqOrder": 10500.0,
+   "2024": "11000",
+   "2024_SeqOrder": 11000.0
+  },
+  {
+   "selectedOrigin": "Switzerland",
+   "selectedTechnology": "Abroad",
+   "selectedTechnology_SeqOrder": "Abroad",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "30000",
+   "2022_SeqOrder": 30000.0,
+   "2023": "31000",
+   "2023_SeqOrder": 31000.0,
+   "2024": "31000",
+   "2024_SeqOrder": 31000.0
+  },
+  {
+   "selectedOrigin": "United States of America",
+   "selectedTechnology": "Total",
+   "selectedTechnology_SeqOrder": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "600,000",
+   "2022_SeqOrder": 600000.0,
+   "2023": "610,000",
+   "2023_SeqOrder": 610000.0,
+   "2024": "620,000",
+   "2024_SeqOrder": 620000.0
+  },
+  {
+   "selectedOrigin": "United States of America",
+   "selectedTechnology": "Resident",
+   "selectedTechnology_SeqOrder": "Resident",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "300,000",
+   "2022_SeqOrder": 300000.0,
+   "2023": "305,000",
+   "2023_SeqOrder": 305000.0,
+   "2024": "310,000",
+   "2024_SeqOrder": 310000.0
+  },
+  {
+   "selectedOrigin": "United States of America",
+   "selectedTechnology": "Abroad",
+   "selectedTechnology_SeqOrder": "Abroad",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "300,000",
+   "2022_SeqOrder": 300000.0,
+   "2023": "305,000",
+   "2023_SeqOrder": 305000.0,
+   "2024": "310,000",
+   "2024_SeqOrder": 310000.0
+  },
+  {
+   "selectedOrigin": "C&ocirc;te d&#39;Ivoire",
+   "selectedTechnology": "Total",
+   "selectedTechnology_SeqOrder": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": null,
+   "2022_SeqOrder": null,
+   "2023": "",
+   "2023_SeqOrder": null,
+   "2024": "12",
+   "2024_SeqOrder": 12.0
+  },
+  {
+   "selectedOrigin": "C&ocirc;te d&#39;Ivoire",
+   "selectedTechnology": "Resident",
+   "selectedTechnology_SeqOrder": "Resident",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": null,
+   "2022_SeqOrder": null,
+   "2023": "-",
+   "2023_SeqOrder": null,
+   "2024": "5",
+   "2024_SeqOrder": 5.0
+  },
+  {
+   "selectedOrigin": "C&ocirc;te d&#39;Ivoire",
+   "selectedTechnology": "Abroad",
+   "selectedTechnology_SeqOrder": "Abroad",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": null,
+   "2022_SeqOrder": null,
+   "2023": null,
+   "2023_SeqOrder": null,
+   "2024": "7",
+   "2024_SeqOrder": 7.0
+  }
+ ]
+}

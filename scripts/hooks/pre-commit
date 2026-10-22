@@ -1,0 +1,4 @@
+#!/bin/sh
+# Block raw WIPO / World Bank API responses from being committed.
+cd "$(git rev-parse --show-toplevel)" || exit 1
+exec python3 scripts/repo_guard.py --staged

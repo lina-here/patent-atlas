@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+.env
+.venv/
+__pycache__/
+test-results/
+playwright-report/
+.playwright-mcp/
+/tmp-raw/
+.pytest_cache/

@@ -1,0 +1,2006 @@
+{
+  "absent_rows": {
+    "office_apps": 111,
+    "origin_apps": 58,
+    "pct_origin": 18,
+    "women_any": 118,
+    "women_any_by_field": 0,
+    "women_share": 118
+  },
+  "checks": {
+    "gender": {
+      "compared": 26,
+      "gap_years": [],
+      "max_gap_pp": 0.2,
+      "warnings": []
+    },
+    "golden": [
+      "world_patent_applications_2024: live 3725000 vs published 3725000 (+0.00%)",
+      "top_origin_patent_applications_2024: live 1796738 vs published 1795715 (+0.06%)",
+      "pct_applications_2024: live 273946 vs published 273900 (+0.02%)",
+      "pct_applications_2025: live 275623 vs published 275900 (-0.10%)",
+      "per_gdp_cn_2024: live 4976.5 vs published 4977 (-0.01%)",
+      "per_million_kr_2024: live 3783.2 vs published 3783 (+0.01%)",
+      "women_any_world_2025: live 38.1 vs published 38.1 (+0.00%)",
+      "women_share_world_2025: live 18.1 vs published 18.1 (+0.00%)",
+      "women_share_es_2025: live 28.7 vs published 28.7 (+0.00%)"
+    ],
+    "golden_sources": [
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+        "id": "world_patent_applications_2024",
+        "page": "p. 7 (PDF p. 9), table 'IP filing activity by origin', row 'Applications worldwide', column 2024",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+        "id": "top_origin_patent_applications_2024",
+        "page": "p. 7 (PDF p. 9), table 'IP filing activity by origin', row 'China', column 2024",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (2025). PCT Yearly Review 2025: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.584031 (as printed; repository record tind.wipo.int/record/58403)",
+        "id": "pct_applications_2024",
+        "page": "p. 24 (PDF p. 25), table A9 'PCT applications for the top origins by region, 2022-2024', row 'Total', column 2024; also p. 6 'Key numbers for 2024'",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2025-en-patent-cooperation-treaty-yearly-review-2025.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+        "id": "pct_applications_2025",
+        "page": "p. 16 (PDF p. 17), table A9 row 'Total', column 2025; also p. 6 (PDF p. 7) key numbers",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+        "id": "per_gdp_cn_2024",
+        "page": "p. 45 (PDF p. 47), figure A37 'Resident patent applications per USD 100 billion GDP for the top 20 origins, 2014 and 2024', bar 'China', 2024; also p. 14 (PDF p. 16) text",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+        "id": "per_million_kr_2024",
+        "page": "p. 45 (PDF p. 47), figure A38 'Resident patent applications per million population for the top 20 origins, 2014 and 2024', bar 'Republic of Korea', 2024; also p. 15 (PDF p. 17) text",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+        "id": "women_any_world_2025",
+        "page": "p. 28 (PDF p. 29), text above figure A23 '38.1% listed at least one woman as inventor' (x-axis 'Publication year'); also p. 9 (PDF p. 10) text",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+        "id": "women_share_world_2025",
+        "page": "p. 28 (PDF p. 29), figure A22 heading 'In 2025, only 18.1% of inventors were women.' (x-axis 'Publication year'); also p. 9 (PDF p. 10) text",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf"
+      },
+      {
+        "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+        "id": "women_share_es_2025",
+        "page": "p. 9 (PDF p. 10), text 'Spain (28.7%)' citing figure A25; also figure A25 (p. 29, PDF p. 30) value label",
+        "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf"
+      }
+    ],
+    "groups": [],
+    "oecd": [],
+    "pct_monthly": [],
+    "ratios": {
+      "per_gdp": {
+        "by_country": {
+          "AE": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 1.0004
+          },
+          "AL": {
+            "failing": 10,
+            "max_pct": 5.2,
+            "median_factor": 0.9514
+          },
+          "AM": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "AO": {
+            "failing": 0,
+            "max_pct": 6.0,
+            "median_factor": 1.0057
+          },
+          "AR": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9998
+          },
+          "AT": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "AU": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "AZ": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "BA": {
+            "failing": 22,
+            "max_pct": 5.1,
+            "median_factor": 0.9516
+          },
+          "BD": {
+            "failing": 0,
+            "max_pct": 0.9,
+            "median_factor": 1.0011
+          },
+          "BE": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "BF": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 0.9998
+          },
+          "BG": {
+            "failing": 35,
+            "max_pct": 4.9,
+            "median_factor": 0.9515
+          },
+          "BH": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 0.9986
+          },
+          "BI": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0016
+          },
+          "BJ": {
+            "failing": 0,
+            "max_pct": 0.7,
+            "median_factor": 1.0002
+          },
+          "BN": {
+            "failing": 0,
+            "max_pct": 1.2,
+            "median_factor": 1.0005
+          },
+          "BO": {
+            "failing": 0,
+            "max_pct": 1.1,
+            "median_factor": 1.0006
+          },
+          "BR": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "BS": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 1.0013
+          },
+          "BT": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0
+          },
+          "BW": {
+            "failing": 0,
+            "max_pct": 1.8,
+            "median_factor": 1.0005
+          },
+          "BY": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0
+          },
+          "CA": {
+            "failing": 2,
+            "max_pct": 1.4,
+            "median_factor": 1.0
+          },
+          "CD": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0002
+          },
+          "CG": {
+            "failing": 0,
+            "max_pct": 1.8,
+            "median_factor": 1.0004
+          },
+          "CH": {
+            "failing": 33,
+            "max_pct": 3.7,
+            "median_factor": 0.9759
+          },
+          "CI": {
+            "failing": 0,
+            "max_pct": 1.8,
+            "median_factor": 0.9979
+          },
+          "CL": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 0.9997
+          },
+          "CM": {
+            "failing": 0,
+            "max_pct": 0.7,
+            "median_factor": 1.0
+          },
+          "CN": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "CO": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 0.9997
+          },
+          "CR": {
+            "failing": 2,
+            "max_pct": 1.7,
+            "median_factor": 0.9984
+          },
+          "CY": {
+            "failing": 21,
+            "max_pct": 5.3,
+            "median_factor": 0.9513
+          },
+          "CZ": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "DE": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 0.9984
+          },
+          "DK": {
+            "failing": 35,
+            "max_pct": 0.6,
+            "median_factor": 1.0056
+          },
+          "DO": {
+            "failing": 0,
+            "max_pct": 1.6,
+            "median_factor": 1.0011
+          },
+          "DZ": {
+            "failing": 0,
+            "max_pct": 2.0,
+            "median_factor": 0.9997
+          },
+          "EC": {
+            "failing": 0,
+            "max_pct": 1.9,
+            "median_factor": 0.9997
+          },
+          "EE": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0002
+          },
+          "EG": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9999
+          },
+          "ES": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "ET": {
+            "failing": 0,
+            "max_pct": 3.1,
+            "median_factor": 0.9991
+          },
+          "FI": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0
+          },
+          "FR": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "GA": {
+            "failing": 0,
+            "max_pct": 1.3,
+            "median_factor": 1.0011
+          },
+          "GB": {
+            "failing": 35,
+            "max_pct": 1.6,
+            "median_factor": 0.984
+          },
+          "GE": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "GH": {
+            "failing": 0,
+            "max_pct": 1.2,
+            "median_factor": 1.0014
+          },
+          "GN": {
+            "failing": 0,
+            "max_pct": 1.3,
+            "median_factor": 0.9958
+          },
+          "GR": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "GT": {
+            "failing": 0,
+            "max_pct": 2.8,
+            "median_factor": 0.9998
+          },
+          "GY": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0001
+          },
+          "HK": {
+            "failing": 0,
+            "max_pct": 0.6,
+            "median_factor": 1.0
+          },
+          "HN": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 0.9998
+          },
+          "HR": {
+            "failing": 33,
+            "max_pct": 4.9,
+            "median_factor": 0.9516
+          },
+          "HT": {
+            "failing": 2,
+            "max_pct": 1.9,
+            "median_factor": 1.0125
+          },
+          "HU": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "ID": {
+            "failing": 0,
+            "max_pct": 1.4,
+            "median_factor": 0.9998
+          },
+          "IE": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0017
+          },
+          "IL": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0003
+          },
+          "IN": {
+            "failing": 35,
+            "max_pct": 4.9,
+            "median_factor": 1.0296
+          },
+          "IQ": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "IR": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "IS": {
+            "failing": 35,
+            "max_pct": 1.8,
+            "median_factor": 0.9823
+          },
+          "IT": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "JM": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0002
+          },
+          "JO": {
+            "failing": 25,
+            "max_pct": 9.1,
+            "median_factor": 0.9159
+          },
+          "JP": {
+            "failing": 35,
+            "max_pct": 3.9,
+            "median_factor": 0.9795
+          },
+          "KE": {
+            "failing": 0,
+            "max_pct": 0.6,
+            "median_factor": 1.0002
+          },
+          "KG": {
+            "failing": 1,
+            "max_pct": 2.2,
+            "median_factor": 1.0
+          },
+          "KH": {
+            "failing": 0,
+            "max_pct": 4.8,
+            "median_factor": 0.9946
+          },
+          "KR": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "KW": {
+            "failing": 1,
+            "max_pct": 1.1,
+            "median_factor": 1.0008
+          },
+          "KZ": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "LA": {
+            "failing": 0,
+            "max_pct": 2.6,
+            "median_factor": 0.9984
+          },
+          "LB": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 0.9999
+          },
+          "LK": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 0.9999
+          },
+          "LT": {
+            "failing": 1,
+            "max_pct": 0.7,
+            "median_factor": 0.9997
+          },
+          "LU": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "LV": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "LY": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0008
+          },
+          "MA": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0001
+          },
+          "MD": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "ME": {
+            "failing": 14,
+            "max_pct": 5.0,
+            "median_factor": 0.9516
+          },
+          "MG": {
+            "failing": 0,
+            "max_pct": 0.9,
+            "median_factor": 1.0001
+          },
+          "MK": {
+            "failing": 26,
+            "max_pct": 4.9,
+            "median_factor": 0.9515
+          },
+          "ML": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 1.0007
+          },
+          "MN": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "MO": {
+            "failing": 0,
+            "max_pct": 3.6,
+            "median_factor": 0.9968
+          },
+          "MR": {
+            "failing": 0,
+            "max_pct": 1.3,
+            "median_factor": 1.0013
+          },
+          "MT": {
+            "failing": 21,
+            "max_pct": 4.9,
+            "median_factor": 0.9514
+          },
+          "MU": {
+            "failing": 5,
+            "max_pct": 1.8,
+            "median_factor": 1.0072
+          },
+          "MW": {
+            "failing": 0,
+            "max_pct": 0.6,
+            "median_factor": 1.0005
+          },
+          "MX": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0002
+          },
+          "MY": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "MZ": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0005
+          },
+          "NA": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0
+          },
+          "NE": {
+            "failing": 3,
+            "max_pct": 1.5,
+            "median_factor": 0.9947
+          },
+          "NG": {
+            "failing": 0,
+            "max_pct": 1.0,
+            "median_factor": 0.9992
+          },
+          "NI": {
+            "failing": 0,
+            "max_pct": 1.8,
+            "median_factor": 1.0004
+          },
+          "NL": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "NO": {
+            "failing": 32,
+            "max_pct": 4.5,
+            "median_factor": 0.9927
+          },
+          "NP": {
+            "failing": 0,
+            "max_pct": 1.6,
+            "median_factor": 0.9985
+          },
+          "NZ": {
+            "failing": 1,
+            "max_pct": 2.0,
+            "median_factor": 0.9971
+          },
+          "OM": {
+            "failing": 0,
+            "max_pct": 0.9,
+            "median_factor": 1.0002
+          },
+          "PA": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0
+          },
+          "PE": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0005
+          },
+          "PG": {
+            "failing": 0,
+            "max_pct": 1.7,
+            "median_factor": 0.9897
+          },
+          "PH": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0002
+          },
+          "PK": {
+            "failing": 0,
+            "max_pct": 1.1,
+            "median_factor": 1.0001
+          },
+          "PL": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "PT": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "PY": {
+            "failing": 0,
+            "max_pct": 0.6,
+            "median_factor": 1.0004
+          },
+          "QA": {
+            "failing": 0,
+            "max_pct": 1.3,
+            "median_factor": 1.0002
+          },
+          "RO": {
+            "failing": 35,
+            "max_pct": 4.9,
+            "median_factor": 0.9515
+          },
+          "RS": {
+            "failing": 21,
+            "max_pct": 4.9,
+            "median_factor": 0.9514
+          },
+          "RU": {
+            "failing": 1,
+            "max_pct": 0.5,
+            "median_factor": 1.0
+          },
+          "RW": {
+            "failing": 10,
+            "max_pct": 3.7,
+            "median_factor": 0.9673
+          },
+          "SA": {
+            "failing": 1,
+            "max_pct": 1.3,
+            "median_factor": 1.0004
+          },
+          "SD": {
+            "failing": 0,
+            "max_pct": 3.0,
+            "median_factor": 1.0
+          },
+          "SE": {
+            "failing": 35,
+            "max_pct": 0.9,
+            "median_factor": 1.0087
+          },
+          "SG": {
+            "failing": 29,
+            "max_pct": 1.5,
+            "median_factor": 0.9914
+          },
+          "SI": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 0.9998
+          },
+          "SK": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0003
+          },
+          "SN": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 0.9999
+          },
+          "SV": {
+            "failing": 0,
+            "max_pct": 1.6,
+            "median_factor": 1.0001
+          },
+          "SY": {
+            "failing": 22,
+            "max_pct": 8.1,
+            "median_factor": 0.979
+          },
+          "TD": {
+            "failing": 1,
+            "max_pct": 1.4,
+            "median_factor": 0.9995
+          },
+          "TG": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0
+          },
+          "TH": {
+            "failing": 1,
+            "max_pct": 0.7,
+            "median_factor": 0.9998
+          },
+          "TJ": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0003
+          },
+          "TM": {
+            "failing": 4,
+            "max_pct": 1.0,
+            "median_factor": 1.0095
+          },
+          "TN": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 0.9998
+          },
+          "TR": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0
+          },
+          "TT": {
+            "failing": 0,
+            "max_pct": 1.9,
+            "median_factor": 1.0
+          },
+          "TZ": {
+            "failing": 0,
+            "max_pct": 6.1,
+            "median_factor": 1.061
+          },
+          "UA": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0
+          },
+          "UG": {
+            "failing": 0,
+            "max_pct": 0.7,
+            "median_factor": 0.9991
+          },
+          "US": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 0.9999
+          },
+          "UY": {
+            "failing": 0,
+            "max_pct": 0.7,
+            "median_factor": 1.0003
+          },
+          "UZ": {
+            "failing": 32,
+            "max_pct": 5.0,
+            "median_factor": 0.994
+          },
+          "VN": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 1.0003
+          },
+          "ZA": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0001
+          },
+          "ZM": {
+            "failing": 0,
+            "max_pct": 0.9,
+            "median_factor": 0.9996
+          },
+          "ZW": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0003
+          }
+        },
+        "compared": 3583,
+        "failing": [
+          "per_gdp AL 2011: WIPO 8.9, computed 8.5 (-4.53%)",
+          "per_gdp AL 2014: WIPO 36.9, computed 35.1 (-4.98%)",
+          "per_gdp AL 2015: WIPO 38.8, computed 36.9 (-4.80%)",
+          "per_gdp AL 2016: WIPO 58.7, computed 55.9 (-4.84%)",
+          "per_gdp AL 2017: WIPO 41.3, computed 39.3 (-4.76%)",
+          "per_gdp AL 2018: WIPO 37.4, computed 35.6 (-4.89%)",
+          "per_gdp AL 2019: WIPO 14.7, computed 13.9 (-5.16%)",
+          "per_gdp AL 2021: WIPO 60.3, computed 57.3 (-4.91%)",
+          "per_gdp AL 2022: WIPO 53.1, computed 50.5 (-4.92%)",
+          "per_gdp AL 2023: WIPO 36.1, computed 34.4 (-4.76%)",
+          "per_gdp BA 1999: WIPO 78.2, computed 74.4 (-4.82%)",
+          "per_gdp BA 2000: WIPO 100.0, computed 95.2 (-4.83%)",
+          "per_gdp BA 2001: WIPO 163.8, computed 155.9 (-4.85%)",
+          "per_gdp BA 2003: WIPO 92.4, computed 87.9 (-4.84%)",
+          "per_gdp BA 2004: WIPO 135.8, computed 129.2 (-4.85%)",
+          "per_gdp BA 2005: WIPO 172.5, computed 164.2 (-4.84%)",
+          "per_gdp BA 2006: WIPO 136.4, computed 129.8 (-4.86%)",
+          "per_gdp BA 2008: WIPO 131.1, computed 124.7 (-4.87%)",
+          "per_gdp BA 2010: WIPO 127.2, computed 121.0 (-4.88%)",
+          "per_gdp BA 2011: WIPO 96.7, computed 92.0 (-4.83%)",
+          "per_gdp BA 2012: WIPO 4.5, computed 4.3 (-4.10%)",
+          "per_gdp BA 2013: WIPO 15.5, computed 14.8 (-4.79%)",
+          "per_gdp BA 2014: WIPO 89.8, computed 85.5 (-4.84%)",
+          "per_gdp BA 2016: WIPO 122.1, computed 116.2 (-4.87%)",
+          "per_gdp BA 2017: WIPO 171.4, computed 163.1 (-4.83%)",
+          "per_gdp BA 2018: WIPO 159.4, computed 151.7 (-4.83%)",
+          "per_gdp BA 2019: WIPO 83.0, computed 79.0 (-4.84%)",
+          "per_gdp BA 2020: WIPO 95.1, computed 90.5 (-4.85%)",
+          "per_gdp BA 2021: WIPO 93.9, computed 89.3 (-4.88%)",
+          "per_gdp BA 2022: WIPO 61.2, computed 58.2 (-4.89%)",
+          "per_gdp BA 2023: WIPO 73.3, computed 69.8 (-4.84%)",
+          "per_gdp BA 2024: WIPO 55.0, computed 52.2 (-5.06%)",
+          "per_gdp BG 1990: WIPO 159.6, computed 151.9 (-4.84%)",
+          "per_gdp BG 1991: WIPO 371.5, computed 353.5 (-4.83%)",
+          "per_gdp BG 1992: WIPO 312.4, computed 297.2 (-4.85%)",
+          "per_gdp BG 1993: WIPO 397.1, computed 377.8 (-4.85%)",
+          "per_gdp BG 1994: WIPO 301.9, computed 287.3 (-4.83%)",
+          "per_gdp BG 1995: WIPO 338.5, computed 322.1 (-4.84%)",
+          "per_gdp BG 1996: WIPO 276.3, computed 262.9 (-4.85%)",
+          "per_gdp BG 1997: WIPO 401.1, computed 381.7 (-4.84%)",
+          "per_gdp BG 1998: WIPO 268.8, computed 255.7 (-4.86%)",
+          "per_gdp BG 1999: WIPO 302.0, computed 287.3 (-4.86%)",
+          "per_gdp BG 2000: WIPO 236.5, computed 225.0 (-4.85%)",
+          "per_gdp BG 2001: WIPO 279.1, computed 265.5 (-4.86%)",
+          "per_gdp BG 2002: WIPO 274.8, computed 261.5 (-4.86%)",
+          "per_gdp BG 2003: WIPO 257.6, computed 245.1 (-4.86%)",
+          "per_gdp BG 2004: WIPO 231.8, computed 220.6 (-4.83%)",
+          "per_gdp BG 2005: WIPO 211.1, computed 200.9 (-4.84%)",
+          "per_gdp BG 2006: WIPO 185.3, computed 176.3 (-4.83%)",
+          "per_gdp BG 2007: WIPO 154.7, computed 147.2 (-4.86%)"
+        ],
+        "failing_count": 657,
+        "unlisted": [],
+        "vintage_factors": [
+          {
+            "code": "JO",
+            "median_factor": 0.9159
+          },
+          {
+            "code": "TZ",
+            "median_factor": 1.061
+          },
+          {
+            "code": "CY",
+            "median_factor": 0.9513
+          },
+          {
+            "code": "AL",
+            "median_factor": 0.9514
+          },
+          {
+            "code": "MT",
+            "median_factor": 0.9514
+          },
+          {
+            "code": "RS",
+            "median_factor": 0.9514
+          },
+          {
+            "code": "MK",
+            "median_factor": 0.9515
+          },
+          {
+            "code": "BG",
+            "median_factor": 0.9515
+          },
+          {
+            "code": "RO",
+            "median_factor": 0.9515
+          },
+          {
+            "code": "HR",
+            "median_factor": 0.9516
+          },
+          {
+            "code": "BA",
+            "median_factor": 0.9516
+          },
+          {
+            "code": "ME",
+            "median_factor": 0.9516
+          },
+          {
+            "code": "RW",
+            "median_factor": 0.9673
+          },
+          {
+            "code": "IN",
+            "median_factor": 1.0296
+          },
+          {
+            "code": "CH",
+            "median_factor": 0.9759
+          },
+          {
+            "code": "SY",
+            "median_factor": 0.979
+          },
+          {
+            "code": "JP",
+            "median_factor": 0.9795
+          },
+          {
+            "code": "IS",
+            "median_factor": 0.9823
+          },
+          {
+            "code": "GB",
+            "median_factor": 0.984
+          },
+          {
+            "code": "HT",
+            "median_factor": 1.0125
+          },
+          {
+            "code": "PG",
+            "median_factor": 0.9897
+          },
+          {
+            "code": "TM",
+            "median_factor": 1.0095
+          },
+          {
+            "code": "SE",
+            "median_factor": 1.0087
+          },
+          {
+            "code": "SG",
+            "median_factor": 0.9914
+          },
+          {
+            "code": "NO",
+            "median_factor": 0.9927
+          },
+          {
+            "code": "MU",
+            "median_factor": 1.0072
+          },
+          {
+            "code": "UZ",
+            "median_factor": 0.994
+          },
+          {
+            "code": "AO",
+            "median_factor": 1.0057
+          },
+          {
+            "code": "DK",
+            "median_factor": 1.0056
+          },
+          {
+            "code": "KH",
+            "median_factor": 0.9946
+          },
+          {
+            "code": "NE",
+            "median_factor": 0.9947
+          }
+        ],
+        "warnings": [
+          "per_gdp: 657 of 3583 compared cells outside tolerance (18.3%), above the limit 10.0%"
+        ],
+        "world": "pass",
+        "world_failing": []
+      },
+      "per_million": {
+        "by_country": {
+          "AE": {
+            "failing": 1,
+            "max_pct": 1.0,
+            "median_factor": 0.9976
+          },
+          "AL": {
+            "failing": 9,
+            "max_pct": 13.8,
+            "median_factor": 1.0925
+          },
+          "AM": {
+            "failing": 0,
+            "max_pct": 0.6,
+            "median_factor": 0.9999
+          },
+          "AO": {
+            "failing": 0,
+            "max_pct": 38.2,
+            "median_factor": 0.9586
+          },
+          "AR": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 1.0006
+          },
+          "AT": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "AU": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "AZ": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 0.9999
+          },
+          "BA": {
+            "failing": 0,
+            "max_pct": 9.0,
+            "median_factor": 1.0001
+          },
+          "BD": {
+            "failing": 0,
+            "max_pct": 24.9,
+            "median_factor": 1.0286
+          },
+          "BE": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0001
+          },
+          "BF": {
+            "failing": 0,
+            "max_pct": 43.6,
+            "median_factor": 0.9875
+          },
+          "BG": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0003
+          },
+          "BH": {
+            "failing": 0,
+            "max_pct": 1.6,
+            "median_factor": 0.9993
+          },
+          "BI": {
+            "failing": 0,
+            "max_pct": 24.9,
+            "median_factor": 0.8237
+          },
+          "BJ": {
+            "failing": 0,
+            "max_pct": 38.5,
+            "median_factor": 1.0094
+          },
+          "BO": {
+            "failing": 0,
+            "max_pct": 4.7,
+            "median_factor": 1.0065
+          },
+          "BR": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0002
+          },
+          "BW": {
+            "failing": 0,
+            "max_pct": 11.9,
+            "median_factor": 1.0073
+          },
+          "BY": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "CA": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "CD": {
+            "failing": 0,
+            "max_pct": 9.6,
+            "median_factor": 0.9376
+          },
+          "CF": {
+            "failing": 0,
+            "max_pct": 16.6,
+            "median_factor": 0.9781
+          },
+          "CG": {
+            "failing": 0,
+            "max_pct": 8.8,
+            "median_factor": 0.9937
+          },
+          "CH": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0
+          },
+          "CI": {
+            "failing": 0,
+            "max_pct": 30.5,
+            "median_factor": 1.0261
+          },
+          "CL": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 0.9999
+          },
+          "CM": {
+            "failing": 0,
+            "max_pct": 12.9,
+            "median_factor": 0.9999
+          },
+          "CN": {
+            "failing": 0,
+            "max_pct": 0.7,
+            "median_factor": 1.0
+          },
+          "CO": {
+            "failing": 0,
+            "max_pct": 3.0,
+            "median_factor": 0.9987
+          },
+          "CR": {
+            "failing": 0,
+            "max_pct": 2.7,
+            "median_factor": 1.0001
+          },
+          "CU": {
+            "failing": 0,
+            "max_pct": 7.8,
+            "median_factor": 0.9993
+          },
+          "CY": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9998
+          },
+          "CZ": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0002
+          },
+          "DE": {
+            "failing": 2,
+            "max_pct": 0.7,
+            "median_factor": 1.0
+          },
+          "DJ": {
+            "failing": 0,
+            "max_pct": 0.9,
+            "median_factor": 0.991
+          },
+          "DK": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "DO": {
+            "failing": 0,
+            "max_pct": 11.7,
+            "median_factor": 0.9983
+          },
+          "DZ": {
+            "failing": 0,
+            "max_pct": 18.2,
+            "median_factor": 0.9981
+          },
+          "EC": {
+            "failing": 0,
+            "max_pct": 37.2,
+            "median_factor": 0.9931
+          },
+          "EE": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 1.0001
+          },
+          "EG": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 1.0014
+          },
+          "ES": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0001
+          },
+          "ET": {
+            "failing": 0,
+            "max_pct": 49.6,
+            "median_factor": 0.9995
+          },
+          "FI": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0
+          },
+          "FR": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0
+          },
+          "GA": {
+            "failing": 0,
+            "max_pct": 3.3,
+            "median_factor": 1.0053
+          },
+          "GB": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "GE": {
+            "failing": 1,
+            "max_pct": 3.7,
+            "median_factor": 1.0
+          },
+          "GH": {
+            "failing": 0,
+            "max_pct": 18.4,
+            "median_factor": 1.0278
+          },
+          "GN": {
+            "failing": 0,
+            "max_pct": 35.5,
+            "median_factor": 0.9495
+          },
+          "GR": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0
+          },
+          "GT": {
+            "failing": 0,
+            "max_pct": 13.3,
+            "median_factor": 0.9974
+          },
+          "GW": {
+            "failing": 0,
+            "max_pct": 0.7,
+            "median_factor": 0.9934
+          },
+          "HK": {
+            "failing": 0,
+            "max_pct": 1.7,
+            "median_factor": 0.9998
+          },
+          "HN": {
+            "failing": 0,
+            "max_pct": 17.1,
+            "median_factor": 1.0163
+          },
+          "HR": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0003
+          },
+          "HT": {
+            "failing": 0,
+            "max_pct": 22.7,
+            "median_factor": 1.0008
+          },
+          "HU": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "ID": {
+            "failing": 0,
+            "max_pct": 47.5,
+            "median_factor": 0.9983
+          },
+          "IE": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 0.9998
+          },
+          "IL": {
+            "failing": 0,
+            "max_pct": 0.3,
+            "median_factor": 1.0
+          },
+          "IN": {
+            "failing": 0,
+            "max_pct": 2.4,
+            "median_factor": 1.0014
+          },
+          "IQ": {
+            "failing": 0,
+            "max_pct": 1.4,
+            "median_factor": 0.9993
+          },
+          "IR": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 1.0
+          },
+          "IT": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 1.0001
+          },
+          "JM": {
+            "failing": 0,
+            "max_pct": 3.9,
+            "median_factor": 1.001
+          },
+          "JO": {
+            "failing": 0,
+            "max_pct": 2.0,
+            "median_factor": 1.0002
+          },
+          "JP": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "KE": {
+            "failing": 0,
+            "max_pct": 12.8,
+            "median_factor": 0.9997
+          },
+          "KG": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 0.9998
+          },
+          "KH": {
+            "failing": 0,
+            "max_pct": 43.3,
+            "median_factor": 0.6368
+          },
+          "KP": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "KR": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "KW": {
+            "failing": 1,
+            "max_pct": 2.1,
+            "median_factor": 1.0044
+          },
+          "KZ": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9999
+          },
+          "LA": {
+            "failing": 0,
+            "max_pct": 49.2,
+            "median_factor": 1.0687
+          },
+          "LB": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9997
+          },
+          "LK": {
+            "failing": 0,
+            "max_pct": 2.2,
+            "median_factor": 1.0009
+          },
+          "LR": {
+            "failing": 0,
+            "max_pct": 10.9,
+            "median_factor": 0.9892
+          },
+          "LS": {
+            "failing": 0,
+            "max_pct": 9.5,
+            "median_factor": 1.0069
+          },
+          "LT": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0
+          },
+          "LV": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 0.9999
+          },
+          "LY": {
+            "failing": 0,
+            "max_pct": 2.3,
+            "median_factor": 1.0014
+          },
+          "MA": {
+            "failing": 0,
+            "max_pct": 2.5,
+            "median_factor": 1.0
+          },
+          "MD": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 0.9997
+          },
+          "MG": {
+            "failing": 0,
+            "max_pct": 35.9,
+            "median_factor": 1.0069
+          },
+          "MK": {
+            "failing": 1,
+            "max_pct": 2.0,
+            "median_factor": 1.0001
+          },
+          "ML": {
+            "failing": 0,
+            "max_pct": 42.4,
+            "median_factor": 0.951
+          },
+          "MN": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0002
+          },
+          "MR": {
+            "failing": 0,
+            "max_pct": 13.4,
+            "median_factor": 0.9958
+          },
+          "MU": {
+            "failing": 0,
+            "max_pct": 4.9,
+            "median_factor": 0.9983
+          },
+          "MW": {
+            "failing": 0,
+            "max_pct": 14.6,
+            "median_factor": 0.9564
+          },
+          "MX": {
+            "failing": 0,
+            "max_pct": 1.0,
+            "median_factor": 0.9979
+          },
+          "MY": {
+            "failing": 0,
+            "max_pct": 0.8,
+            "median_factor": 1.0
+          },
+          "MZ": {
+            "failing": 0,
+            "max_pct": 12.8,
+            "median_factor": 1.0421
+          },
+          "NA": {
+            "failing": 0,
+            "max_pct": 3.8,
+            "median_factor": 0.9987
+          },
+          "NE": {
+            "failing": 0,
+            "max_pct": 30.7,
+            "median_factor": 0.9871
+          },
+          "NG": {
+            "failing": 0,
+            "max_pct": 23.6,
+            "median_factor": 0.9987
+          },
+          "NI": {
+            "failing": 0,
+            "max_pct": 17.6,
+            "median_factor": 0.9991
+          },
+          "NL": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "NO": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "NP": {
+            "failing": 0,
+            "max_pct": 45.3,
+            "median_factor": 0.9773
+          },
+          "NZ": {
+            "failing": 3,
+            "max_pct": 0.9,
+            "median_factor": 1.0001
+          },
+          "OM": {
+            "failing": 0,
+            "max_pct": 2.2,
+            "median_factor": 0.9987
+          },
+          "PA": {
+            "failing": 0,
+            "max_pct": 2.0,
+            "median_factor": 1.0014
+          },
+          "PE": {
+            "failing": 0,
+            "max_pct": 3.9,
+            "median_factor": 0.998
+          },
+          "PG": {
+            "failing": 0,
+            "max_pct": 39.2,
+            "median_factor": 1.1437
+          },
+          "PH": {
+            "failing": 0,
+            "max_pct": 2.5,
+            "median_factor": 0.9965
+          },
+          "PK": {
+            "failing": 0,
+            "max_pct": 49.6,
+            "median_factor": 0.9934
+          },
+          "PL": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0001
+          },
+          "PT": {
+            "failing": 0,
+            "max_pct": 0.5,
+            "median_factor": 0.9999
+          },
+          "PY": {
+            "failing": 0,
+            "max_pct": 3.5,
+            "median_factor": 1.0004
+          },
+          "QA": {
+            "failing": 0,
+            "max_pct": 0.6,
+            "median_factor": 1.0009
+          },
+          "RO": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0003
+          },
+          "RS": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 0.9995
+          },
+          "RU": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9999
+          },
+          "RW": {
+            "failing": 0,
+            "max_pct": 16.1,
+            "median_factor": 0.9986
+          },
+          "SA": {
+            "failing": 0,
+            "max_pct": 2.4,
+            "median_factor": 1.0
+          },
+          "SD": {
+            "failing": 0,
+            "max_pct": 31.6,
+            "median_factor": 0.9985
+          },
+          "SE": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "SG": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "SI": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0
+          },
+          "SK": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 1.0001
+          },
+          "SN": {
+            "failing": 0,
+            "max_pct": 6.7,
+            "median_factor": 1.0136
+          },
+          "SV": {
+            "failing": 0,
+            "max_pct": 19.6,
+            "median_factor": 1.024
+          },
+          "SY": {
+            "failing": 0,
+            "max_pct": 1.0,
+            "median_factor": 1.002
+          },
+          "TD": {
+            "failing": 0,
+            "max_pct": 41.0,
+            "median_factor": 0.9924
+          },
+          "TG": {
+            "failing": 8,
+            "max_pct": 36.5,
+            "median_factor": 1.0755
+          },
+          "TH": {
+            "failing": 0,
+            "max_pct": 2.7,
+            "median_factor": 0.9993
+          },
+          "TJ": {
+            "failing": 0,
+            "max_pct": 15.7,
+            "median_factor": 0.9998
+          },
+          "TM": {
+            "failing": 0,
+            "max_pct": 0.1,
+            "median_factor": 0.9993
+          },
+          "TN": {
+            "failing": 0,
+            "max_pct": 1.4,
+            "median_factor": 0.9998
+          },
+          "TR": {
+            "failing": 0,
+            "max_pct": 1.6,
+            "median_factor": 0.9999
+          },
+          "TT": {
+            "failing": 0,
+            "max_pct": 4.7,
+            "median_factor": 1.0022
+          },
+          "UA": {
+            "failing": 0,
+            "max_pct": 0.2,
+            "median_factor": 1.0001
+          },
+          "UG": {
+            "failing": 0,
+            "max_pct": 44.3,
+            "median_factor": 1.0568
+          },
+          "US": {
+            "failing": 0,
+            "max_pct": 0.0,
+            "median_factor": 1.0
+          },
+          "UY": {
+            "failing": 0,
+            "max_pct": 1.7,
+            "median_factor": 1.0009
+          },
+          "UZ": {
+            "failing": 0,
+            "max_pct": 0.4,
+            "median_factor": 1.0006
+          },
+          "VE": {
+            "failing": 0,
+            "max_pct": 6.0,
+            "median_factor": 1.0021
+          },
+          "VN": {
+            "failing": 0,
+            "max_pct": 10.7,
+            "median_factor": 0.9977
+          },
+          "YE": {
+            "failing": 0,
+            "max_pct": 19.8,
+            "median_factor": 0.9751
+          },
+          "ZA": {
+            "failing": 0,
+            "max_pct": 1.6,
+            "median_factor": 1.0005
+          },
+          "ZM": {
+            "failing": 0,
+            "max_pct": 25.3,
+            "median_factor": 0.9911
+          },
+          "ZW": {
+            "failing": 0,
+            "max_pct": 9.6,
+            "median_factor": 1.0023
+          }
+        },
+        "compared": 3553,
+        "failing": [
+          "per_million AE 2024: WIPO 25.9, computed 25.7 (-0.90%)",
+          "per_million AL 2014: WIPO 4.5, computed 4.7 (+4.15%)",
+          "per_million AL 2015: WIPO 4.9, computed 5.1 (+4.61%)",
+          "per_million AL 2016: WIPO 7.6, computed 8.2 (+7.63%)",
+          "per_million AL 2017: WIPO 5.6, computed 6.0 (+7.89%)",
+          "per_million AL 2018: WIPO 5.2, computed 5.8 (+10.62%)",
+          "per_million AL 2019: WIPO 2.1, computed 2.3 (+11.27%)",
+          "per_million AL 2021: WIPO 9.2, computed 10.4 (+13.51%)",
+          "per_million AL 2022: WIPO 8.6, computed 9.8 (+13.83%)",
+          "per_million AL 2023: WIPO 6.2, computed 7.0 (+13.70%)",
+          "per_million DE 2022: WIPO 738.5, computed 744.0 (+0.74%)",
+          "per_million DE 2023: WIPO 756.5, computed 762.0 (+0.73%)",
+          "per_million GE 2024: WIPO 25.6, computed 24.7 (-3.69%)",
+          "per_million KW 2024: WIPO 6.6, computed 6.7 (+2.10%)",
+          "per_million MK 2024: WIPO 15.1, computed 14.8 (-1.99%)",
+          "per_million NZ 2022: WIPO 52.2, computed 52.5 (+0.65%)",
+          "per_million NZ 2023: WIPO 59.5, computed 60.0 (+0.84%)",
+          "per_million NZ 2024: WIPO 52.1, computed 52.6 (+0.87%)",
+          "per_million TG 2004: WIPO 0.5, computed 0.6 (+13.61%)",
+          "per_million TG 2005: WIPO 0.3, computed 0.4 (+23.16%)",
+          "per_million TG 2016: WIPO 1.3, computed 1.4 (+6.82%)",
+          "per_million TG 2017: WIPO 0.2, computed 0.3 (+36.53%)",
+          "per_million TG 2019: WIPO 0.2, computed 0.3 (+31.23%)",
+          "per_million TG 2021: WIPO 0.2, computed 0.3 (+26.01%)",
+          "per_million TG 2023: WIPO 2.0, computed 2.3 (+15.52%)",
+          "per_million TG 2024: WIPO 1.3, computed 1.4 (+9.80%)"
+        ],
+        "failing_count": 26,
+        "unlisted": [],
+        "vintage_factors": [
+          {
+            "code": "KH",
+            "median_factor": 0.6368
+          },
+          {
+            "code": "BI",
+            "median_factor": 0.8237
+          },
+          {
+            "code": "PG",
+            "median_factor": 1.1437
+          },
+          {
+            "code": "AL",
+            "median_factor": 1.0925
+          },
+          {
+            "code": "TG",
+            "median_factor": 1.0755
+          },
+          {
+            "code": "LA",
+            "median_factor": 1.0687
+          },
+          {
+            "code": "CD",
+            "median_factor": 0.9376
+          },
+          {
+            "code": "UG",
+            "median_factor": 1.0568
+          },
+          {
+            "code": "GN",
+            "median_factor": 0.9495
+          },
+          {
+            "code": "ML",
+            "median_factor": 0.951
+          },
+          {
+            "code": "MW",
+            "median_factor": 0.9564
+          },
+          {
+            "code": "MZ",
+            "median_factor": 1.0421
+          },
+          {
+            "code": "AO",
+            "median_factor": 0.9586
+          },
+          {
+            "code": "BD",
+            "median_factor": 1.0286
+          },
+          {
+            "code": "GH",
+            "median_factor": 1.0278
+          },
+          {
+            "code": "CI",
+            "median_factor": 1.0261
+          },
+          {
+            "code": "YE",
+            "median_factor": 0.9751
+          },
+          {
+            "code": "SV",
+            "median_factor": 1.024
+          },
+          {
+            "code": "NP",
+            "median_factor": 0.9773
+          },
+          {
+            "code": "CF",
+            "median_factor": 0.9781
+          },
+          {
+            "code": "HN",
+            "median_factor": 1.0163
+          },
+          {
+            "code": "SN",
+            "median_factor": 1.0136
+          },
+          {
+            "code": "NE",
+            "median_factor": 0.9871
+          },
+          {
+            "code": "BF",
+            "median_factor": 0.9875
+          },
+          {
+            "code": "LR",
+            "median_factor": 0.9892
+          },
+          {
+            "code": "BJ",
+            "median_factor": 1.0094
+          },
+          {
+            "code": "DJ",
+            "median_factor": 0.991
+          },
+          {
+            "code": "ZM",
+            "median_factor": 0.9911
+          },
+          {
+            "code": "TD",
+            "median_factor": 0.9924
+          },
+          {
+            "code": "BW",
+            "median_factor": 1.0073
+          },
+          {
+            "code": "EC",
+            "median_factor": 0.9931
+          },
+          {
+            "code": "LS",
+            "median_factor": 1.0069
+          },
+          {
+            "code": "MG",
+            "median_factor": 1.0069
+          },
+          {
+            "code": "PK",
+            "median_factor": 0.9934
+          },
+          {
+            "code": "GW",
+            "median_factor": 0.9934
+          },
+          {
+            "code": "BO",
+            "median_factor": 1.0065
+          },
+          {
+            "code": "CG",
+            "median_factor": 0.9937
+          },
+          {
+            "code": "GA",
+            "median_factor": 1.0053
+          }
+        ],
+        "warnings": [],
+        "world": "pass",
+        "world_failing": []
+      }
+    },
+    "regression": {
+      "accepted": [],
+      "revision_count": 0,
+      "revisions": [],
+      "warn_pct": 5
+    },
+    "wdi": "pass",
+    "wdi_last_updated": "2026-10-08",
+    "wdi_scope": "CH, US, CN, DE, MG; 2020-2023; 40 of 40 cells compared (blank on either side skipped)",
+    "wdi_warning_reason": null,
+    "wdi_warnings": [],
+    "world": [
+      "world_office 1987: sum of entities 995519 > WIPO total 994900 (known WIPO data quirk)",
+      "world_office 1989: sum of entities 1019689 > WIPO total 1014400 (known WIPO data quirk)",
+      "world_office 1990: sum of entities 1005455 > WIPO total 997500 (known WIPO data quirk)",
+      "world_office 1991: sum of entities 896636 > WIPO total 888200 (known WIPO data quirk)",
+      "world_office 1992: sum of entities 949317 > WIPO total 943600 (known WIPO data quirk)",
+      "world_office 1993: sum of entities 951718 > WIPO total 943300 (known WIPO data quirk)",
+      "world_office 1994: sum of entities 961734 > WIPO total 942800 (known WIPO data quirk)"
+    ],
+    "world_sum_ratio": {
+      "pct_world": {
+        "max": 0.9999,
+        "min": 0.9976,
+        "years": "1995-2025"
+      },
+      "world_office": {
+        "max": 1.0201,
+        "min": 0.9947,
+        "years": "1985-2024"
+      }
+    }
+  },
+  "gender_labels": {
+    "women_any": "13 - Share of applications with at least one women inventor (yearly statistics)",
+    "women_any_by_field": "14 - Share of applications with at least one women inventor by technology (yearly statistics)",
+    "women_share": "15 - Share of women inventors (yearly statistics)"
+  },
+  "last_year": {
+    "office_apps": 2024,
+    "origin_apps": 2024,
+    "pct_origin": 2025,
+    "women_any": 2025,
+    "women_any_by_field": 2025,
+    "women_share": 2025
+  },
+  "pipeline_sha": "d0aeb939c89ce81eb6c864ea451b99ea009286a5-dirty",
+  "ratio_labels": {
+    "per_gdp": "9 - Resident applications per 100 billion USD GDP (2017 PPP) (by origin)",
+    "per_million": "10 - Resident applications per million population (by origin)"
+  },
+  "releases": {
+    "ips": "Last updated: May 2026",
+    "pmh": "Last updated: October 2026"
+  },
+  "retrieved": "2026-10-21",
+  "version": "2026-10-21",
+  "wdi_denominators": {
+    "gdp_ppp": {
+      "gdp_base": 2021,
+      "indicator": "NY.GDP.MKTP.PP.KD",
+      "last_updated": "2026-10-08",
+      "name": "GDP, PPP (constant 2021 international $)"
+    },
+    "population": {
+      "indicator": "SP.POP.TOTL",
+      "last_updated": "2026-10-08",
+      "name": "Population, total"
+    }
+  }
+}

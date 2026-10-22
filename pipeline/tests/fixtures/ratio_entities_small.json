@@ -1,0 +1,21 @@
+{
+ "_fixture": "hand-made",
+ "ipsOfficeLabel": null,
+ "ipsOriginList": {
+  "CH": "Switzerland",
+  "CI": "Côte d'Ivoire",
+  "DE": "Germany",
+  "JP": "Japan",
+  "LU": "Luxembourg",
+  "MG": "Madagascar",
+  "SU": "Soviet Union",
+  "US": "United States of America",
+  "VA": "Holy See",
+  "WD": "World"
+ },
+ "ipsOffList": null,
+ "ipsTechList": null,
+ "ipsTechLabel": "Type",
+ "ipsOffListSeq": null,
+ "ipsOriginLabel": "Origin"
+}

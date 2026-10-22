@@ -1,0 +1,95 @@
+{
+ "_fixture": "hand-made",
+ "recordInfo": {
+  "propertyRight": "PCT",
+  "reportType": "Yearly statistics",
+  "yearRange": "2022 - 2026",
+  "indicator": "1 - PCT applications by filing date"
+ },
+ "columns": [
+  {
+   "code": "selectedOffice",
+   "sortProperty": "selectedOffice_SeqOrder",
+   "value": "selectedOffice",
+   "type": "text"
+  },
+  {
+   "code": "selectedOrigin",
+   "sortProperty": "selectedOrigin_SeqOrder",
+   "value": "selectedOrigin",
+   "type": "text"
+  },
+  {
+   "code": "2022",
+   "sortProperty": "2022_SeqOrder",
+   "value": "2022",
+   "type": "number"
+  },
+  {
+   "code": "2023",
+   "sortProperty": "2023_SeqOrder",
+   "value": "2023",
+   "type": "number"
+  },
+  {
+   "code": "2024",
+   "sortProperty": "2024_SeqOrder",
+   "value": "2024",
+   "type": "number"
+  },
+  {
+   "code": "2025",
+   "sortProperty": "2025_SeqOrder",
+   "value": "2025",
+   "type": "number"
+  },
+  {
+   "code": "2026",
+   "sortProperty": "2026_SeqOrder",
+   "value": "2026",
+   "type": "number"
+  }
+ ],
+ "records": [
+  {
+   "selectedOffice": "Total",
+   "selectedOrigin": "Switzerland",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "5,100",
+   "2023": "5,200",
+   "2024": "5,300",
+   "2025": "5,400",
+   "2026": null
+  },
+  {
+   "selectedOffice": "Total",
+   "selectedOrigin": "United States of America",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "58,000",
+   "2023": "56,000",
+   "2024": "54,000",
+   "2025": "53,000",
+   "2026": null
+  },
+  {
+   "selectedOffice": "Total",
+   "selectedOrigin": "Oceania",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "2,000",
+   "2023": "1,950",
+   "2024": "2,050",
+   "2025": "2,100",
+   "2026": null
+  },
+  {
+   "selectedOffice": "Total",
+   "selectedOrigin": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "278,000",
+   "2023": "273,000",
+   "2024": "274,000",
+   "2025": "275,000",
+   "2026": null
+  }
+ ]
+}

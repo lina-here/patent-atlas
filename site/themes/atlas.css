@@ -1,0 +1,151 @@
+/* Atlas (default; Lina: "Atlas" + "Pulse"). Survey-sheet paper with a faint graticule, navy map ink,
+   reference-work serif headings, Avenir-style map-label sans for data, one raspberry pulse for the
+   newest year and highlights. System fonts only (no CDN). */
+:root {
+  color-scheme: light;
+
+  --bg: #edf0e8;
+  --bg-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  --bg-size: 72px 72px;
+  --bg-position: -1px -1px;
+  --grid-line: rgba(31, 92, 112, 0.075);
+  --surface: #f6f7f2;
+  --ink: #142b3b;
+  --muted: #526570;
+  --rule: #bccac8;
+  --rule-strong: #142b3b;
+  --control-border: var(--rule-strong); /* select/input border: >= 3:1 vs --surface and --bg */
+  --accent: #d1124e;
+  --pulse-ink: #b30f43; /* newest-year text: >= 4.5:1 vs --bg */
+  --accent-soft: rgba(209, 18, 78, 0.45);
+  --link: #1f5c70;
+  --link-underline-offset: 0.18em;
+  --link-hover: #142b3b;
+  --focus: #d1124e;
+  --notice-bg: #f6f7f2;
+  --notice-ink: #142b3b;
+  --notice-rule: #b07a22;
+  --error-ink: #b3123f;
+  --pass-ink: #3f6b2e;
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", P052, Georgia, serif;
+  --font-body: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", P052, Georgia, serif;
+  --font-ui: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", "Noto Sans", system-ui, sans-serif;
+  --font-data: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", "Noto Sans", system-ui, sans-serif;
+  --weight-display: 600;
+  --weight-strong: 600;
+
+  --size-base: 17px;
+  --size-small: 0.84rem;
+  --size-lede: 1.18rem;
+  --size-h3: 1.2rem;
+  --size-h2: 1.6rem;
+  --size-h1: 2.4rem;
+  --size-display: clamp(2.3rem, 5.2vw, 3.7rem);
+  --size-brand: 1.75rem;
+  --size-figure: 2.1rem;
+  --leading-body: 1.6;
+  --leading-tight: 1.12;
+  --tracking-display: -0.01em;
+  --leading-brand: 1;
+  --tracking-brand: 0.01em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.85rem;
+  --space-4: 1.35rem;
+  --space-5: 2.25rem;
+  --space-6: 3.5rem;
+  --measure: 68ch;
+  --measure-wide: 54rem;
+  --measure-display: 16em;
+  --page-width: 76rem;
+  --page-gutter: clamp(1rem, 4vw, 2.5rem);
+  --toc-width: 13rem;
+  --card-min: 30rem;
+  --tile-min: 9rem;
+
+  --radius: 2px;
+  --rule-width: 1px;
+  --neatline: 4px double var(--ink);
+  --nav-mark-width: 2px;
+  --notice-mark-width: 3px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --card-pad: 1.35rem;
+  --card-top-rule: 2px solid var(--ink);
+  --card-shadow: none;
+
+  --chart-1: #1f5c70;
+  --chart-2: #b07a22;
+  --chart-3: #557d41;
+  --chart-4: #6e5a8a;
+  --chart-grid: #cdd7d4;
+  --chart-highlight: #d1124e;
+  --chart-height: 17rem;
+  --chart-bar-step: 1.55rem;
+  --chart-font-size: 0.78rem;
+  --chart-line-width: 2px;
+  --chart-dot-radius: 0.25rem;
+  --chart-ring-radius: 0.6rem;
+  --chart-ring-opacity: 0.45;
+  --chart-area-opacity: 0.08;
+  --chart-bar-padding: 0.3;
+  --chart-y-ticks: 5;
+  --chart-x-tick-gap: 5rem;
+  /* continent colours (overview share chart, size vs growth); shape also tells continents apart */
+  --continent-africa: #b07a22;
+  --continent-asia: #1f5c70;
+  --continent-europe: #6e5a8a;
+  --continent-latin-america-caribbean: #557d41;
+  --continent-northern-america: #b3433f;
+  --continent-oceania: #7d8c93;
+  --map-bin-1: #d9e8cf;
+  --map-bin-2: #bfdcc7;
+  --map-bin-3: #8cc2b6;
+  --map-bin-4: #5ba3a4;
+  --map-bin-5: #33808f;
+  --map-bin-6: #1f5c70;
+  --map-bin-7: #0f3a4d;
+  --map-zero: #f0dfb4;
+  --map-zero-mark: #8a6a1f;
+  --map-zero-gap: 5px;
+  --map-zero-mark-radius: 1.1px;
+  --map-neutral: #cfcfc8;
+  --map-hatch: #7d8c93;
+  --map-hatch-bg: #f6f7f2;
+  /* neutral (no WIPO code / disputed): cross hatch, line >= 3:1 vs --map-neutral; no data: single hatch */
+  --map-neutral-line: #526570;
+  --map-hatch-gap: 4px;
+  --map-hatch-width: 1.2px;
+  --map-former: #e6dcef;
+  --map-former-line: #6b4f8f;
+  /* shape and heat-cell edge: >= 3:1 vs --surface (WCAG 1.4.11), so light bins and special states keep an edge */
+  --map-edge: #76858c;
+  --map-edge-width: 1px;
+  --map-hover: #d1124e;
+  --map-hover-width: 1.6px;
+  --map-dot-radius: 3.2px;
+  --map-dot-border: var(--map-edge);
+  --map-swatch-size: 0.9rem;
+  --map-max-height: none;
+  --table-max-height: 22rem;
+
+  --pulse-dot: 0.5em;
+  --pulse-ring: 0.7em;
+  --pulse-animation: pulse-ring 1.8s ease-out 0.4s 2;
+  --rotate-animation: rotate-in 0.6s ease-out;
+  /* conference wallboard (base.css .board): the board forces the wallboard theme; defined here for completeness */
+  --board-title-size: 1.8rem;
+  --board-fine-print: 0.6rem;
+  --board-gap: var(--space-2);
+  --board-controls-offset: var(--space-3);
+  --board-progress-height: 0.3rem;
+  --board-progress-step: 1s;
+  --board-fade: 0.2s;
+  --board-backdrop: rgba(0, 0, 0, 0.6);
+  --board-dialog-width: 40rem;
+  --board-checkbox-size: 1em;
+}

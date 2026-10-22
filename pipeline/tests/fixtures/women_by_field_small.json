@@ -1,0 +1,91 @@
+{
+ "_fixture": "hand-made",
+ "recordInfo": {
+  "propertyRight": "PCT",
+  "reportType": "Yearly statistics",
+  "yearRange": "2022 - 2026",
+  "indicator": "14 - Share of applications with at least one women inventor by technology (yearly statistics)"
+ },
+ "columns": [
+  {
+   "code": "selectedClass",
+   "sortProperty": "selectedClass_SeqOrder",
+   "value": "Field of technology",
+   "type": "text"
+  },
+  {
+   "code": "2022",
+   "sortProperty": "2022_SeqOrder",
+   "value": "2022",
+   "type": "number"
+  },
+  {
+   "code": "2023",
+   "sortProperty": "2023_SeqOrder",
+   "value": "2023",
+   "type": "number"
+  },
+  {
+   "code": "2024",
+   "sortProperty": "2024_SeqOrder",
+   "value": "2024",
+   "type": "number"
+  },
+  {
+   "code": "2025",
+   "sortProperty": "2025_SeqOrder",
+   "value": "2025",
+   "type": "number"
+  },
+  {
+   "code": "2026",
+   "sortProperty": "2026_SeqOrder",
+   "value": "2026",
+   "type": "number"
+  }
+ ],
+ "records": [
+  {
+   "selectedClass": "Electrical machinery, apparatus, energy",
+   "selectedClass_SeqOrder": 1,
+   "2022": "29.4",
+   "2022_SeqOrder": 29.0,
+   "2023": "30.2",
+   "2023_SeqOrder": 30.0,
+   "2024": "31.1",
+   "2024_SeqOrder": 31.0,
+   "2025": "31.4",
+   "2025_SeqOrder": 31.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedClass": "Computer technology",
+   "selectedClass_SeqOrder": 2,
+   "2022": "36.0",
+   "2022_SeqOrder": 36.0,
+   "2023": "37.2",
+   "2023_SeqOrder": 37.0,
+   "2024": "38.3",
+   "2024_SeqOrder": 38.0,
+   "2025": "39.6",
+   "2025_SeqOrder": 40.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedClass": "Civil engineering",
+   "selectedClass_SeqOrder": 3,
+   "2022": "20.3",
+   "2022_SeqOrder": 20.0,
+   "2023": "21.0",
+   "2023_SeqOrder": 21.0,
+   "2024": "21.9",
+   "2024_SeqOrder": 22.0,
+   "2025": "22.4",
+   "2025_SeqOrder": 22.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  }
+ ]
+}

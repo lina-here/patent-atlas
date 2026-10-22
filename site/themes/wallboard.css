@@ -1,0 +1,158 @@
+/* Wallboard: office TV screen. Deep night-sea blue, large type and figures, readable across a room. */
+:root {
+  color-scheme: dark;
+
+  --bg: #0d1f2d;
+  --bg-image: radial-gradient(ellipse at 15% 0%, rgba(92, 200, 216, 0.10), transparent 55%);
+  --bg-size: 100% 100%;
+  --bg-position: 0 0;
+  --surface: #132a3b;
+  --ink: #eaf0f2;
+  --muted: #adbfc9; /* >= 7:1 vs --bg (also at the lightest point of --bg-image) and --surface (conference wallboard readability) */
+  --rule: #2b4558;
+  --rule-strong: #9db2bd;
+  --control-border: var(--rule-strong); /* select/input border: >= 3:1 vs --surface and --bg */
+  --accent: #ff9fbd; /* text and bar: >= 7:1 vs --bg and --surface; chart highlight stays --chart-highlight */
+  --pulse-ink: var(--accent); /* newest-year text: >= 4.5:1 vs --bg */
+  --accent-soft: color-mix(in srgb, var(--accent) 50%, transparent); /* pulse ring: follows --accent */
+  --link: #7fd6e3;
+  --link-underline-offset: 0.2em;
+  --link-hover: #eaf0f2;
+  --focus: #ff5a8c;
+  --notice-bg: #132a3b;
+  --notice-ink: #eaf0f2;
+  --notice-rule: #f2b84b;
+  --error-ink: #ffad7a; /* >= 7:1 vs --bg and --surface; a warm hue, apart from --accent (pink) */
+  --pass-ink: #9bd07a;
+
+  --font-display: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", "Noto Sans", system-ui, sans-serif;
+  --font-body: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", "Noto Sans", system-ui, sans-serif;
+  --font-ui: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", "Noto Sans", system-ui, sans-serif;
+  --font-data: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", "Noto Sans", system-ui, sans-serif;
+  --weight-display: 600;
+  --weight-strong: 600;
+
+  --size-base: clamp(18px, 1.35vw, 28px);
+  --size-small: 0.85rem;
+  --size-lede: 1.25rem;
+  --size-h3: 1.35rem;
+  --size-h2: 1.8rem;
+  --size-h1: 2.6rem;
+  --size-display: clamp(2.6rem, 4.6vw, 4.6rem);
+  --size-brand: 1.9rem;
+  --size-figure: 3.4rem;
+  --leading-body: 1.5;
+  --leading-tight: 1.08;
+  --tracking-display: -0.015em;
+  --leading-brand: 1;
+  --tracking-brand: 0;
+
+  --space-1: 0.3rem;
+  --space-2: 0.6rem;
+  --space-3: 1rem;
+  --space-4: 1.6rem;
+  --space-5: 2.6rem;
+  --space-6: 4rem;
+  --measure: 60ch;
+  --measure-wide: 64rem;
+  --measure-display: 18em;
+  --page-width: 120rem;
+  --page-gutter: clamp(1rem, 3vw, 3rem);
+  --toc-width: 14rem;
+  --card-min: 28rem;
+  --tile-min: 12rem;
+
+  --radius: 6px;
+  --rule-width: 1px;
+  --neatline: 1px solid var(--rule);
+  --nav-mark-width: 3px;
+  --notice-mark-width: 4px;
+  --focus-width: 3px;
+  --focus-offset: 3px;
+  --card-pad: 1.6rem;
+  --card-top-rule: 1px solid var(--rule);
+  --card-shadow: none;
+
+  --chart-1: #5cc8d8;
+  --chart-2: #f2b84b;
+  --chart-3: #9bd07a;
+  --chart-4: #b79ceb;
+  --chart-grid: #24394a;
+  --chart-highlight: #ff5a8c;
+  --chart-height: 21rem;
+  --chart-bar-step: 1.85rem;
+  --chart-font-size: 0.85rem;
+  --chart-line-width: 3px;
+  --chart-dot-radius: 0.3rem;
+  --chart-ring-radius: 0.7rem;
+  --chart-ring-opacity: 0.5;
+  --chart-area-opacity: 0.14;
+  --chart-bar-padding: 0.28;
+  --chart-y-ticks: 5;
+  --chart-x-tick-gap: 5rem;
+  /* continent colours (overview share chart, size vs growth); shape also tells continents apart */
+  --continent-africa: #f2b84b;
+  --continent-asia: #5cc8d8;
+  --continent-europe: #b79ceb;
+  --continent-latin-america-caribbean: #9bd07a;
+  --continent-northern-america: #f27b7b;
+  --continent-oceania: #b0bec5;
+  --map-bin-1: #2b5166;
+  --map-bin-2: #2d6474;
+  --map-bin-3: #2f7a86;
+  --map-bin-4: #3a9298;
+  --map-bin-5: #4faba8;
+  --map-bin-6: #78c6b8;
+  --map-bin-7: #b8e6d0;
+  --map-zero: #6b5a33;
+  --map-zero-mark: #e0c982;
+  --map-zero-gap: 5px;
+  --map-zero-mark-radius: 1.1px;
+  --map-neutral: #58626b;
+  --map-hatch: #9db2bd;
+  --map-hatch-bg: #132a3b;
+  /* neutral (no WIPO code / disputed): cross hatch, line >= 3:1 vs --map-neutral; no data: single hatch */
+  --map-neutral-line: #d4dfe4;
+  --map-hatch-gap: 4px;
+  --map-hatch-width: 1.2px;
+  --map-former: #2f2a4d;
+  --map-former-line: #c3b2ec;
+  /* shape and heat-cell edge: >= 3:1 vs --surface (WCAG 1.4.11), so light bins and special states keep an edge */
+  --map-edge: #6b8290;
+  --map-edge-width: 1px;
+  --map-hover: #ff5a8c;
+  --map-hover-width: 1.6px;
+  --map-dot-radius: 3.2px;
+  --map-dot-border: var(--map-edge);
+  --map-swatch-size: 0.9rem;
+  --map-max-height: 70vh;
+  --table-max-height: 22rem;
+
+  --pulse-dot: 0.55em;
+  --pulse-ring: 0.8em;
+  --pulse-animation: pulse-ring 2.4s ease-out 0.4s 2;
+  --rotate-animation: rotate-in 1.2s ease-out;
+}
+
+/* One card alone (rotation focus view): type also follows the screen height, so the card fits without scrolling */
+:root.focus-layout { --size-base: clamp(18px, min(1.35vw, 1.9vh), 28px); }
+
+/* Conference wallboard (?view=wallboard, html.board-mode): every size follows the screen height, so a slide that fits one
+   16:9 TV fits them all; at 1080 px high text, slide label and fine print meet config wallboard.minTextPx, minTitlePx, minFinePrintPx */
+:root.board-mode {
+  --size-base: 2.5vh;
+  --size-small: 0.9rem;
+  --chart-font-size: 0.9rem;
+  --board-title-size: 1.8rem;
+  --board-fine-print: 0.6rem;
+  --board-gap: var(--space-2);
+  --board-controls-offset: var(--space-3);
+  --board-progress-height: 0.3rem;
+  --board-progress-step: 1s;
+  --board-fade: 0.2s;
+  --board-backdrop: rgba(5, 12, 18, 0.78);
+  --board-dialog-width: 40rem;
+  --board-checkbox-size: 1em;
+  --map-max-height: none;
+  --card-pad: 1rem;
+}

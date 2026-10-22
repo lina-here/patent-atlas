@@ -1,0 +1,146 @@
+/* Embed: compact and neutral, sits inside other sites' pages. System sans, small, no decoration. */
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-image: none;
+  --bg-size: auto;
+  --bg-position: 0 0;
+  --surface: #ffffff;
+  --ink: #1f2328;
+  --muted: #59636e;
+  --rule: #d1d9e0;
+  --rule-strong: #59636e;
+  --control-border: var(--rule-strong); /* select/input border: >= 3:1 vs --surface and --bg */
+  --accent: #c2185b;
+  --pulse-ink: var(--accent); /* newest-year text: >= 4.5:1 vs --bg */
+  --accent-soft: transparent;
+  --link: #0b6bcb;
+  --link-underline-offset: 0.15em;
+  --link-hover: #1f2328;
+  --focus: #0b6bcb;
+  --notice-bg: #f6f8fa;
+  --notice-ink: #1f2328;
+  --notice-rule: #b26a00;
+  --error-ink: #c2185b;
+  --pass-ink: #2e7d32;
+
+  --font-display: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  --font-data: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  --weight-display: 600;
+  --weight-strong: 600;
+
+  --size-base: 14px;
+  --size-small: 0.86rem;
+  --size-lede: 1rem;
+  --size-h3: 1rem;
+  --size-h2: 1.15rem;
+  --size-h1: 1.4rem;
+  --size-display: 1.6rem;
+  --size-brand: 1.05rem;
+  --size-figure: 1.5rem;
+  --leading-body: 1.45;
+  --leading-tight: 1.2;
+  --tracking-display: 0;
+  --leading-brand: 1.2;
+  --tracking-brand: 0;
+
+  --space-1: 0.2rem;
+  --space-2: 0.4rem;
+  --space-3: 0.65rem;
+  --space-4: 1rem;
+  --space-5: 1.4rem;
+  --space-6: 2rem;
+  --measure: 72ch;
+  --measure-wide: 48rem;
+  --measure-display: 30em;
+  --page-width: 60rem;
+  --page-gutter: 0.75rem;
+  --toc-width: 10rem;
+  --card-min: 22rem;
+  --tile-min: 7rem;
+
+  --radius: 4px;
+  --rule-width: 1px;
+  --neatline: 1px solid var(--rule);
+  --nav-mark-width: 2px;
+  --notice-mark-width: 3px;
+  --focus-width: 2px;
+  --focus-offset: 1px;
+  --card-pad: 0.75rem;
+  --card-top-rule: 1px solid var(--rule);
+  --card-shadow: none;
+
+  --chart-1: #0b6bcb;
+  --chart-2: #b26a00;
+  --chart-3: #2e7d32;
+  --chart-4: #6a4fb3;
+  --chart-grid: #e6eaef;
+  --chart-highlight: #c2185b;
+  --chart-height: 15rem;
+  --chart-bar-step: 1.45rem;
+  --chart-font-size: 0.86rem;
+  --chart-line-width: 2px;
+  --chart-dot-radius: 0.26rem;
+  --chart-ring-radius: 0.62rem;
+  --chart-ring-opacity: 0.45;
+  --chart-area-opacity: 0.08;
+  --chart-bar-padding: 0.3;
+  --chart-y-ticks: 5;
+  --chart-x-tick-gap: 5rem;
+  /* continent colours (overview share chart, size vs growth); shape also tells continents apart */
+  --continent-africa: #b26a00;
+  --continent-asia: #0b6bcb;
+  --continent-europe: #6a4fb3;
+  --continent-latin-america-caribbean: #2e7d32;
+  --continent-northern-america: #c62828;
+  --continent-oceania: #6b7785;
+  --map-bin-1: #e3eef9;
+  --map-bin-2: #bcd6f0;
+  --map-bin-3: #8bbae5;
+  --map-bin-4: #5698d4;
+  --map-bin-5: #2b77c0;
+  --map-bin-6: #0b5aa3;
+  --map-bin-7: #083c74;
+  --map-zero: #f5ead0;
+  --map-zero-mark: #8a6d1f;
+  --map-zero-gap: 5px;
+  --map-zero-mark-radius: 1.1px;
+  --map-neutral: #d7d7d7;
+  --map-hatch: #59636e;
+  --map-hatch-bg: #ffffff;
+  /* neutral (no WIPO code / disputed): cross hatch, line >= 3:1 vs --map-neutral; no data: single hatch */
+  --map-neutral-line: #59636e;
+  --map-hatch-gap: 4px;
+  --map-hatch-width: 1.2px;
+  --map-former: #e8e0f2;
+  --map-former-line: #5d4a80;
+  /* shape and heat-cell edge: >= 3:1 vs --surface (WCAG 1.4.11), so light bins and special states keep an edge */
+  --map-edge: #848b93;
+  --map-edge-width: 1px;
+  --map-hover: #c2185b;
+  --map-hover-width: 1.6px;
+  --map-dot-radius: 3.2px;
+  --map-dot-border: var(--map-edge);
+  --map-swatch-size: 0.9rem;
+  --map-max-height: none;
+  --table-max-height: 18rem;
+
+  --pulse-dot: 0.45em;
+  --pulse-ring: 0;
+  --pulse-animation: none;
+  --rotate-animation: none;
+  /* conference wallboard (base.css .board): the board forces the wallboard theme; defined here for completeness */
+  --board-title-size: 1.8rem;
+  --board-fine-print: 0.6rem;
+  --board-gap: var(--space-2);
+  --board-controls-offset: var(--space-3);
+  --board-progress-height: 0.3rem;
+  --board-progress-step: 1s;
+  --board-fade: 0.2s;
+  --board-backdrop: rgba(0, 0, 0, 0.6);
+  --board-dialog-width: 40rem;
+  --board-checkbox-size: 1em;
+}

@@ -1,0 +1,146 @@
+/* Paper: print and research. White, high contrast, no decoration or motion; prints clean. */
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-image: none;
+  --bg-size: auto;
+  --bg-position: 0 0;
+  --surface: #ffffff;
+  --ink: #111111;
+  --muted: #4a4a4a;
+  --rule: #b8b8b8;
+  --rule-strong: #111111;
+  --control-border: var(--rule-strong); /* select/input border: >= 3:1 vs --surface and --bg */
+  --accent: #a8003b;
+  --pulse-ink: var(--accent); /* newest-year text: >= 4.5:1 vs --bg */
+  --accent-soft: transparent;
+  --link: #1a3f7a;
+  --link-underline-offset: 0.15em;
+  --link-hover: #111111;
+  --focus: #1a3f7a;
+  --notice-bg: #f3f3f3;
+  --notice-ink: #111111;
+  --notice-rule: #4a4a4a;
+  --error-ink: #a8003b;
+  --pass-ink: #1f5a1f;
+
+  --font-display: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --font-body: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --font-ui: "Helvetica Neue", Arial, "Noto Sans", system-ui, sans-serif;
+  --font-data: "Helvetica Neue", Arial, "Noto Sans", system-ui, sans-serif;
+  --weight-display: 700;
+  --weight-strong: 700;
+
+  --size-base: 16px;
+  --size-small: 0.85rem;
+  --size-lede: 1.1rem;
+  --size-h3: 1.1rem;
+  --size-h2: 1.4rem;
+  --size-h1: 2rem;
+  --size-display: 2.3rem;
+  --size-brand: 1.4rem;
+  --size-figure: 1.7rem;
+  --leading-body: 1.55;
+  --leading-tight: 1.2;
+  --tracking-display: 0;
+  --leading-brand: 1.1;
+  --tracking-brand: 0;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.8rem;
+  --space-4: 1.2rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+  --measure: 70ch;
+  --measure-wide: 50rem;
+  --measure-display: 22em;
+  --page-width: 64rem;
+  --page-gutter: clamp(1rem, 4vw, 2rem);
+  --toc-width: 12rem;
+  --card-min: 28rem;
+  --tile-min: 8rem;
+
+  --radius: 0;
+  --rule-width: 1px;
+  --neatline: 1px solid var(--ink);
+  --nav-mark-width: 1px;
+  --notice-mark-width: 2px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --card-pad: 1rem;
+  --card-top-rule: 1px solid var(--rule);
+  --card-shadow: none;
+
+  --chart-1: #1a1a1a;
+  --chart-2: #2b5e9e;
+  --chart-3: #b5651d;
+  --chart-4: #6b6b6b;
+  --chart-grid: #dddddd;
+  --chart-highlight: #a8003b;
+  --chart-height: 16rem;
+  --chart-bar-step: 1.4rem;
+  --chart-font-size: 0.78rem;
+  --chart-line-width: 1.5px;
+  --chart-dot-radius: 0.22rem;
+  --chart-ring-radius: 0.5rem;
+  --chart-ring-opacity: 0.5;
+  --chart-area-opacity: 0.06;
+  --chart-bar-padding: 0.3;
+  --chart-y-ticks: 5;
+  --chart-x-tick-gap: 5rem;
+  /* continent colours (overview share chart, size vs growth); shape also tells continents apart */
+  --continent-africa: #b5651d;
+  --continent-asia: #1a1a1a;
+  --continent-europe: #2b5e9e;
+  --continent-latin-america-caribbean: #3d7a3d;
+  --continent-northern-america: #a3282f;
+  --continent-oceania: #8a8a8a;
+  --map-bin-1: #f7e4e8;
+  --map-bin-2: #eebcc7;
+  --map-bin-3: #e08fa2;
+  --map-bin-4: #cc5d7a;
+  --map-bin-5: #b33058;
+  --map-bin-6: #8c0f3a;
+  --map-bin-7: #5a0024;
+  --map-zero: #f1ecd6;
+  --map-zero-mark: #7a6a2a;
+  --map-zero-gap: 5px;
+  --map-zero-mark-radius: 1.1px;
+  --map-neutral: #d2d2d2;
+  --map-hatch: #4a4a4a;
+  --map-hatch-bg: #ffffff;
+  /* neutral (no WIPO code / disputed): cross hatch, line >= 3:1 vs --map-neutral; no data: single hatch */
+  --map-neutral-line: #4a4a4a;
+  --map-hatch-gap: 4px;
+  --map-hatch-width: 1.2px;
+  --map-former: #e9e9ef;
+  --map-former-line: #2f2f4f;
+  /* shape and heat-cell edge: >= 3:1 vs --surface (WCAG 1.4.11), so light bins and special states keep an edge */
+  --map-edge: #8a8a8a;
+  --map-edge-width: 1px;
+  --map-hover: #111111;
+  --map-hover-width: 1.6px;
+  --map-dot-radius: 3.2px;
+  --map-dot-border: var(--map-edge);
+  --map-swatch-size: 0.9rem;
+  --map-max-height: none;
+  --table-max-height: 22rem;
+
+  --pulse-dot: 0;
+  --pulse-ring: 0;
+  --pulse-animation: none;
+  --rotate-animation: rotate-in 0.6s ease-out;
+  /* conference wallboard (base.css .board): the board forces the wallboard theme; defined here for completeness */
+  --board-title-size: 1.8rem;
+  --board-fine-print: 0.6rem;
+  --board-gap: var(--space-2);
+  --board-controls-offset: var(--space-3);
+  --board-progress-height: 0.3rem;
+  --board-progress-step: 1s;
+  --board-fade: 0.2s;
+  --board-backdrop: rgba(0, 0, 0, 0.6);
+  --board-dialog-width: 40rem;
+  --board-checkbox-size: 1em;
+}

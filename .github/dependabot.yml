@@ -1,0 +1,16 @@
+# Weekly update PRs: the SHA-pinned actions (SHA and its version comment together), the npm packages, bundled ones
+# included (package.json dependencies), and the hashed pip pins (requirements-dev.txt). Each PR runs ci.yml like any other.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly

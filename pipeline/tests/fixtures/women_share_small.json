@@ -1,0 +1,133 @@
+{
+ "_fixture": "hand-made",
+ "recordInfo": {
+  "propertyRight": "PCT",
+  "reportType": "Yearly statistics",
+  "yearRange": "2022 - 2026",
+  "indicator": "15 - Share of women inventors (yearly statistics)"
+ },
+ "columns": [
+  {
+   "code": "selectedOrigin",
+   "sortProperty": "selectedOrigin_SeqOrder",
+   "value": "Origin",
+   "type": "text"
+  },
+  {
+   "code": "2022",
+   "sortProperty": "2022_SeqOrder",
+   "value": "2022",
+   "type": "number"
+  },
+  {
+   "code": "2023",
+   "sortProperty": "2023_SeqOrder",
+   "value": "2023",
+   "type": "number"
+  },
+  {
+   "code": "2024",
+   "sortProperty": "2024_SeqOrder",
+   "value": "2024",
+   "type": "number"
+  },
+  {
+   "code": "2025",
+   "sortProperty": "2025_SeqOrder",
+   "value": "2025",
+   "type": "number"
+  },
+  {
+   "code": "2026",
+   "sortProperty": "2026_SeqOrder",
+   "value": "2026",
+   "type": "number"
+  }
+ ],
+ "records": [
+  {
+   "selectedOrigin": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "17.4",
+   "2022_SeqOrder": 17.0,
+   "2023": "17.7",
+   "2023_SeqOrder": 18.0,
+   "2024": "18.0",
+   "2024_SeqOrder": 18.0,
+   "2025": "18.1",
+   "2025_SeqOrder": 18.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Germany",
+   "selectedOrigin_SeqOrder": 2,
+   "2022": "10.2",
+   "2022_SeqOrder": 10.0,
+   "2023": "10.5",
+   "2023_SeqOrder": 10.0,
+   "2024": "10.9",
+   "2024_SeqOrder": 11.0,
+   "2025": "11.1",
+   "2025_SeqOrder": 11.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Switzerland",
+   "selectedOrigin_SeqOrder": 3,
+   "2022": "16.0",
+   "2022_SeqOrder": 16.0,
+   "2023": "16.6",
+   "2023_SeqOrder": 17.0,
+   "2024": "16.9",
+   "2024_SeqOrder": 17.0,
+   "2025": "17.6",
+   "2025_SeqOrder": 18.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "United States of America",
+   "selectedOrigin_SeqOrder": 4,
+   "2022": "17.9",
+   "2022_SeqOrder": 18.0,
+   "2023": "18.1",
+   "2023_SeqOrder": 18.0,
+   "2024": "18.2",
+   "2024_SeqOrder": 18.0,
+   "2025": "18.3",
+   "2025_SeqOrder": 18.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Armenia",
+   "selectedOrigin_SeqOrder": 5,
+   "2022": "6.7",
+   "2022_SeqOrder": 7.0,
+   "2023": null,
+   "2023_SeqOrder": null,
+   "2024": "12.5",
+   "2024_SeqOrder": 12.0,
+   "2025": "13.0",
+   "2025_SeqOrder": 13.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Unknown",
+   "selectedOrigin_SeqOrder": 6,
+   "2022": null,
+   "2022_SeqOrder": null,
+   "2023": "21.0",
+   "2023_SeqOrder": 21.0,
+   "2024": "4.2",
+   "2024_SeqOrder": 4.0,
+   "2025": null,
+   "2025_SeqOrder": null,
+   "2026": null,
+   "2026_SeqOrder": null
+  }
+ ]
+}

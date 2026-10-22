@@ -1,0 +1,133 @@
+{
+ "_fixture": "hand-made",
+ "recordInfo": {
+  "propertyRight": "PCT",
+  "reportType": "Yearly statistics",
+  "yearRange": "2022 - 2026",
+  "indicator": "13 - Share of applications with at least one women inventor (yearly statistics)"
+ },
+ "columns": [
+  {
+   "code": "selectedOrigin",
+   "sortProperty": "selectedOrigin_SeqOrder",
+   "value": "Origin",
+   "type": "text"
+  },
+  {
+   "code": "2022",
+   "sortProperty": "2022_SeqOrder",
+   "value": "2022",
+   "type": "number"
+  },
+  {
+   "code": "2023",
+   "sortProperty": "2023_SeqOrder",
+   "value": "2023",
+   "type": "number"
+  },
+  {
+   "code": "2024",
+   "sortProperty": "2024_SeqOrder",
+   "value": "2024",
+   "type": "number"
+  },
+  {
+   "code": "2025",
+   "sortProperty": "2025_SeqOrder",
+   "value": "2025",
+   "type": "number"
+  },
+  {
+   "code": "2026",
+   "sortProperty": "2026_SeqOrder",
+   "value": "2026",
+   "type": "number"
+  }
+ ],
+ "records": [
+  {
+   "selectedOrigin": "Total",
+   "selectedOrigin_SeqOrder": 1,
+   "2022": "34.8",
+   "2022_SeqOrder": 35.0,
+   "2023": "36.2",
+   "2023_SeqOrder": 36.0,
+   "2024": "37.1",
+   "2024_SeqOrder": 37.0,
+   "2025": "38.1",
+   "2025_SeqOrder": 38.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Germany",
+   "selectedOrigin_SeqOrder": 2,
+   "2022": "21.0",
+   "2022_SeqOrder": 21.0,
+   "2023": "21.5",
+   "2023_SeqOrder": 22.0,
+   "2024": "22.0",
+   "2024_SeqOrder": 22.0,
+   "2025": "22.3",
+   "2025_SeqOrder": 22.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Switzerland",
+   "selectedOrigin_SeqOrder": 3,
+   "2022": "31.9",
+   "2022_SeqOrder": 32.0,
+   "2023": "33.5",
+   "2023_SeqOrder": 34.0,
+   "2024": "33.0",
+   "2024_SeqOrder": 33.0,
+   "2025": "33.8",
+   "2025_SeqOrder": 34.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "United States of America",
+   "selectedOrigin_SeqOrder": 4,
+   "2022": "39.0",
+   "2022_SeqOrder": 39.0,
+   "2023": "39.8",
+   "2023_SeqOrder": 40.0,
+   "2024": "40.1",
+   "2024_SeqOrder": 40.0,
+   "2025": "40.4",
+   "2025_SeqOrder": 40.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Armenia",
+   "selectedOrigin_SeqOrder": 5,
+   "2022": "16.7",
+   "2022_SeqOrder": 17.0,
+   "2023": null,
+   "2023_SeqOrder": null,
+   "2024": "20.0",
+   "2024_SeqOrder": 20.0,
+   "2025": "21.0",
+   "2025_SeqOrder": 21.0,
+   "2026": null,
+   "2026_SeqOrder": null
+  },
+  {
+   "selectedOrigin": "Unknown",
+   "selectedOrigin_SeqOrder": 6,
+   "2022": null,
+   "2022_SeqOrder": null,
+   "2023": "45.5",
+   "2023_SeqOrder": 46.0,
+   "2024": "10.0",
+   "2024_SeqOrder": 10.0,
+   "2025": null,
+   "2025_SeqOrder": null,
+   "2026": null,
+   "2026_SeqOrder": null
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+[project]
+name = "patent-atlas"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["pipeline/tests"]
+pythonpath = ["."]
+addopts = "-m 'not live'"
+markers = ["live: calls the real WIPO API (run with -m live; needs network)"]
