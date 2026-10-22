@@ -297,7 +297,8 @@ test("embed fits its chart to the viewport: a height-only resize refits it, a wi
   await page.goto("/embed.html?chart=world-trend");
   const chart = page.locator(".chart-figure > svg").first();
   await expect(chart).toBeVisible();
-  const height = async () => (await page.locator(".chart-figure > svg").first().boundingBox())!.height;
+  // mid-redraw the svg is replaced: no box for a moment -> Infinity, so the poll retries instead of throwing
+  const height = async () => (await page.locator(".chart-figure > svg").first().boundingBox())?.height ?? Infinity;
   const tall = await height();
   await page.setViewportSize({ width: 600, height: config.embedHeight - 100 });
   await expect.poll(height).toBeLessThan(tall);
