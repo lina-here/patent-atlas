@@ -1,8 +1,8 @@
 // Atlas bundle for the world map: geometry (site/geo, scripts/build_geo.py), dots for countries too small for the
 // 110m geometry, map values per series (pipeline/write.py `_map_file`), groups and former-entity successors
 // (groups.json), group figures (group/<id>.json, for region and continent modes), entities (ISO2 -> M49 numeric =
-// geometry id). Loaded once per page, in parallel with the page data. Ratio and share map files (~270 KB each) load only
-// when that metric is shown: asked by the address at load, or chosen later (`loadLazyValues`; final review M6).
+// geometry id). Loaded once per page, in parallel with the page data. Ratio, share and PCT membership map files (~210-270 KB
+// each) load only when that metric is shown: asked by the address at load, or chosen later (`loadLazyValues`).
 import type { GeometryCollection, Topology } from "topojson-specification";
 import { loadJson, type Entities, type GenderMeasure, type GenderNullReason, type GroupRatio, type RatioId, type RatioNullReason, type SeriesId, type SourceBlock, type YearMap } from "./data";
 
@@ -14,11 +14,14 @@ export const MAP_RATIOS: MapRatio[] = ["per_million", "per_gdp"];
 /** Women-inventor shares the map can show (WIPO 1040 and 1042, by publication year). */
 export type MapShare = GenderMeasure;
 export const MAP_SHARES: MapShare[] = ["women_any", "women_share"];
-export type MapMetric = SeriesId | MapRatio | MapShare;
+/** PCT Contracting States per year (map/pct_member.json): country mode only. */
+export type MapMembership = "pct_member";
+export const MAP_MEMBERSHIP: MapMembership = "pct_member";
+export type MapMetric = SeriesId | MapRatio | MapShare | MapMembership;
 /** Metrics whose map file loads only when shown. */
-export type LazyMetric = MapRatio | MapShare;
+export type LazyMetric = MapRatio | MapShare | MapMembership;
 /** Every map metric, in the metric control's order. */
-export const MAP_METRICS: MapMetric[] = [...MAP_SERIES, ...MAP_RATIOS, ...MAP_SHARES];
+export const MAP_METRICS: MapMetric[] = [...MAP_SERIES, ...MAP_RATIOS, ...MAP_SHARES, MAP_MEMBERSHIP];
 
 export type CountryGeometry = Topology<{ countries: GeometryCollection<{ name: string }> }>;
 
@@ -34,6 +37,19 @@ export type MapValues<Reason extends string = RatioNullReason> = {
 };
 /** A share map file: its null reasons are the gender ones. */
 export type ShareMapValues = MapValues<GenderNullReason>;
+
+/** Why a membership cell is null: a former State, not on WIPO's current list (pipeline/pct_states.py). */
+export type MembershipNullReason = "not_on_current_list";
+/** map/pct_member.json: per country and year whether the PCT was in force for it (true / false); a former entity null
+ * every year with its reason (`null_reason` per code); `in_force` = entry-into-force date of every listed State;
+ * `unmatched` = listed codes with no WIPO entity. */
+export type MembershipMapValues = {
+  values: Record<string, Record<string, boolean | null>>;
+  null_reason: Record<string, MembershipNullReason>;
+  in_force: Record<string, string>;
+  unmatched: string[];
+  sources: { pct_member: { source_url: string; count_check_url: string; status_on: string; retrieved: string } };
+};
 
 /** A country whose territory a former entity covered, and the years it did (pipeline/successors.json). */
 export type Successor = { code: string; from_year: number; to_year: number };
@@ -105,8 +121,9 @@ export type Atlas = {
   geometry: CountryGeometry;
   /** [lon, lat] dot per country with no 110m shape (site/geo/points.json). */
   points: Record<string, [number, number]>;
-  /** Series: always loaded; a ratio or share: once shown (`loadLazyValues`). */
-  values: Record<SeriesId, MapValues> & Partial<Record<MapRatio, MapValues>> & Partial<Record<MapShare, ShareMapValues>>;
+  /** Series: always loaded; a ratio, share or membership: once shown (`loadLazyValues`). */
+  values: Record<SeriesId, MapValues> & Partial<Record<MapRatio, MapValues>> & Partial<Record<MapShare, ShareMapValues>> &
+    Partial<Record<MapMembership, MembershipMapValues>>;
   groups: GroupItem[];
   /** Former entity code -> successors (DD: none, Germany reports itself). */
   successors: Record<string, Successor[]>;
@@ -138,12 +155,16 @@ export function isMapShare(metric: string | undefined): metric is MapShare {
   return (MAP_SHARES as (string | undefined)[]).includes(metric);
 }
 
-/** The ratio or share map file a `metric` address param needs at load (none for a series or no param). */
-export function lazyMetricsFor(metric: string | undefined): LazyMetric[] {
-  return isMapRatio(metric) || isMapShare(metric) ? [metric] : [];
+export function isMapMembership(metric: string | undefined): metric is MapMembership {
+  return metric === MAP_MEMBERSHIP;
 }
 
-/** `lazy`: the ratio or share map files to load with the atlas (the address' metric); the others load when chosen. */
+/** The ratio, share or membership map file a `metric` address param needs at load (none for a series or no param). */
+export function lazyMetricsFor(metric: string | undefined): LazyMetric[] {
+  return isMapRatio(metric) || isMapShare(metric) || isMapMembership(metric) ? [metric] : [];
+}
+
+/** `lazy`: the ratio, share or membership map files to load with the atlas (the address' metric); the others load when chosen. */
 export async function loadAtlas(lazy: LazyMetric[] = []): Promise<Atlas> {
   const metrics: MapMetric[] = [...MAP_SERIES, ...lazy];
   const [geometry, points, groups, entities, ...series] = await Promise.all([
@@ -151,7 +172,7 @@ export async function loadAtlas(lazy: LazyMetric[] = []): Promise<Atlas> {
     loadJson<PointsFile>("geo/points.json"),
     loadJson<GroupsFile>("data/groups.json"),
     loadJson<Entities>("data/entities.json"),
-    ...metrics.map((id) => loadJson<MapValues>(`data/map/${id}.json`)),
+    ...metrics.map((id) => loadJson<MapValues | MembershipMapValues>(`data/map/${id}.json`)),
   ]);
   const values = Object.fromEntries(metrics.map((id, index) => [id, series[index]])) as Atlas["values"];
   // one failing group file drops that group only (notice via missingGroupsNotice); map, cards and picker stand
@@ -164,7 +185,8 @@ export async function loadAtlas(lazy: LazyMetric[] = []): Promise<Atlas> {
 
 const lazyLoads = new WeakMap<Atlas, Map<LazyMetric, Promise<boolean>>>();
 
-/** Loads a ratio's or share's map file into `atlas.values` once (a failed load may be retried); false when it could not load. */
+/** Loads a ratio's, share's or the membership map file into `atlas.values` once (a failed load may be retried); false when it
+ * could not load. */
 export function loadLazyValues(atlas: Atlas, id: LazyMetric): Promise<boolean> {
   if (atlas.values[id]) return Promise.resolve(true);
   const loads = lazyLoads.get(atlas) ?? new Map<LazyMetric, Promise<boolean>>();
@@ -172,8 +194,8 @@ export function loadLazyValues(atlas: Atlas, id: LazyMetric): Promise<boolean> {
   let load = loads.get(id);
   if (!load) {
     const path = `data/map/${id}.json`;
-    const loaded = isMapShare(id)
-      ? loadJson<ShareMapValues>(path).then((file) => { atlas.values[id] = file; })
+    const loaded = isMapShare(id) ? loadJson<ShareMapValues>(path).then((file) => { atlas.values[id] = file; })
+      : isMapMembership(id) ? loadJson<MembershipMapValues>(path).then((file) => { atlas.values[id] = file; })
       : loadJson<MapValues>(path).then((file) => { atlas.values[id] = file; });
     load = loaded.then(() => true, (error: unknown) => {
       console.error(error);

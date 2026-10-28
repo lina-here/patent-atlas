@@ -241,7 +241,31 @@ export type Overview = {
   world_sources: Record<WorldId, SourceBlock>;
   /** Absent in data written before v0.2b: no break notes, no methods section. */
   series_breaks?: SeriesBreak[];
+  /** PCT Contracting States (pipeline/pct_states.py); absent in data written before v2a: no map layer, no methods section. */
+  pct_membership?: PctMembership;
 };
+
+/** A State whose entry-into-force date WIPO prints as that of the State it continues (`continues`). */
+export type PctContinuingState = { code: string; name: string; in_force: string; continues: string };
+
+/** overview `pct_membership`: rows from WIPO's page (`source_url`), count and status date from WIPO's list
+ * (`count_check_url`); `count` = members per year, `count[last_year]` = the list's count; `unmatched` = listed codes with
+ * no WIPO entity. */
+export type PctMembership = {
+  status_on: string; retrieved: string; source_url: string; count_check_url: string;
+  first_year: number; last_year: number; count: Record<string, number>;
+  unmatched: string[]; continuing: PctContinuingState[];
+};
+
+/** A published list a card cites by its link only (WIPO's PCT Contracting States): no Data Center release, tab or query.
+ * `status` = what the list states and when ("159 States on 2026-10-01"). */
+export type ListSource = { kind: "list"; name: string; url: string; status: string; retrieved: string };
+/** What a card cites: a WIPO statistics table or a published list. */
+export type CardSource = SourceBlock | ListSource;
+
+export function isListSource(source: CardSource): source is ListSource {
+  return "kind" in source && source.kind === "list";
+}
 
 export type RatioDenominator = "population" | "gdp_ppp";
 

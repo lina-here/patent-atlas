@@ -16,6 +16,8 @@ PAIRS = [
     ("map-neutral-line", "map-neutral", 3, "neutral cross-hatch line on its ground"),
     ("map-zero-mark", "map-zero", 3, "reported-zero dots on their ground"),
     ("map-former-line", "map-former", 3, "former-entity hatch line on its ground"),
+    ("map-member", "surface", 3, "PCT member fill vs card"),
+    ("map-nonmember-mark", "map-nonmember", 3, "PCT non-member pattern marks on their ground"),
     ("control-border", "surface", 3, "select/input border in a card"),
     ("control-border", "bg", 3, "select/input border on the page"),
     ("pulse-ink", "bg", 4.5, ".pulse newest-year text on the page"),
@@ -101,3 +103,12 @@ def test_map_edge_width_is_at_least_one_pixel(theme):
     match = re.fullmatch(r"([0-9.]+)px", width)
     assert match, f"{theme}: --map-edge-width {width!r} is not px"
     assert float(match.group(1)) >= 1, f"{theme}: --map-edge-width {width} < 1px"
+
+
+def test_membership_bins_use_their_tokens():
+    """PCT membership layer: member = --map-member fill, non-member = its own pattern (map.ts NONMEMBER_ID)."""
+    base = (ROOT / "site" / "css" / "base.css").read_text()
+    assert re.search(r'\.map-shape\[data-bin="member"\] \{ fill: var\(--map-member\); \}', base)
+    assert re.search(r'\.map-shape\[data-bin="nonmember"\] \{ fill: url\(#world-map-nonmember\); \}', base)
+    assert re.search(r"\.map-nonmember-bg \{ fill: var\(--map-nonmember\); \}", base)
+    assert re.search(r"\.map-nonmember-mark \{ fill: var\(--map-nonmember-mark\); \}", base)

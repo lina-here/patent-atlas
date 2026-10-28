@@ -117,6 +117,12 @@
   --map-hatch-width: 1.2px;
   --map-former: #2f2a4d;
   --map-former-line: #c3b2ec;
+  /* PCT membership: member fill >= 3:1 vs --surface; non-member dashes >= 3:1 vs their ground */
+  --map-member: #78c6b8;
+  --map-nonmember: #3a2e2a;
+  --map-nonmember-mark: #e0b98a;
+  --map-nonmember-gap: 3px;
+  --map-nonmember-mark-height: 1.4px;
   /* shape and heat-cell edge: >= 3:1 vs --surface (WCAG 1.4.11), so light bins and special states keep an edge */
   --map-edge: #6b8290;
   --map-edge-width: 1px;

@@ -371,6 +371,8 @@ code { font-family: var(--font-data); font-size: var(--size-small); }
 .map-shape[data-bin="zero"] { fill: url(#world-map-zero); }
 .map-shape[data-bin="null"] { fill: url(#world-map-hatch); }
 .map-shape[data-bin="former"] { fill: url(#world-map-former); }
+.map-shape[data-bin="member"] { fill: var(--map-member); }
+.map-shape[data-bin="nonmember"] { fill: url(#world-map-nonmember); }
 .map-neutral { fill: url(#world-map-neutral); }
 .map-hatch-bg { fill: var(--map-hatch-bg); }
 .map-neutral-bg { fill: var(--map-neutral); }
@@ -380,6 +382,9 @@ code { font-family: var(--font-data); font-size: var(--size-small); }
 .map-neutral-line { stroke: var(--map-neutral-line); stroke-width: var(--map-hatch-width); }
 .map-former-bg { fill: var(--map-former); }
 .map-former-line { stroke: var(--map-former-line); stroke-width: var(--map-hatch-width); }
+.map-nonmember-bg { fill: var(--map-nonmember); }
+.map-nonmember-mark { fill: var(--map-nonmember-mark); }
+.map-below { display: grid; gap: var(--space-1); }
 .map-dot { stroke: var(--map-dot-border); } /* radius: --map-dot-radius, read by map.ts */
 .map-svg a:hover .map-shape { stroke: var(--map-hover); stroke-width: var(--map-hover-width); }
 .map-legend { font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
@@ -390,6 +395,7 @@ code { font-family: var(--font-data); font-size: var(--size-small); }
 .chart-figures .table-scroll + .table-scroll { margin-top: var(--space-3); }
 .chart-figures caption { text-align: left; font-family: var(--font-ui); font-weight: 600; padding-bottom: var(--space-1); }
 .map-not-drawn,
+.map-unmatched,
 .map-disclaimer { margin: 0; font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
 .chart-credit { margin: var(--space-1) 0 0; font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
 

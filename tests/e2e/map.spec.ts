@@ -497,6 +497,7 @@ for (const theme of config.themes as string[]) {
       ["no-data hatch", "pattern#world-map-hatch .map-hatch-line", "stroke", "pattern#world-map-hatch .map-hatch-bg", "fill"],
       ["neutral hatch", "pattern#world-map-neutral .map-neutral-line", "stroke", "pattern#world-map-neutral .map-neutral-bg", "fill"],
       ["former hatch", "pattern#world-map-former .map-former-line", "stroke", "pattern#world-map-former .map-former-bg", "fill"],
+      ["PCT non-member dashes", "pattern#world-map-nonmember .map-nonmember-mark", "fill", "pattern#world-map-nonmember .map-nonmember-bg", "fill"],
     ];
     for (const [what, mark, markProperty, ground, groundProperty] of pairs) {
       const ratio = contrast(await style(mark, markProperty as "fill" | "stroke"), await style(ground, groundProperty as "fill" | "stroke"));
@@ -1298,3 +1299,239 @@ test("a group file with no gender block: its countries read no data reported, ne
   await map(page).getByRole("button", { name: "Show figures" }).click();
   await expect(figureRows(page).filter({ has: page.locator("td", { hasText: /^Africa$/ }) })).toContainText("no figures of this measure");
 });
+
+// ---- PCT membership (map/pct_member.json, overview pct_membership): country mode only; member fill, non-member pattern ----
+
+type MemberFile = {
+  values: Record<string, Record<string, boolean | null>>; null_reason: Record<string, string>; in_force: Record<string, string>;
+  unmatched: string[]; sources: { pct_member: { source_url: string; status_on: string; retrieved: string } };
+};
+const memberFile = (): MemberFile => mapFile("pct_member") as unknown as MemberFile;
+const pct = overview.pct_membership;
+const PCT_TITLE = "PCT membership";
+/** Treaty in force (pipeline constant), read from the pipeline source: the slider's first year. */
+const PCT_FIRST_YEAR = Number(/^PCT_FIRST_YEAR = (\d+)/m.exec(readFileSync("pipeline/pct_states.py", "utf8"))![1]);
+const lastPct = String(pct.last_year);
+const SPECIAL_PATTERNS = ["world-map-hatch", "world-map-neutral", "world-map-zero", "world-map-former"];
+
+/** Expected data-bin from the file, written apart from map.ts: true member, false non-member, null or absent no data. */
+function expectedMemberBin(file: MemberFile, code: string, year: string): string {
+  const value = file.values[code]?.[year];
+  return value === true ? "member" : value === false ? "nonmember" : "null";
+}
+
+/** Count note of a year: the latest year is "as of" the status date. */
+function pctCountText(year: string): string {
+  return year === lastPct ? `${pct.count[year]} PCT Contracting States as of ${pct.status_on}`
+    : `${pct.count[year]} PCT Contracting States in ${year}`;
+}
+
+const drawnBins = (page: Page) => map(page).locator("path[data-code], circle[data-code]")
+  .evaluateAll((els) => els.map((el) => ({ code: el.getAttribute("data-code") ?? "", bin: el.getAttribute("data-bin") ?? "",
+    tip: el.querySelector("title")?.textContent ?? "" })));
+
+test("PCT membership: metric select lists it; title and year slider first_year..last_year from the data", async ({ page }) => {
+  const errors = trackErrors(page);
+  expect(pct.first_year).toBe(PCT_FIRST_YEAR);
+  await page.goto("/");
+  await expect(page.locator('#world-map-metric option[value="pct_member"]')).toHaveText(PCT_TITLE);
+  await expect(page.locator("#world-map-metric option").last()).toHaveText(PCT_TITLE);
+  await page.locator("#world-map-metric").selectOption("pct_member");
+  // the year stays (clamped to the metric's years) when the metric changes
+  await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${Math.min(overview.top_year, pct.last_year)}`);
+  await expect(page).toHaveURL(/metric=pct_member/);
+  await page.goto("/?metric=pct_member");
+  await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${pct.last_year}`);
+  await expect(page.locator("#world-map-year")).toHaveAttribute("min", String(PCT_FIRST_YEAR));
+  await expect(page.locator("#world-map-year")).toHaveAttribute("max", lastPct);
+  await page.goto(`/?metric=pct_member&year=${PCT_FIRST_YEAR - 1}`);
+  await expect(page.locator("#notices")).toContainText(`No map data for ${PCT_FIRST_YEAR - 1} (${PCT_TITLE}): showing ${PCT_FIRST_YEAR}.`);
+  await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${PCT_FIRST_YEAR}`);
+  expect(errors).toEqual([]);
+});
+
+test("PCT membership: every country is member fill, non-member pattern or no-data hatch; bins equal the map file (latest year, 1990)", async ({ page }) => {
+  const errors = trackErrors(page);
+  const file = memberFile();
+  for (const year of [lastPct, "1990"]) {
+    await page.goto(`/?metric=pct_member&year=${year}`);
+    await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${year}`);
+    const drawn = await drawnBins(page);
+    expect(drawn.length).toBeGreaterThan(150);
+    for (const { code, bin } of drawn) expect(bin, `${year} ${code}`).toBe(expectedMemberBin(file, code, year));
+    expect(new Set(drawn.map(({ bin }) => bin))).toEqual(new Set(["member", "nonmember"]));
+    const fillOf = (bin: string) => map(page).locator(`path[data-bin="${bin}"]`).first().evaluate((el) => getComputedStyle(el).fill);
+    const swatchFill = (bin: string) => map(page).locator(`.map-legend li[data-bin="${bin}"] rect`).evaluate((el) => getComputedStyle(el).fill);
+    expect(await fillOf("member")).not.toContain("url(");
+    expect(await fillOf("member")).toBe(await swatchFill("member"));
+    expect(await fillOf("nonmember")).toContain("world-map-nonmember");
+  }
+  // legend: member, non-member, no data, and the neutral areas drawn on every map; no count bins, zero or former swatch
+  await expect(map(page).locator(".map-legend li")).toHaveText(
+    ["PCT member", "Not a PCT member", "No data (reason in the tooltip and figures)", "Area without a WIPO country code"]);
+  expect(errors).toEqual([]);
+});
+
+test("PCT membership: Bahamas a member in its in-force year, not the year before", async ({ page }) => {
+  const inForce = memberFile().in_force.BS;
+  const year = Number(inForce.slice(0, 4));
+  const bahamas = map(page).locator('[data-code="BS"]');
+  await page.goto(`/?metric=pct_member&year=${year}`);
+  await expect(bahamas).toHaveAttribute("data-bin", "member");
+  await expect(bahamas.locator("title")).toHaveText(`${LABELS.get("BS")}: Member since ${inForce}`);
+  await page.goto(`/?metric=pct_member&year=${year - 1}`);
+  await expect(bahamas).toHaveAttribute("data-bin", "nonmember");
+  await expect(bahamas.locator("title")).toHaveText(`${LABELS.get("BS")}: Not a PCT member in ${year - 1} (entry into force ${inForce})`);
+});
+
+test("PCT non-member pattern: defined on every map, its marks differ by geometry from the other special-state patterns", async ({ page }) => {
+  await page.goto("/");
+  await expect(map(page).locator("pattern#world-map-nonmember")).toHaveCount(1);
+  // geometry = the mark elements (ground rect left out) and the pattern's rotation
+  const geometry = (id: string) => map(page).locator(`pattern#${id}`).evaluate((pattern) =>
+    `${[...pattern.children].filter((el) => !/-bg$/.test(el.getAttribute("class") ?? "")).map((el) => el.tagName).join(",")}` +
+    `|${pattern.getAttribute("patternTransform") ?? ""}`);
+  const own = await geometry("world-map-nonmember");
+  for (const id of SPECIAL_PATTERNS) expect(own, id).not.toBe(await geometry(id));
+  // no line and no dot: not a hatch at another angle, not the zero dots
+  expect(own).not.toMatch(/line|circle/);
+  const fill = (selector: string) => map(page).locator(selector).first().evaluate((el) => getComputedStyle(el).fill);
+  expect(await fill("pattern#world-map-nonmember .map-nonmember-mark")).not.toBe(await fill("pattern#world-map-nonmember .map-nonmember-bg"));
+});
+
+test("PCT membership: tooltip and figures table name the entry-into-force date", async ({ page }) => {
+  const file = memberFile();
+  await page.goto("/?metric=pct_member");
+  await expect(swiss(page).locator("title")).toHaveText(`Switzerland: Member since ${file.in_force.CH}`);
+  for (const { code, bin, tip } of await drawnBins(page)) {
+    const label = LABELS.get(code);
+    expect(tip, code).toBe(bin === "member" ? `${label}: Member since ${file.in_force[code]}`
+      : `${label}: Not a PCT member in ${lastPct}${file.in_force[code] ? ` (entry into force ${file.in_force[code]})` : ""}`);
+  }
+  await map(page).getByRole("button", { name: "Show figures" }).click();
+  await expect(map(page).locator(".chart-figures table").first().locator("thead th")).toHaveText(
+    ["Country", `PCT member ${lastPct}`, "Entry into force"]);
+  await expect(figureRows(page).filter({ hasText: "Switzerland" }).locator("td")).toHaveText(["Switzerland", "Yes", file.in_force.CH]);
+  const countries = Object.keys(file.values).filter((code) => COUNTRIES.has(code) && COUNTRIES.get(code)!.iso_numeric);
+  await expect(figureRows(page)).toHaveCount(countries.length);
+  const members = countries.filter((code) => file.values[code][lastPct] === true);
+  await expect(figureRows(page).filter({ has: page.locator("td:nth-child(2)", { hasText: /^Yes$/ }) })).toHaveCount(members.length);
+  const outsider = countries.find((code) => file.values[code][lastPct] === false && !file.in_force[code])!;
+  const outsiderRow = figureRows(page).filter({ has: page.getByRole("cell", { name: LABELS.get(outsider), exact: true }) });
+  await expect(outsiderRow.locator("td")).toHaveText([LABELS.get(outsider)!, "No", "–"]);
+});
+
+test("PCT membership: the note's count equals overview pct_membership.count of the year; continuing States in the notes", async ({ page }) => {
+  for (const year of [lastPct, "1990", String(PCT_FIRST_YEAR)]) {
+    await page.goto(`/?metric=pct_member&year=${year}`);
+    await expect(map(page).locator(".chart-note")).toContainText(pctCountText(year));
+    await expect(map(page).locator(".chart-note")).toContainText("31 December");
+  }
+  for (const state of pct.continuing) await expect(map(page).locator(".card-details")).toContainText(`${state.name} (continuing ${state.continues})`);
+  await expect(map(page).locator(".card-details")).toContainText("date as printed by WIPO");
+});
+
+test("PCT membership: source line names WIPO's list and its count and status date, linked, never fetched; cite text names the list", async ({ page }) => {
+  const wipo: string[] = [];
+  page.on("request", (request) => { if (/wipo\.int/.test(request.url())) wipo.push(request.url()); });
+  await page.goto("/?metric=pct_member");
+  const line = map(page).locator("figcaption .source-line");
+  await expect(line).toHaveCount(1);
+  await expect(line).toHaveText(new RegExp(`^Source: WIPO, PCT Contracting States\\. ${pct.count[lastPct]} States on ${pct.status_on} ` +
+    `\\(retrieved ${pct.retrieved}, data version \\S+\\); analysis: Patent Atlas$`));
+  await expect(line.locator("a")).toHaveAttribute("href", pct.source_url);
+  await expect(line.locator("a")).toHaveText("WIPO, PCT Contracting States");
+  await expect(line).not.toContainText("WIPO Statistics Database");
+  // no WIPO Data Center query: the list has none
+  await expect(map(page).locator(".chart-query")).toHaveCount(0);
+  const cite = map(page).locator(".cite-text");
+  await expect(cite).toContainText(`Data: WIPO, PCT Contracting States, ${pct.count[lastPct]} States on ${pct.status_on} (${pct.source_url}), retrieved ${pct.retrieved}`);
+  await expect(cite).not.toContainText("WIPO Statistics Database");
+  // the page keeps WIPO's disclaimer and the other cards their Statistics Database source
+  await expect(page.locator("body")).toContainText("WIPO Statistics Database");
+  await expect(page.locator(".disclaimer").first()).toContainText("The Secretariat of WIPO assumes no liability");
+  expect(wipo).toEqual([]);
+});
+
+test("PCT membership: a former entity is never a non-member: no-data hatch with its reason (patched onto CH); the former-entities table names the reason", async ({ page }) => {
+  const file = memberFile();
+  const formers = Object.keys(file.null_reason);
+  expect(formers.length).toBeGreaterThan(0);
+  await page.goto("/?metric=pct_member&year=1990");
+  for (const { code, bin } of await drawnBins(page)) if (formers.includes(code)) expect(bin, code).toBe("null");
+  await map(page).getByRole("button", { name: "Show figures" }).click();
+  const formerRows = map(page).locator(".chart-figures table").nth(1).locator("tbody tr");
+  await expect(formerRows).toHaveCount(formers.length);
+  for (const code of formers) {
+    const row = formerRows.filter({ hasText: `(${code})` });
+    await expect(row.locator("td").nth(1)).toHaveText("–");
+    await expect(row.locator("td").nth(2)).toHaveText("not on WIPO's current list of PCT Contracting States (former State)");
+  }
+  await patchData(page, "map/pct_member.json", (data) => {
+    for (const year of Object.keys(data.values.CH)) data.values.CH[year] = null;
+    data.null_reason.CH = "not_on_current_list";
+  });
+  await page.goto("/?metric=pct_member&year=1990");
+  await expect(swiss(page)).toHaveAttribute("data-bin", "null");
+  await expect(swiss(page)).toHaveAttribute("data-reason", "not_on_current_list");
+  expect(await swiss(page).evaluate((el) => getComputedStyle(el).fill)).toContain("world-map-hatch");
+  await expect(swiss(page).locator("title")).toHaveText("Switzerland: no data: not on WIPO's current list of PCT Contracting States (former State) (1990)");
+});
+
+test("PCT membership: codes with no WIPO entity are named under the map (patched)", async ({ page }) => {
+  await page.goto("/?metric=pct_member");
+  await expect(map(page).locator(".map-unmatched")).toHaveCount(memberFile().unmatched.length ? 1 : 0);
+  await patchData(page, "map/pct_member.json", (data) => { data.unmatched = ["QZ", "XQ"]; });
+  await page.goto("/?metric=pct_member");
+  await expect(map(page).locator(".map-unmatched")).toHaveText("PCT States not on the map (no WIPO statistics entity): QZ, XQ.");
+});
+
+test("PCT membership in region mode: notice, countries; region and continent disabled", async ({ page }) => {
+  await page.goto("/?metric=pct_member&map=region");
+  await expect(page.locator("#notices")).toContainText(`Map mode “region” is not available for ${PCT_TITLE}: showing countries.`);
+  await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${lastPct}`);
+  await expect(page.locator('#world-map-mode option[value="region"]')).toHaveAttribute("disabled", "");
+  await expect(page.locator('#world-map-mode option[value="continent"]')).toHaveAttribute("disabled", "");
+  await page.goto("/?map=continent");
+  await page.locator("#world-map-metric").selectOption("pct_member");
+  await expect(page.locator("#notices")).toContainText(`Map mode “continent” is not available for ${PCT_TITLE}: showing countries.`);
+  await expect(map(page).locator('path[data-code="CH"]')).toHaveAttribute("data-bin", "member");
+  await expect(page).not.toHaveURL(/map=continent/);
+});
+
+test("PCT membership file loads only when the metric is shown; embed: no controls, list link opens a new tab, disclaimer", async ({ page }) => {
+  const errors = trackErrors(page);
+  const asked = mapRequests(page);
+  await page.goto("/");
+  await expect(map(page).locator(".map-legend")).toBeVisible();
+  expect(asked).not.toContain("pct_member");
+  await page.locator("#world-map-metric").selectOption("pct_member");
+  await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${Math.min(overview.top_year, pct.last_year)}`);
+  expect(asked.filter((id) => id === "pct_member")).toEqual(["pct_member"]);
+  await page.goto("/embed.html?chart=world-map&metric=pct_member");
+  await expect(map(page).locator("h2")).toHaveText(`${PCT_TITLE}, ${lastPct}`);
+  await expect(page.locator("#world-map-year")).toHaveCount(0);
+  await expect(map(page).locator('path[data-code="CH"]')).toHaveAttribute("data-bin", "member");
+  await expect(map(page).locator(".source-line a")).toHaveAttribute("target", "_blank");
+  await expect(map(page).locator(".source-line a")).toHaveAttribute("rel", "noopener");
+  await expect(page.locator("body")).toContainText("The Secretariat of WIPO assumes no liability");
+  expect(errors).toEqual([]);
+});
+
+test("PCT membership map fits a phone screen without page overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/?metric=pct_member");
+  await expect(map(page).locator(".map-svg")).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+for (const theme of config.themes as string[]) {
+  test(`${theme}: PCT member fill >= 3:1 on the card (WCAG 1.4.11)`, async ({ page }) => {
+    await page.goto(`/?theme=${theme}&metric=pct_member`);
+    const member = map(page).locator('path[data-bin="member"]').first();
+    await expect(member).toBeVisible();
+    const card = await map(page).evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(contrast(await member.evaluate((el) => getComputedStyle(el).fill), card), `${theme} member fill vs card`).toBeGreaterThanOrEqual(3);
+  });
+}

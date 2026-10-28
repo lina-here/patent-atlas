@@ -556,3 +556,55 @@ test("wallboard section states what the board runs with: no wallboard block or a
   await expect(page.locator(".notice-error")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+async function expectPctSection(page: Page, pct: any): Promise<void> {
+  const section = page.locator("#pct-membership");
+  await expect(section.locator("h2")).toHaveText("PCT membership");
+  await expect(page.locator('.toc a[href="#pct-membership"]')).toHaveCount(1);
+  // both WIPO documents, linked: the page (rows) and the PDF list (count, status date)
+  await expect(section.locator(`a[href="${pct.source_url}"]`)).toHaveCount(1);
+  await expect(section.locator(`a[href="${pct.count_check_url}"]`)).toHaveCount(1);
+  await expect(section).toContainText(`${pct.count[pct.last_year]} States on ${pct.status_on}`);
+  await expect(section).toContainText(`retrieved ${pct.retrieved}`);
+  // member rule: in force by 31 December; the latest year as of the status date; slider from the treaty's first year
+  await expect(section).toContainText("in force for it by 31 December of that year");
+  await expect(section).toContainText(`the latest year, ${pct.last_year}, shows the list as of ${pct.status_on}`);
+  await expect(section).toContainText(`The year slider starts in ${pct.first_year}`);
+  await expect(section).toContainText("never shown as a non-member");
+  for (const state of pct.continuing) await expect(section).toContainText(`${state.name} (continuing ${state.continues})`);
+  await expect(section).toContainText("date as printed by WIPO");
+  await expect(section).toContainText("WIPO's PDF list prints the code MT for Mauritius");
+  await expect(section).toContainText(`named under the map: ${pct.unmatched.length ? pct.unmatched.join(", ") : "none"}.`);
+  await expect(section).toContainText("updated by hand");
+}
+
+test("PCT membership section: both WIPO documents, count, status date, member rule and continuing States from the overview; TOC links it", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  await expectPctSection(page, overview.pct_membership);
+  expect(errors).toEqual([]);
+});
+
+test("PCT membership section follows patched data; without pct_membership no section, no error", async ({ page }) => {
+  const errors = trackErrors(page);
+  const patched = structuredClone(overview.pct_membership);
+  Object.assign(patched, { status_on: "2027-02-01", retrieved: "2027-02-03", last_year: 2027, first_year: 1979, unmatched: ["QZ"],
+    continuing: [{ code: "RU", continues: "Testland", in_force: "1978-03-29", name: "Russian Federation" }] });
+  patched.count["2027"] = 161;
+  await patchData(page, ({ overview: ov }) => { ov.pct_membership = patched; });
+  await page.goto("/methods.html");
+  await expectPctSection(page, patched);
+  expect(errors).toEqual([]);
+  const bare = await page.context().newPage();
+  const bareErrors = trackErrors(bare);
+  await bare.route("**/data/overview.json", async (route) => {
+    const ov = await (await route.fetch()).json();
+    delete ov.pct_membership;
+    await route.fulfill({ json: ov });
+  });
+  await bare.goto("/methods.html");
+  await expect(bare.locator("#map")).toBeVisible();
+  await expect(bare.locator("#pct-membership")).toHaveCount(0);
+  await expect(bare.locator('.toc a[href="#pct-membership"]')).toHaveCount(0);
+  expect(bareErrors).toEqual([]);
+});

@@ -9,7 +9,7 @@ import type { CardBuilder } from "./overview";
 import { renderCards, worldCards } from "./overview";
 import { REGION_COMPARE_CARD_ID, SCALE_CARD_ID, SERIES_CARD_IDS, TILES_CARD_ID, entityCards, loadCountryRegion, loadGroups, type EntityPageContext } from "./entityPage";
 import { GROUP_CARD_IDS, findGroup, groupCards } from "./regionPage";
-import { loadJson, type EntityFile, type SourceBlock } from "./data";
+import { loadJson, type CardSource, type EntityFile } from "./data";
 import { ENTITY_WOMEN_CARD_ID } from "./genderCards";
 import { h } from "./dom";
 import { PAGE_PARAMS, addressTheme, echoValue, shareUrl, withParams, type Params } from "./params";
@@ -131,7 +131,7 @@ async function groupBuilder(ctx: EntityPageContext, id: string): Promise<Found> 
  * `dataCredits` = the card's own source blocks and other data credits (World Bank WDI); `dispose` removes the slide's
  * observers and listeners (the wallboard calls it before dropping the slide). */
 export type SlideResult = {
-  ok: boolean; title: string; sources: SourceBlock[]; dataCredits: string[]; notices: string[]; problem: string[];
+  ok: boolean; title: string; sources: CardSource[]; dataCredits: string[]; notices: string[]; problem: string[];
   dispose(): void;
 };
 

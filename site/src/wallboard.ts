@@ -3,7 +3,7 @@
 // remote. No header or footer; the bottom bar names the slide, its sources, the data version and the WIPO disclaimer.
 // Draws what the embed draws (renderSlide); computes no figure. Never navigates (office `?rotate=` does: rotation.ts);
 // reloads its own address only when a full cycle finds a new data version.
-import { loadFresh, loadJson, setFetchTimeout, type Config, type Entities, type Manifest, type Overview } from "./data";
+import { isListSource, loadFresh, loadJson, setFetchTimeout, type Config, type Entities, type Manifest, type Overview } from "./data";
 import { h } from "./dom";
 import { renderSlide, type SlideResult } from "./embed";
 import { echoValue, isRotationSeconds, readParams, type Params } from "./params";
@@ -167,10 +167,11 @@ async function drawSlide(slot: HTMLElement, slide: BoardSlide, cfg: Config, mani
   }
 }
 
-/** "Source: WIPO Statistics Database (release May 2026); World Bank WDI": the slide's own source blocks, each distinct
+/** "Source: WIPO Statistics Database (release May 2026); World Bank WDI" (a published list: its name and status): the slide's own source blocks, each distinct
  * name and release once, plus World Bank WDI when the slide uses it (its full credit line stays in the card). */
 function creditsText(result: SlideResult, manifest: Manifest): string {
-  const names = result.sources.map((src) => `${src.name} (release ${releaseLabel(manifest.releases[src.tab])})`);
+  const names = result.sources.map((src) => (isListSource(src) ? `${src.name} (${src.status})`
+    : `${src.name} (release ${releaseLabel(manifest.releases[src.tab])})`));
   if (result.dataCredits.some((line) => line.includes("World Bank WDI"))) names.push("World Bank WDI (CC BY 4.0)");
   return `Source: ${[...new Set(names)].join("; ")}`;
 }

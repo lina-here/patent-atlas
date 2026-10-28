@@ -6,7 +6,7 @@ import { h, formatCount, type Child } from "./dom";
 import { fixedHalfAway, fixedPercent } from "./format";
 import { GENDER_BASIS_LABEL, GENDER_TITLES, coverageFloorText, formatShare, genderCaveat, genderDecimals, genderNullText, unlistedMembersText } from "./genderText";
 import { PCT_UNLISTED_ORIGIN_GROUPS, nullReasonText, wipoTotalCounts, wipoTotalGapCause } from "./groupText";
-import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, groupPageTarget, labelOfEntities } from "./map";
+import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, continuingText, groupPageTarget, labelOfEntities, membershipNullText } from "./map";
 import { mapScale } from "./mapScale";
 import { isPauseMovePixels, isRotationSeconds, viewLink, type Params } from "./params";
 import { AI_METHODS_LINE, DISCLAIMER, sourceLine } from "./provenance";
@@ -510,6 +510,35 @@ function mapSection({ cfg, groups, entities, geoSources }: MethodsData): Section
   };
 }
 
+/** PCT membership layer: both WIPO documents, the member rule, former and continuing States; every date and count from
+ * overview `pct_membership`. */
+function pctMembershipSection({ overview, entities }: MethodsData): Section | null {
+  const block = overview.pct_membership;
+  if (!block) return null; // data written before v2a
+  return {
+    id: "pct-membership",
+    title: "PCT membership",
+    body: [
+      h("p", {}, "The world map's PCT membership layer shows which countries are PCT Contracting States, year by year. ",
+        "Each State's code, name and the date on which it became bound by the PCT come from WIPO's page ",
+        h("a", { href: block.source_url, rel: "noopener" }, "PCT Contracting States"),
+        "; the count and the status date come from WIPO's list ",
+        h("a", { href: block.count_check_url, rel: "noopener" }, "PCT Contracting States and Two-letter Codes"),
+        ` (PDF): ${block.count[String(block.last_year)]} States on ${block.status_on}, retrieved ${block.retrieved}.`),
+      h("p", {}, `A country is a member in a year when the PCT was in force for it by 31 December of that year; the latest year, ${block.last_year}, `,
+        `shows the list as of ${block.status_on}. The year slider starts in ${block.first_year}, the year the PCT entered into force. `,
+        "Territories with their own WIPO code are not on the list and show as not a PCT member."),
+      h("p", {}, `WIPO's list names today's States only. A former State (${labelsOf(entities, "historical")}) is never shown as a non-member: `,
+        `it has no data, with the reason “${membershipNullText("not_on_current_list")}”.`),
+      block.continuing.length ? h("p", {}, continuingText(block)) : null,
+      h("p", {}, "WIPO's PDF list prints the code MT for Mauritius as well as for Malta; WIPO's page gives Mauritius MU, which this site uses."),
+      h("p", {}, `Codes on the list with no WIPO statistics entity are named under the map: ${block.unmatched.length ? block.unmatched.join(", ") : "none"}.`),
+      h("p", {}, "The list is updated by hand when WIPO publishes a new one: the rows transcribed from the page, the count and status date ",
+        "from the PDF; nothing reads either document automatically."),
+    ],
+  };
+}
+
 /** Countries listed per ratio with the largest median ours/WIPO factor (the dry-run line prints the same number). */
 const VINTAGE_SHOWN = 5;
 const WDI_URL = "https://datatopics.worldbank.org/world-development-indicators/";
@@ -932,7 +961,7 @@ function disclaimerSection(): Section {
 export function renderMethods(el: HTMLElement, data: MethodsData): void {
   const sections = [
     sourcesSection(data), definitionsSection(data), groupingsSection(data), worldSection(data), seriesBreaksSection(data),
-    yearsSection(data), formulasSection(data), scaleSection(data), mapSection(data), womenSection(data), checksSection(data), ratioCheckSection(data), revisionsSection(), wallboardSection(data),
+    yearsSection(data), formulasSection(data), scaleSection(data), mapSection(data), pctMembershipSection(data), womenSection(data), checksSection(data), ratioCheckSection(data), revisionsSection(), wallboardSection(data),
     disclaimerSection(),
   ].filter((section): section is Section => section !== null);
   el.replaceChildren(

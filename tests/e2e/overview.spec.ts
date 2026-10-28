@@ -918,3 +918,26 @@ test("overview without series_breaks (data before the refresh that adds it): no 
   await expect(page.getByText("Series break")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [390, 768, 1440]) {
+  test(`PCT membership map at ${width}px: no page overflow; controls, legend, notes and source line stay inside the card${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/?metric=pct_member");
+    const card = page.locator('.chart-card[data-chart="world-map"]');
+    await expect(card.locator('path[data-bin="nonmember"]').first()).toBeVisible();
+    const fit = await card.evaluate((element) => {
+      const frame = element.getBoundingClientRect();
+      const parts = [...element.querySelectorAll(".map-controls label, .map-legend li, .chart-note, .source-line, .map-disclaimer, .map-svg")]
+        .map((part) => ({ text: (part.textContent ?? part.tagName).slice(0, 40), left: part.getBoundingClientRect().left, right: part.getBoundingClientRect().right }));
+      return { left: frame.left, right: frame.right, parts,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    expect(fit.overflow).toBeLessThanOrEqual(0);
+    expect(fit.parts.length).toBeGreaterThan(5);
+    for (const part of fit.parts) {
+      expect(part.left, part.text).toBeGreaterThanOrEqual(fit.left - 1);
+      expect(part.right, part.text).toBeLessThanOrEqual(fit.right + 1);
+    }
+  });
+}

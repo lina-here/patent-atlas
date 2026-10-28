@@ -1,10 +1,10 @@
 // Chart card: the frame every chart is shown in (overview, country and office pages, embed).
 // Title, chart, source line (caption), WIPO query in words, and the "Show figures", "Cite this" and
 // "Embed" tools. Compact mode (embed page): title, chart, source line and a link to the full page.
-import type { Config, Manifest, SourceBlock } from "./data";
+import { isListSource, type CardSource, type Config, type Manifest, type SourceBlock } from "./data";
 import { h, formatCount } from "./dom";
 import { addressTheme, linkParams, shareUrl, withParams, type Params } from "./params";
-import { citeText, sourceLine } from "./provenance";
+import { citeText, listSourceLine, sourceLine } from "./provenance";
 
 /** A cell with `href` is a link (the figures table must reach pages by keyboard); `target` opens a new tab (embed). */
 export type TableCell = string | number | null | { text: string; href: string; target?: string };
@@ -21,7 +21,7 @@ export type ChartSpec = {
   /** Further tables in the same "Show figures" panel, each under its caption (map: former entities). */
   moreTables?: { caption: string; table: ChartTable }[];
   /** One block, or one per series for a card mixing series (tiles): each distinct source line and query shown. */
-  source: SourceBlock | SourceBlock[];
+  source: CardSource | CardSource[];
   /** One line under the title: what is counted, thresholds. */
   note?: string;
   /** Lines under the chart, before the source line: years left out and why, items listed apart from the plot, caveats. */
@@ -186,6 +186,9 @@ function distinct<T>(items: T[]): T[] {
   return [...new Set(items)];
 }
 
+/** A WIPO statistics table (release, Data Center query), not a published list. */
+const isTable = (src: CardSource): src is SourceBlock => !isListSource(src);
+
 function queryLine(src: SourceBlock): HTMLElement {
   const words = [src.query, src.entity ? `entity: ${src.entity}` : null, `years ${src.years}`].filter(Boolean).join("; ");
   return h("p", { class: "chart-query" },
@@ -233,8 +236,9 @@ export function renderChartCard(el: HTMLElement, spec: ChartSpec, ctx: CardConte
   parts.push(h("figure", { class: "chart-figure" },
     spec.visual,
     ctx.compact ? footnotes : [],
-    h("figcaption", {}, distinct(sources.map((src) => sourceLine(src, ctx.manifest)))
+    h("figcaption", {}, distinct(sources.filter(isTable).map((src) => sourceLine(src, ctx.manifest)))
       .map((line) => h("p", { class: "source-line" }, line)),
+      sources.filter(isListSource).map((src) => h("p", { class: "source-line" }, listSourceLine(src, ctx.manifest, ctx.compact))),
       [...(spec.credits ?? []), ...(spec.dataCredits ?? [])].map((line) => h("p", { class: "chart-credit" }, line))),
   ));
   if (ctx.compact) {
@@ -243,7 +247,7 @@ export function renderChartCard(el: HTMLElement, spec: ChartSpec, ctx: CardConte
     parts.push(h("p", { class: "chart-link" },
       h("a", { href: fullPage, target: "_blank", rel: "noopener" }, `Figures, citation and sources on ${ctx.cfg.siteName}`)));
   } else {
-    const queries = new Map(sources.map((src) => [`${src.query}|${src.entity}|${src.years}`, src]));
+    const queries = new Map(sources.filter(isTable).map((src) => [`${src.query}|${src.entity}|${src.years}`, src]));
     const lines = [...footnotes, ...[...queries.values()].map(queryLine)];
     if (lines.length > 0) {
       parts.push(h("details", { class: "card-details", ...(ctx.openNotes ? { open: "" } : {}) },

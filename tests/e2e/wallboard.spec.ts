@@ -284,6 +284,19 @@ test("bar: the slide's own credits (a per-GDP slide names World Bank WDI), data 
   expect(errors).toEqual([]);
 });
 
+test("bar: a PCT membership slide names WIPO's PCT list with its count and status date, not the Statistics Database", async ({ page }) => {
+  const errors = trackErrors(page);
+  const pct = readJson("site/data/overview.json").pct_membership;
+  const member = { id: "test-pct-member", label: "PCT membership", params: "chart=world-map&metric=pct_member" };
+  await page.route("**/config.json", (route) =>
+    route.fulfill({ json: { ...config, wallboard: { ...board, slides: [...slides, member] } } }));
+  await openBoard(page, `&slides=${member.id}`, member.id);
+  await expect(page.locator(".board-credits")).toHaveText(
+    `Source: WIPO, PCT Contracting States (${pct.count[pct.last_year]} States on ${pct.status_on})`);
+  await expect(page.locator(".board-disclaimer")).toHaveText(DISCLAIMER);
+  expect(errors).toEqual([]);
+});
+
 test("?slides= keeps the order given, drops duplicates and unknown ids with a notice; all unknown -> every slide", async ({ page }) => {
   const errors = trackErrors(page);
   await openBoard(page, `&slides=${slides[2].id},nope,${slides[0].id},${slides[2].id}`, slides[2].id);

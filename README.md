@@ -87,6 +87,22 @@ First version in a new repo or fresh history (e.g. the public repo): delete `sit
 gates, commit, then `python3 scripts/tag_data.py --remote origin`. `--bootstrap-version` refuses data whose manifest
 names a dirty sha or a commit this repo lacks.
 
+## Updating the PCT states list
+
+The map's PCT membership layer reads `pipeline/pct_states.json`, transcribed by hand from two WIPO documents; nothing
+parses them automatically (pipeline or CI).
+
+1. Rows: open WIPO's page [PCT Contracting States](https://www.wipo.int/pct/en/pct_contracting_states.html) and
+   re-transcribe each State's code, name (as printed, without footnote marks) and the date in the column "Date on
+   Which State Became Bound by the PCT" into `states`, sorted by code.
+2. Status date and count: download WIPO's list
+   [PCT Contracting States and Two-letter Codes](https://www.wipo.int/documents/d/pct-system/docs-en-list_states.pdf)
+   and take `status_on` and `count` from its heading; set `retrieved` to the day you read both.
+3. In `pipeline/tests/test_pct_states.py`: add the new list's pinned pair (status date: count) to `PINNED_COUNTS`
+   (read by `test_count_matches_list`), and the codes the PDF prints to the hand-written list that
+   `test_page_codes_equal_pdf_codes` compares with the page.
+4. Run `python3 -m pytest pipeline/tests/test_pct_states.py`, then the normal data refresh above.
+
 ## Checks (gates)
 
 - `python3 -m pytest`: pipeline tests.
