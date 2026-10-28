@@ -427,15 +427,31 @@ def test_run_checks_group_warnings_do_not_block(checks_env):
 @pytest.mark.parametrize("excess, expected", [(0, []), (1, ["treemap 2024: not-attributable rest negative (-1)"])])
 def test_run_checks_negative_treemap_rest_blocks(checks_env, excess, expected):
     """Spec 2a amendments: a negative not-attributable rest at the treemap year blocks the refresh (the band in other
-    years: warning only, groups.check_warnings); a rest of 0 passes."""
+    years: warning only, groups.check_warnings); a rest of 0 passes. TW null: no unattributed origin to fit inside."""
     data = treemap_data()
     origin = data["origin_apps"].values
+    origin["TW"]["total"][2024] = None
     grouped = sum(types["total"][2024] or 0 for code, types in origin.items() if m49.continent_of(code))
     origin["JP"]["total"][2024] += WD_2024 - grouped + excess  # continents = WD + excess
     outputs = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")
     assert outputs[write.OVERVIEW]["treemap"]["residual"]["value"] == -excess
     failures, _ = run_checks(data, outputs, FakeFetcher(data))
     assert [line for line in failures if line.startswith("treemap")] == expected
+
+
+@pytest.mark.parametrize("excess", [0, 1])
+def test_run_checks_unattributed_outside_treemap_rest_blocks(checks_env, excess):
+    """Unattributed origins (no M49 continent) sit inside the not-attributable rest: their sum above it blocks (WD
+    below the origin sum); equal passes."""
+    data = treemap_data()
+    rest = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[write.OVERVIEW]["treemap"]["residual"]
+    data["origin_apps"].values["TW"]["total"][2024] = rest["value"] + excess  # TW: the fixture's only unattributed
+    outputs = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")
+    assert outputs[write.OVERVIEW]["treemap"]["residual"] == rest  # TW outside every continent: rest unchanged
+    failures, _ = run_checks(data, outputs, FakeFetcher(data))
+    value = rest["value"]
+    expected = [f"treemap 2024: unattributed origins exceed the not-attributable rest ({value + excess} > {value})"]
+    assert [line for line in failures if line.startswith("treemap")] == (expected if excess else [])
 
 
 def test_run_checks_wdi_mismatch_and_world_excess_block(checks_env):

@@ -21,7 +21,8 @@ Files (paths relative to the data root; JSON year keys are strings):
   cagr10 to top_year among top_origins (tie: better rank, then code; null cagr skipped), `breaks` = its origin
   series' break years after the CAGR base year up to top_year (tile footnote).
 - overview.json `treemap` (spec 2a treemap, written here): origin_apps at top_year by continent, shares of WD;
-  `_treemap`. Not drawable (continent_share null reason) -> reason, empty rows; a negative rest blocks (run.py).
+  `_treemap`. Not drawable (continent_share null reason: attribution floor, WD null or provisional, none_reported)
+  -> reason, empty rows; a negative rest, or unattributed origins above it, blocks (run.py).
 - overview.json views: `rank_race` {first_year, top, rows: [{code, label, ranks}]} (countries ever in the top
   RANK_RACE_TOP, RANK_RACE_FROM..top_year; ranks below the top kept, null = no value); `size_growth`
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
@@ -230,8 +231,9 @@ def _world_yoy(worlds: dict[str, World]) -> dict[str, dict]:
 def _treemap(origin: SeriesData, ctx: groups.Context, labels: dict[str, str]) -> dict:
     """{series, year, world, null_reason, continents, residual, unattributed, no_value} at top_year (the series' cut);
     world = WD (groups.world_total: null when null or provisional), shares = derive.share of it.
-    null_reason = continent_share's for the year (attribution floor, WD null or provisional) -> every row list empty,
-    residual null. continents (CONTINENTS order): member-sum value = its M49 members with a value; a member under
+    null_reason = continent_share's for the year (attribution floor, WD null or provisional, a continent with no
+    member reporting: none_reported) -> every row list empty, residual null.
+    continents (CONTINENTS order): member-sum value = its M49 members with a value; a member under
     TREEMAP_FOLD_SHARE_PCT of WD folds into `other` {value, share, codes} (null when none). residual = the
     not-attributable rest (groups.unallocated); unattributed = origins with a value and no continent (inside the rest);
     no_value = M49 members WIPO lists with null that year (listed, never 0)."""
@@ -254,8 +256,9 @@ def _treemap(origin: SeriesData, ctx: groups.Context, labels: dict[str, str]) ->
                            if values[code] is not None), key=lambda code: (-values[code], code))
         folded = sorted(code for code in reported if Decimal(values[code]) * 100 < line)
         value = totals["continent"][continent][year]
-        if sum(values[code] for code in reported) != value:  # holds on member_sum basis only
-            raise ValueError(f"treemap {continent} {year}: members do not add up to the continent total {value}")
+        member_sum = sum(values[code] for code in reported)
+        if member_sum != value:  # holds on member_sum basis only
+            raise ValueError(f"treemap {continent} {year}: members sum {member_sum} != continent total {value}")
         other = sum(values[code] for code in folded)
         result["continents"].append({
             "id": continent, "label": groups.group_label(continent), "value": value,

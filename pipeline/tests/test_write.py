@@ -624,6 +624,17 @@ def test_treemap_null_reason_attribution_floor(below, reason):
         assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
 
 
+def test_treemap_none_reported_passes_through():
+    """A continent with no member reporting (latin america: BR, CL null; MX null already) above the floor ->
+    continent_share's none_reported, empty rows."""
+    data = treemap_data()
+    for code in ("BR", "CL"):
+        data["origin_apps"].values[code]["total"][2024] = None
+    block = treemap(data)
+    assert (block["null_reason"], block["world"]) == (groups.NONE_REPORTED, WD_2024)
+    assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+
+
 @pytest.mark.parametrize("case", ["provisional", "null"])
 def test_treemap_wd_provisional(case):
     """WD provisional at the treemap year (office reported by EP alone; origin a year ahead) or null: no WIPO world
@@ -677,7 +688,8 @@ def test_treemap_members_must_add_up():
     """Countries + other = continent value holds on member sums only: a WIPO-total continent (PCT R rows: no member
     reports Africa's R1 here) stops the run rather than publishing rectangles that do not add up."""
     data = make_data()
-    with pytest.raises(ValueError, match="africa 2025: members do not add up"):
+    r1 = data["pct_origin"].values["R1"]["total"][2025]
+    with pytest.raises(ValueError, match=f"africa 2025: members sum 0 != continent total {r1}"):
         write._treemap(data["pct_origin"], groups.context(data), write._labels(data))
 
 

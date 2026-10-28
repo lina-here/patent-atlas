@@ -179,7 +179,7 @@ def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetch
     """(blocking failures, manifest checks summary). `collected` = collect() result + WDI `denominators`; `ctx` =
     the groups.context build_outputs used (its worlds too). CheckError from WDI/golden propagates (blocking).
     Negative not-attributable rest: blocking at the treemap year (overview `treemap`), warning in the continent-share
-    history (groups.check_warnings)."""
+    history (groups.check_warnings); unattributed origins above that rest block too."""
     data: dict[str, SeriesData] = collected["series"]
     if ctx.data is not data:
         raise ValueError("group context built for other data")
@@ -217,8 +217,14 @@ def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetch
     failures += golden_failures
 
     treemap = outputs[write.OVERVIEW]["treemap"]
-    if treemap["residual"] is not None and treemap["residual"]["value"] < 0:
-        failures.append(f"treemap {treemap['year']}: not-attributable rest negative ({treemap['residual']['value']})")
+    if treemap["residual"] is not None:
+        rest = treemap["residual"]["value"]
+        unattributed = sum(row["value"] for row in treemap["unattributed"])
+        if rest < 0:
+            failures.append(f"treemap {treemap['year']}: not-attributable rest negative ({rest})")
+        elif unattributed > rest:  # origins without a continent sit inside the rest (WD below the origin sum)
+            failures.append(f"treemap {treemap['year']}: unattributed origins exceed the not-attributable rest "
+                            f"({unattributed} > {rest})")
 
     numerators = {scale.RATIO_NUMERATOR[ratio_id] for ratio_id in scale.WIPO_RATIO_IDS}
     if len(numerators) != 1:  # ratio_crosscheck takes one numerator for both WIPO ratios (M1)
