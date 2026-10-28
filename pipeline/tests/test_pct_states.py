@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from pipeline import pct_states
-from pipeline.pct_states import (Former, PctStates, Territory, load_pct_states, member_years, null_reasons,
+from pipeline.pct_states import (PctStates, Predecessor, Territory, load_pct_states, member_years, null_reasons,
                                   successor_of, unmatched)
 
 DATA = Path(__file__).resolve().parents[2] / "site" / "data"
@@ -45,7 +45,7 @@ def made(in_force: dict[str, str], status_on: str = "2026-10-01", territories: d
                      names={code: code for code in in_force}, continuing={},
                      territories={code: Territory(code, code, via, datetime.date.fromisoformat(day), "footnote")
                                   for code, (via, day) in (territories or {}).items()},
-                     successors={former: Former(former, former, "XXXX", tuple(codes))
+                     successors={former: Predecessor(former, former, "XXXX", tuple(codes))
                                  for former, codes in (successors or {}).items()})
 
 
@@ -172,17 +172,18 @@ def test_counts_per_year():
 # Bailiwick of Guernsey (the United Kingdom's footnote: "with effect from 23 March 2021").
 TERRITORIES = {"BQ": ("NL", "1979-07-10"), "CW": ("NL", "1979-07-10"), "GG": ("GB", "2021-03-23"),
                "HK": ("CN", "1997-07-01"), "SX": ("NL", "1979-07-10")}
-# Former entity -> its successor States on the list. ISO 3166-3: SUHH (13 codes) plus Belarus and Ukraine (Soviet
-# republics with their own ISO 3166-1 codes); CSHH; YUCS (renamed Serbia and Montenegro) then CSXX.
-SUCCESSORS = {"CS": ("CZ", "SK"),
+# Predecessor -> its successor States. ISO 3166-3: SUHH (13 codes) plus Belarus and Ukraine (Soviet republics with
+# their own ISO 3166-1 codes); CSHH; YUCS (renamed Serbia and Montenegro) then CSXX. Sudan, a listed State that
+# continues: South Sudan (ISO 3166-1 code SS, 2011), not listed, own date = independence (9 July 2011).
+SUCCESSORS = {"CS": ("CZ", "SK"), "SD": ("SS",),
               "SU": ("AM", "AZ", "BY", "EE", "GE", "KG", "KZ", "LT", "LV", "MD", "RU", "TJ", "TM", "UA", "UZ"),
               "YU": ("ME", "RS")}
 # Former entities with no successor-State rule: AN's successors are territories (footnoted, own dates); DD merged into
 # Germany, bound since the PCT's first year; ZR's successor (CD) is not on the list.
 FORMER_WITHOUT_SUCCESSORS = {"AN", "DD", "ZR"}
 # Country entities not on the list and no footnoted territory, reviewed against WIPO's page: non-member States and
-# areas; MO: footnote "Not applicable to Macau, China". A new entity fails here until reviewed (a footnoted territory
-# goes into `territories`, anything else here).
+# areas; MO: footnote "Not applicable to Macau, China"; SS: part of Sudan before its own date (SUCCESSORS). A new
+# entity fails here until reviewed (a footnoted territory goes into `territories`, anything else here).
 REVIEWED_NON_MEMBERS = set("""
 AD AF AR BD BI BO BT CD CK ER ET FJ FM GY HT KI LB MH MM MO MV NP NR NU PK PW PY SB SO SR SS TL TO TV VA VE VU YE
 """.split())
@@ -218,14 +219,27 @@ def test_successors_transcribed():
     states = load_pct_states()
     assert {former: entry.codes for former, entry in states.successors.items()} == SUCCESSORS
     assert {former: entry.name for former, entry in states.successors.items()} == {
-        "CS": "Czechoslovakia", "SU": "Soviet Union", "YU": "Yugoslavia (Serbia and Montenegro from 2003)"}
+        "CS": "Czechoslovakia", "SD": "Sudan", "SU": "Soviet Union",
+        "YU": "Yugoslavia (Serbia and Montenegro from 2003)"}
     assert successor_of(states)["UA"].code == "SU" and successor_of(states)["ME"].code == "YU"
+    assert successor_of(states)["SS"].code == "SD"
+    assert {former: entry.source.split(":")[0] for former, entry in states.successors.items()} == {
+        "CS": "ISO 3166-3", "SD": "ISO 3166-1", "SU": "ISO 3166-3", "YU": "ISO 3166-3"}
+    assert {former: entry.own_dates for former, entry in states.successors.items() if entry.own_dates} == {
+        "SD": {"SS": datetime.date(2011, 7, 9)}}
+    assert pct_states.own_date(states, "SS") == datetime.date(2011, 7, 9)
+    assert pct_states.own_date(states, "UA") == states.in_force["UA"]
 
 
 def test_former_entities_reviewed():
+    """Every former entity of the data is a predecessor or reviewed without one; a listed predecessor (a State that
+    continues) is reviewed by name."""
+    states = load_pct_states()
     historical = {entity["code"] for entity in entities() if entity["kind"] == "historical"}
-    assert set(load_pct_states().successors) | FORMER_WITHOUT_SUCCESSORS == historical
-    assert not set(load_pct_states().successors) & FORMER_WITHOUT_SUCCESSORS
+    former = set(states.successors) - set(states.in_force)
+    assert former | FORMER_WITHOUT_SUCCESSORS == historical
+    assert not former & FORMER_WITHOUT_SUCCESSORS
+    assert set(states.successors) & set(states.in_force) == {"SD"}
 
 
 def test_member_years_territories():
@@ -253,7 +267,7 @@ def test_member_years_territory_31_december():
 def test_successor_state_null_before_own_date():
     """A successor State: null (successor_state) every year before its own date, never false; true from it."""
     states = load_pct_states()
-    codes = ["UA", "BY", "KZ", "AZ", "RU", "CZ", "SK", "ME", "RS", "SI", "DE", "SU", "CS", "YU"]
+    codes = ["UA", "BY", "KZ", "AZ", "RU", "CZ", "SK", "ME", "RS", "SI", "DE", "SU", "CS", "YU", "SD", "SS"]
     years = member_years(states, codes)
     assert (years["UA"][1985], years["UA"][1990], years["UA"][1991]) == (None, None, True)
     assert (years["AZ"][1994], years["AZ"][1995]) == (None, True)
@@ -265,8 +279,12 @@ def test_successor_state_null_before_own_date():
     assert all(years["DE"].values())
     for code in ("UA", "BY", "KZ", "AZ", "CZ", "SK", "ME", "RS"):
         assert False not in years[code].values(), code
+    # South Sudan: part of Sudan (continuing, listed) before 9 July 2011, null; then not listed: false
+    assert {years["SS"][year] for year in range(1978, 2011)} == {None}
+    assert {years["SS"][year] for year in range(2011, 2027)} == {False}
+    assert (years["SD"][1983], years["SD"][1984], years["SD"][2026]) == (False, True, True)
     assert null_reasons(states, codes) == {
-        **{code: pct_states.SUCCESSOR_STATE for code in ("AZ", "BY", "CZ", "KZ", "ME", "RS", "SK", "UA")},
+        **{code: pct_states.SUCCESSOR_STATE for code in ("AZ", "BY", "CZ", "KZ", "ME", "RS", "SK", "SS", "UA")},
         **{code: pct_states.NOT_ON_CURRENT_LIST for code in ("CS", "SU", "YU")}}
 
 
@@ -291,8 +309,14 @@ def test_load_rejects_bad_territory(tmp_path):
 
 def test_load_rejects_bad_successors(tmp_path):
     good = raw()["successors"]
+    sudan = good["SD"]
     for change, match in (({"CS": {**good["CS"], "codes": ["CZ", "QZ"]}}, "not on the list"),
                           ({"CS": {**good["CS"], "codes": ["CZ", "SK", "UA"]}}, "more than one"),
-                          ({"CH": {**good["CS"], "codes": ["DE"]}}, "on the list")):
+                          ({"CH": {**good["CS"], "codes": ["DE"]}}, "on the list"),
+                          ({"SD": {**sudan, "own_dates": {}}}, "on the list"),
+                          ({"SD": {**sudan, "own_dates": {"SS": "2026-10-02"}}}, "after status date"),
+                          ({"SD": {**sudan, "own_dates": {"SS": "9 July 2011"}}}, "date"),
+                          ({"SD": {**sudan, "own_dates": {"SS": "2011-07-09", "ER": "1993-05-24"}}}, "not among"),
+                          ({"SD": {**sudan, "codes": ["SD", "SS"]}}, "own successors")):
         with pytest.raises(ValueError, match=match):
             load_pct_states(write_list(tmp_path, successors={**good, **change}))

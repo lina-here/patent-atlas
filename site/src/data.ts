@@ -245,8 +245,16 @@ export type Overview = {
   pct_membership?: PctMembership;
 };
 
-/** A State whose entry-into-force date WIPO prints as that of the State it continues (`continues`). */
+/** A State WIPO's footnote names the continuing State of another (`continues`); its date as printed. */
 export type PctContinuingState = { code: string; name: string; in_force: string; continues: string };
+/** A territory the PCT applies to through a listed State (`via`, named `state`) from `from`, as WIPO's footnote prints it;
+ * `name` as the footnote names it. */
+export type PctTerritory = { code: string; name: string; via: string; state: string; from: string };
+/** A predecessor (a former entity, or a listed State that continues) and its successor States (ISO 3166 `source`);
+ * `own_dates` = the day a successor left a continuing State; `note` = where the list departs from ISO 3166. */
+export type PctSuccession = {
+  predecessor: string; name: string; source: string; codes: string[]; own_dates: Record<string, string>; note: string;
+};
 
 /** overview `pct_membership`: rows from WIPO's page (`source_url`), count and status date from WIPO's list
  * (`count_check_url`); `count` = members per year, `count[last_year]` = the list's count; `unmatched` = listed codes with
@@ -254,7 +262,7 @@ export type PctContinuingState = { code: string; name: string; in_force: string;
 export type PctMembership = {
   status_on: string; retrieved: string; source_url: string; count_check_url: string;
   first_year: number; last_year: number; count: Record<string, number>;
-  unmatched: string[]; continuing: PctContinuingState[];
+  unmatched: string[]; continuing: PctContinuingState[]; territories: PctTerritory[]; successors: PctSuccession[];
 };
 
 /** A published list a card cites by its link only (WIPO's PCT Contracting States): no Data Center release, tab or query.

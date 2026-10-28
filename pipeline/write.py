@@ -34,10 +34,10 @@ Files (paths relative to the data root; JSON year keys are strings):
   bool | null}} (country entities; not listed = false; territory = PCT applies; successor State null before its date),
   null_reason {code: "not_on_current_list" (former entities, never false) | "successor_state"}, in_force {code: date}
   (every listed State), unmatched [listed codes with no entity], territories {code: {via, state, from}} (entities),
-  successor_of {code: {code, name}} (successor States with null years), sources {pct_member}}; overview
-  `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year (status_on year), count
-  {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}], territories [{code, name,
-  via, state, from}], successors [{former, name, iso_3166_3, codes, note}]}.
+  successor_of {code: {code, name, own_date}} (successor States with null years: predecessor, own date), sources
+  {pct_member}}; overview `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year
+  (status_on year), count {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}],
+  territories [{code, name, via, state, from}], successors [{predecessor, name, source, codes, own_dates, note}]}.
 - manifest.json: releases, retrieval date, pipeline sha, last years, absent rows, `wdi_denominators` (WDI indicator,
   name, last updated, GDP base), `ratio_labels` (WIPO API label per ratio); run.py adds checks and, when the data
   changed, `version` (newest releases.json entry, releases.py). releases.json: run.py, never in `changed`/`_existing`.
@@ -744,7 +744,8 @@ def _pct_member_map_file(states: pct_states.PctStates, codes: list[str]) -> dict
             "territories": {code: {"via": territory.via, "state": states.names[territory.via],
                                    "from": territory.since.isoformat()}
                             for code, territory in sorted(states.territories.items()) if code in codes},
-            "successor_of": {code: {"code": successors[code].code, "name": successors[code].name}
+            "successor_of": {code: {"code": successors[code].code, "name": successors[code].name,
+                                    "own_date": pct_states.own_date(states, code).isoformat()}
                              for code, reason in null_reason.items() if reason == pct_states.SUCCESSOR_STATE},
             "sources": {pct_states.PCT_MEMBER_ID: _pct_source(states)}}
 
@@ -760,9 +761,12 @@ def _pct_membership(states: pct_states.PctStates, codes: list[str]) -> dict:
             "territories": [{"code": code, "name": territory.name, "via": territory.via,
                              "state": states.names[territory.via], "from": territory.since.isoformat()}
                             for code, territory in sorted(states.territories.items())],
-            "successors": [{"former": code, "name": former.name, "iso_3166_3": former.iso_3166_3,
-                            "codes": list(former.codes), "note": former.note}
-                           for code, former in sorted(states.successors.items())]}
+            "successors": [{"predecessor": code, "name": predecessor.name, "source": predecessor.source,
+                            "codes": list(predecessor.codes),
+                            "own_dates": {successor: day.isoformat()
+                                          for successor, day in sorted(predecessor.own_dates.items())},
+                            "note": predecessor.note}
+                           for code, predecessor in sorted(states.successors.items())]}
 
 
 def groups_listing(group_items: list[dict]) -> dict:

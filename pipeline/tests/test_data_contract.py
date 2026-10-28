@@ -239,11 +239,13 @@ def test_pct_member_when_published():
     assert file["null_reason"] == pct_states.null_reasons(states, codes)
     assert {code for code, reason in file["null_reason"].items() if reason == pct_states.NOT_ON_CURRENT_LIST} == {
         entity["code"] for entity in entities if entity["kind"] == "historical"}
-    # successor States: null before their own date, never false; their former entity carried for the tooltip
+    # successor States: null before their own date, never false then; predecessor and own date for the tooltip
     hidden = {code for code, reason in file["null_reason"].items() if reason == pct_states.SUCCESSOR_STATE}
     assert hidden and set(file["successor_of"]) == hidden
     for code in hidden:
-        assert False not in file["values"][code].values(), code
+        own_year = file["successor_of"][code]["own_date"][:4]
+        assert all(member is None for year, member in file["values"][code].items() if year < own_year), code
+        assert file["values"][code][own_year] is not None, code
         assert file["successor_of"][code]["code"] in states.successors
     # territories: member fill from their footnoted date, never counted
     assert set(file["territories"]) == set(states.territories) & set(codes)

@@ -16,12 +16,14 @@
 // are WIPO's own; group modes read the group files' `gender` (computed with "n of m" and coverage, or WIPO's printed figure).
 // PCT membership (map/pct_member.json, overview `pct_membership`): country mode only; member in year Y = PCT in force by
 // 31 December Y (latest year as of WIPO's status date); member = solid fill, non-member = own pattern (dashes), a former
-// entity is never a non-member (no data, its reason). Source: WIPO's list, cited by link (a list source, never fetched).
+// entity is never a non-member (no data, its reason); a territory the PCT applies to through a Contracting State = member
+// fill from its date; a successor State before its own date = no data (hatch). Source: WIPO's list, cited by link (a list
+// source, never fetched).
 // Colours, strokes, sizes: theme tokens `--map-*` via base.css classes; none here.
 import { geoCentroid, geoEqualEarth, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { feature } from "topojson-client";
-import { MAP_METRICS, MAP_RATIOS, MAP_SHARES, isMapMembership, loadLazyValues, type MembershipMapValues, type MembershipNullReason, type Atlas, type GroupGenderBlock, type GroupItem, type GroupNullReason, type LazyMetric, type MapMetric, type MapRatio, type MapShare, type MapValues, type ShareMapValues } from "./atlas";
+import { MAP_METRICS, MAP_RATIOS, MAP_SHARES, isMapMembership, loadLazyValues, type MembershipMapValues, type MembershipNullReason, type PctTerritoryLink, type Atlas, type GroupGenderBlock, type GroupItem, type GroupNullReason, type LazyMetric, type MapMetric, type MapRatio, type MapShare, type MapValues, type ShareMapValues } from "./atlas";
 import type { CardContext, TableCell } from "./chartCard";
 import { cssLength } from "./charts";
 import type { Config, Entities, EntityRef, GenderNullReason, ListSource, Overview, PctMembership, RatioMethod, RatioNullReason, SeriesId, SourceBlock, YearMap } from "./data";
@@ -1009,9 +1011,12 @@ function shareGroupContent(atlas: Atlas, overview: Overview, state: MapOptions, 
 
 export const MEMBERSHIP_TITLE = "PCT membership";
 /** Legend wording of the membership layer. */
-export const MEMBERSHIP_LABELS = { member: "PCT member", nonmember: "Not a PCT member", null: "No data (reason in the tooltip and figures)" } as const;
+export const MEMBERSHIP_LABELS = {
+  member: "PCT member (or covered through a Contracting State)", nonmember: "Not a PCT member", null: "No data (reason in the tooltip and figures)",
+} as const;
 const MEMBERSHIP_NULL_TEXT: Record<MembershipNullReason, string> = {
-  not_on_current_list: "not on WIPO's current list of PCT Contracting States (former State)",
+  not_on_current_list: "not on WIPO's current list of PCT Contracting States (former entity)",
+  successor_state: "part of a former entity, or of a State it left, before its own date; not shown",
 };
 const PCT_LIST_NAME = "WIPO, PCT Contracting States";
 
@@ -1019,10 +1024,11 @@ export function membershipNullText(reason: MembershipNullReason): string {
   return MEMBERSHIP_NULL_TEXT[reason] ?? reason;
 }
 
-/** "159 PCT Contracting States in 1990"; the latest year "as of" the status date. */
-function membershipCountText(block: PctMembership, year: number): string {
+/** "58 of today's PCT Contracting States bound by 31 December 1990"; the latest year "as of" the status date. Today's
+ * States only: WIPO's current list gives no dates for former States; territories are not counted. */
+export function membershipCountText(block: PctMembership, year: number): string {
   const count = block.count[String(year)];
-  return year === block.last_year ? `${count} PCT Contracting States as of ${block.status_on}` : `${count} PCT Contracting States in ${year}`;
+  return `${count} of today's PCT Contracting States bound ${year === block.last_year ? `as of ${block.status_on}` : `by 31 December ${year}`}`;
 }
 
 /** States whose date WIPO prints as that of the State they continue (card footnote, methods page). */
@@ -1043,10 +1049,29 @@ function membershipLegend(block: PctMembership): HTMLElement {
       swatch("null", MEMBERSHIP_LABELS.null), swatch("neutral", MAP_STATE_LABELS.neutral)));
 }
 
-type MemberRow = { entity: EntityRef; member: boolean | null; inForce?: string; reason?: MembershipNullReason; shown: Shown | null };
+type MemberRow = {
+  entity: EntityRef; member: boolean | null; inForce?: string; reason?: MembershipNullReason; shown: Shown | null;
+  territory?: PctTerritoryLink; successorOf?: { code: string; name: string; own_date: string };
+};
 
-/** Country mode of the membership layer: member, non-member, or null with its reason (a former entity in the file; former
- * entities themselves have no shape and are listed in their own table, never as non-members). */
+/** Tooltip / table text of a row (no label): a listed State, a territory (PCT through a Contracting State, never one
+ * itself), a successor State before its own date (part of a predecessor; not shown), or a non-member. */
+function memberText(row: MemberRow, year: string): string {
+  const { member, territory, successorOf } = row;
+  if (territory) {
+    const through = `through ${territory.state} since ${territory.from} (not a Contracting State)`;
+    return member ? `PCT applies ${through}` : `Not covered in ${year} on WIPO's current list; PCT applies ${through}`;
+  }
+  if (member === null) {
+    return successorOf ? `Before ${successorOf.own_date}: part of ${successorOf.name}; not shown`
+      : `no data${row.reason ? `: ${membershipNullText(row.reason)}` : ""}`;
+  }
+  return member ? `Bound since ${row.inForce}` : `Not a PCT member in ${year}${row.inForce ? ` (bound from ${row.inForce})` : ""}`;
+}
+
+/** Country mode of the membership layer: member (a territory: PCT applies through a Contracting State), non-member, or
+ * null with its reason (a successor State before its own date; a former entity in the file: no shape, listed in its own
+ * table, never as a non-member). */
 function membershipContent(atlas: Atlas, values: MembershipMapValues, block: PctMembership, state: MapOptions, ctx: MapContext): ModeContent {
   const { features, countries } = shapes(atlas);
   const withShape = new Set(features.map((shape) => String(shape.id)));
@@ -1057,23 +1082,24 @@ function membershipContent(atlas: Atlas, values: MembershipMapValues, block: Pct
     const member = values.values[entity.code][year] ?? null;
     const reason = member === null ? values.null_reason[entity.code] : undefined;
     rows.set(entity.code, { entity, member, inForce: values.in_force[entity.code], reason,
+      territory: values.territories[entity.code], successorOf: reason === "successor_state" ? values.successor_of[entity.code] : undefined,
       shown: shownOf(atlas, withShape, numeric, entity.code, { hasValue: member !== null, hatchedNull: reason !== undefined }) });
   }
-  const memberText = (row: MemberRow): string => (row.member ? `Member since ${row.inForce}`
-    : `Not a PCT member in ${year}${row.inForce ? ` (entry into force ${row.inForce})` : ""}`);
-  const tipOf = (entity: EntityRef, row: MemberRow | undefined): string => (!row || row.member === null
-    ? `${entity.label}: no data${row?.reason ? `: ${membershipNullText(row.reason)}` : ""} (${year})` : `${entity.label}: ${memberText(row)}`);
+  const tipOf = (entity: EntityRef, row: MemberRow | undefined): string => (!row ? `${entity.label}: no data (${year})`
+    : `${entity.label}: ${memberText(row, year)}${row.member === null ? ` (${year})` : ""}`);
   const sorted = [...rows.values()].sort((a, b) => Number(b.member) - Number(a.member) || a.entity.label.localeCompare(b.entity.label));
   const label = labelOf(atlas);
-  const formers = Object.keys(values.null_reason).filter((code) => !rows.has(code));
-  const notDrawn = notDrawnNote([...rows.values()].filter((row) => row.shown === "not drawn")
-    .map((row) => `${row.entity.label} (${row.member === null ? "no data" : row.member ? "member" : "not a member"})`));
+  const formers = Object.keys(values.null_reason).filter((code) => !(code in values.values));
+  const drawnText = (row: MemberRow): string => (row.territory ? (row.member ? `PCT applies through ${row.territory.state}` : "not covered")
+    : row.member === null ? "no data" : row.member ? "member" : "not a member");
+  const notDrawn = notDrawnNote([...rows.values()].filter((row) => row.shown === "not drawn").map((row) => `${row.entity.label} (${drawnText(row)})`));
   const unmatched = values.unmatched.length === 0 ? null
     : h("p", { class: "map-unmatched" }, `PCT States not on the map (no WIPO statistics entity): ${values.unmatched.map(label).join(", ")}.`);
   return {
     title: `${MEMBERSHIP_TITLE}, ${year}`,
-    note: `${membershipCountText(block, state.year)}. A country is a member in a year when the PCT was in force for it by 31 December ` +
-      `(${block.last_year}: as of ${block.status_on}). Countries too small to draw are dots; click a country for its page.`,
+    note: `${membershipCountText(block, state.year)}. A country is a member in a year when it was bound by the PCT by 31 December ` +
+      `(${block.last_year}: as of ${block.status_on}); a territory, when the PCT applied to it through a Contracting State. ` +
+      "Countries too small to draw are dots; click a country for its page.",
     lookOf: (entity) => {
       const row = rows.get(entity.code);
       return { bin: row?.member === true ? "member" : row?.member === false ? "nonmember" : "null", reason: row?.reason,
@@ -1082,8 +1108,9 @@ function membershipContent(atlas: Atlas, values: MembershipMapValues, block: Pct
     dots: [...rows.values()].filter((row) => row.shown === "dot").map((row) => row.entity),
     below: notDrawn || unmatched ? h("div", { class: "map-below" }, notDrawn, unmatched) : null,
     table: {
-      headers: ["Country", `PCT member ${year}`, "Entry into force"],
-      rows: sorted.map((row) => [row.entity.label, row.member === null ? null : row.member ? "Yes" : "No", row.inForce ?? null]),
+      headers: ["Country", `PCT member ${year}`, "Bound by the PCT since"],
+      rows: sorted.map((row) => [row.entity.label,
+        row.territory || row.successorOf ? memberText(row, year) : row.member === null ? null : row.member ? "Yes" : "No", row.inForce ?? null]),
       numeric: [false, false, false],
     },
     moreTables: formers.length === 0 ? undefined : [{ caption: "Former entities", table: {

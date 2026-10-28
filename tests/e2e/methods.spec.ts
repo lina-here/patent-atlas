@@ -566,11 +566,30 @@ async function expectPctSection(page: Page, pct: any): Promise<void> {
   await expect(section.locator(`a[href="${pct.count_check_url}"]`)).toHaveCount(1);
   await expect(section).toContainText(`${pct.count[pct.last_year]} States on ${pct.status_on}`);
   await expect(section).toContainText(`retrieved ${pct.retrieved}`);
-  // member rule: in force by 31 December; the latest year as of the status date; slider from the treaty's first year
-  await expect(section).toContainText("in force for it by 31 December of that year");
+  // member rule: bound by 31 December; the latest year as of the status date; slider from the treaty's first year
+  await expect(section).toContainText("bound by the PCT by 31 December of that year");
   await expect(section).toContainText(`the latest year, ${pct.last_year}, shows the list as of ${pct.status_on}`);
   await expect(section).toContainText(`The year slider starts in ${pct.first_year}`);
+  await expect(section).toContainText("today's Contracting States bound by 31 December of each year; territories and former entities are not counted");
+  await expect(section).toContainText("A former entity (");
   await expect(section).toContainText("never shown as a non-member");
+  await expect(section).not.toContainText("former State (");
+  // territories: WIPO's page footnotes, each with its State and date, from the overview
+  await expect(section).toContainText("Where a footnote on WIPO's page says the PCT applies to a territory through a Contracting State");
+  for (const territory of pct.territories) {
+    await expect(section).toContainText(`${territory.name} (${territory.code}) through ${territory.state} since ${territory.from}`);
+  }
+  // successor States: ISO 3166-3 (ISO 3166-1 for a State that left a continuing one); each predecessor, its States, note
+  await expect(section).toContainText("Successor States follow ISO 3166-3 (former country codes)");
+  const items = section.locator("ul.pct-successors li");
+  await expect(items).toHaveCount(pct.successors.length);
+  for (const [index, entry] of (pct.successors as { name: string; source: string; codes: string[]; own_dates: Record<string, string>; note: string }[]).entries()) {
+    await expect(items.nth(index)).toContainText(`${entry.name} (${entry.source}): `);
+    for (const code of entry.codes) {
+      await expect(items.nth(index)).toContainText(`${entityLabels.get(code)?.label ?? code} (${code})${entry.own_dates[code] ? `, own date ${entry.own_dates[code]}` : ""}`);
+    }
+    if (entry.note) await expect(items.nth(index)).toContainText(entry.note);
+  }
   for (const state of pct.continuing) await expect(section).toContainText(`${state.name} (continuing ${state.continues})`);
   await expect(section).toContainText("date as printed by WIPO");
   await expect(section).toContainText("WIPO's PDF list prints the code MT for Mauritius");

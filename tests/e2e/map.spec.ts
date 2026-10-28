@@ -1305,6 +1305,8 @@ test("a group file with no gender block: its countries read no data reported, ne
 type MemberFile = {
   values: Record<string, Record<string, boolean | null>>; null_reason: Record<string, string>; in_force: Record<string, string>;
   unmatched: string[]; sources: { pct_member: { source_url: string; status_on: string; retrieved: string } };
+  territories: Record<string, { via: string; state: string; from: string }>;
+  successor_of: Record<string, { code: string; name: string; own_date: string }>;
 };
 const memberFile = (): MemberFile => mapFile("pct_member") as unknown as MemberFile;
 const pct = overview.pct_membership;
@@ -1320,10 +1322,26 @@ function expectedMemberBin(file: MemberFile, code: string, year: string): string
   return value === true ? "member" : value === false ? "nonmember" : "null";
 }
 
-/** Count note of a year: the latest year is "as of" the status date. */
+/** Count note of a year (today's States only): the latest year is "as of" the status date. */
 function pctCountText(year: string): string {
-  return year === lastPct ? `${pct.count[year]} PCT Contracting States as of ${pct.status_on}`
-    : `${pct.count[year]} PCT Contracting States in ${year}`;
+  return year === lastPct ? `${pct.count[year]} of today's PCT Contracting States bound as of ${pct.status_on}`
+    : `${pct.count[year]} of today's PCT Contracting States bound by 31 December ${year}`;
+}
+
+/** Expected tooltip from the file, written apart from map.ts: a territory (PCT through a Contracting State), a successor
+ * State before its own date, a listed State, a non-member. */
+function expectedMemberTip(file: MemberFile, code: string, year: string): string {
+  const label = LABELS.get(code);
+  const value = file.values[code]?.[year] ?? null;
+  const territory = file.territories[code];
+  if (territory) {
+    const through = `PCT applies through ${territory.state} since ${territory.from} (not a Contracting State)`;
+    return value ? `${label}: ${through}` : `${label}: Not covered in ${year} on WIPO's current list; ${through}`;
+  }
+  const successor = file.successor_of[code];
+  if (value === null) return `${label}: Before ${successor.own_date}: part of ${successor.name}; not shown (${year})`;
+  const inForce = file.in_force[code];
+  return value ? `${label}: Bound since ${inForce}` : `${label}: Not a PCT member in ${year}${inForce ? ` (bound from ${inForce})` : ""}`;
 }
 
 const drawnBins = (page: Page) => map(page).locator("path[data-code], circle[data-code]")
@@ -1359,7 +1377,8 @@ test("PCT membership: every country is member fill, non-member pattern or no-dat
     const drawn = await drawnBins(page);
     expect(drawn.length).toBeGreaterThan(150);
     for (const { code, bin } of drawn) expect(bin, `${year} ${code}`).toBe(expectedMemberBin(file, code, year));
-    expect(new Set(drawn.map(({ bin }) => bin))).toEqual(new Set(["member", "nonmember"]));
+    // 1990: successor States before their own date are no data (hatch); the latest year has none
+    expect(new Set(drawn.map(({ bin }) => bin))).toEqual(new Set(year === "1990" ? ["member", "nonmember", "null"] : ["member", "nonmember"]));
     const fillOf = (bin: string) => map(page).locator(`path[data-bin="${bin}"]`).first().evaluate((el) => getComputedStyle(el).fill);
     const swatchFill = (bin: string) => map(page).locator(`.map-legend li[data-bin="${bin}"] rect`).evaluate((el) => getComputedStyle(el).fill);
     expect(await fillOf("member")).not.toContain("url(");
@@ -1368,7 +1387,8 @@ test("PCT membership: every country is member fill, non-member pattern or no-dat
   }
   // legend: member, non-member, no data, and the neutral areas drawn on every map; no count bins, zero or former swatch
   await expect(map(page).locator(".map-legend li")).toHaveText(
-    ["PCT member", "Not a PCT member", "No data (reason in the tooltip and figures)", "Area without a WIPO country code"]);
+    ["PCT member (or covered through a Contracting State)", "Not a PCT member", "No data (reason in the tooltip and figures)",
+      "Area without a WIPO country code"]);
   expect(errors).toEqual([]);
 });
 
@@ -1378,10 +1398,10 @@ test("PCT membership: Bahamas a member in its in-force year, not the year before
   const bahamas = map(page).locator('[data-code="BS"]');
   await page.goto(`/?metric=pct_member&year=${year}`);
   await expect(bahamas).toHaveAttribute("data-bin", "member");
-  await expect(bahamas.locator("title")).toHaveText(`${LABELS.get("BS")}: Member since ${inForce}`);
+  await expect(bahamas.locator("title")).toHaveText(`${LABELS.get("BS")}: Bound since ${inForce}`);
   await page.goto(`/?metric=pct_member&year=${year - 1}`);
   await expect(bahamas).toHaveAttribute("data-bin", "nonmember");
-  await expect(bahamas.locator("title")).toHaveText(`${LABELS.get("BS")}: Not a PCT member in ${year - 1} (entry into force ${inForce})`);
+  await expect(bahamas.locator("title")).toHaveText(`${LABELS.get("BS")}: Not a PCT member in ${year - 1} (bound from ${inForce})`);
 });
 
 test("PCT non-member pattern: defined on every map, its marks differ by geometry from the other special-state patterns", async ({ page }) => {
@@ -1399,22 +1419,18 @@ test("PCT non-member pattern: defined on every map, its marks differ by geometry
   expect(await fill("pattern#world-map-nonmember .map-nonmember-mark")).not.toBe(await fill("pattern#world-map-nonmember .map-nonmember-bg"));
 });
 
-test("PCT membership: tooltip and figures table name the entry-into-force date", async ({ page }) => {
+test("PCT membership: tooltip and figures table name the date the State became bound", async ({ page }) => {
   const file = memberFile();
   await page.goto("/?metric=pct_member");
-  await expect(swiss(page).locator("title")).toHaveText(`Switzerland: Member since ${file.in_force.CH}`);
-  for (const { code, bin, tip } of await drawnBins(page)) {
-    const label = LABELS.get(code);
-    expect(tip, code).toBe(bin === "member" ? `${label}: Member since ${file.in_force[code]}`
-      : `${label}: Not a PCT member in ${lastPct}${file.in_force[code] ? ` (entry into force ${file.in_force[code]})` : ""}`);
-  }
+  await expect(swiss(page).locator("title")).toHaveText(`Switzerland: Bound since ${file.in_force.CH}`);
+  for (const { code, tip } of await drawnBins(page)) expect(tip, code).toBe(expectedMemberTip(file, code, lastPct));
   await map(page).getByRole("button", { name: "Show figures" }).click();
   await expect(map(page).locator(".chart-figures table").first().locator("thead th")).toHaveText(
-    ["Country", `PCT member ${lastPct}`, "Entry into force"]);
+    ["Country", `PCT member ${lastPct}`, "Bound by the PCT since"]);
   await expect(figureRows(page).filter({ hasText: "Switzerland" }).locator("td")).toHaveText(["Switzerland", "Yes", file.in_force.CH]);
   const countries = Object.keys(file.values).filter((code) => COUNTRIES.has(code) && COUNTRIES.get(code)!.iso_numeric);
   await expect(figureRows(page)).toHaveCount(countries.length);
-  const members = countries.filter((code) => file.values[code][lastPct] === true);
+  const members = countries.filter((code) => file.values[code][lastPct] === true && !file.territories[code]);
   await expect(figureRows(page).filter({ has: page.locator("td:nth-child(2)", { hasText: /^Yes$/ }) })).toHaveCount(members.length);
   const outsider = countries.find((code) => file.values[code][lastPct] === false && !file.in_force[code])!;
   const outsiderRow = figureRows(page).filter({ has: page.getByRole("cell", { name: LABELS.get(outsider), exact: true }) });
@@ -1455,7 +1471,7 @@ test("PCT membership: source line names WIPO's list and its count and status dat
 
 test("PCT membership: a former entity is never a non-member: no-data hatch with its reason (patched onto CH); the former-entities table names the reason", async ({ page }) => {
   const file = memberFile();
-  const formers = Object.keys(file.null_reason);
+  const formers = Object.keys(file.null_reason).filter((code) => !(code in file.values));
   expect(formers.length).toBeGreaterThan(0);
   await page.goto("/?metric=pct_member&year=1990");
   for (const { code, bin } of await drawnBins(page)) if (formers.includes(code)) expect(bin, code).toBe("null");
@@ -1465,7 +1481,7 @@ test("PCT membership: a former entity is never a non-member: no-data hatch with 
   for (const code of formers) {
     const row = formerRows.filter({ hasText: `(${code})` });
     await expect(row.locator("td").nth(1)).toHaveText("–");
-    await expect(row.locator("td").nth(2)).toHaveText("not on WIPO's current list of PCT Contracting States (former State)");
+    await expect(row.locator("td").nth(2)).toHaveText("not on WIPO's current list of PCT Contracting States (former entity)");
   }
   await patchData(page, "map/pct_member.json", (data) => {
     for (const year of Object.keys(data.values.CH)) data.values.CH[year] = null;
@@ -1475,7 +1491,65 @@ test("PCT membership: a former entity is never a non-member: no-data hatch with 
   await expect(swiss(page)).toHaveAttribute("data-bin", "null");
   await expect(swiss(page)).toHaveAttribute("data-reason", "not_on_current_list");
   expect(await swiss(page).evaluate((el) => getComputedStyle(el).fill)).toContain("world-map-hatch");
-  await expect(swiss(page).locator("title")).toHaveText("Switzerland: no data: not on WIPO's current list of PCT Contracting States (former State) (1990)");
+  await expect(swiss(page).locator("title")).toHaveText("Switzerland: no data: not on WIPO's current list of PCT Contracting States (former entity) (1990)");
+});
+
+test("PCT membership: a territory takes the member fill from its footnoted date through its State, never counted", async ({ page }) => {
+  const file = memberFile();
+  expect(Object.keys(file.territories).sort()).toEqual(["BQ", "CW", "GG", "HK", "SX"]);
+  const cell = (code: string) => map(page).locator(`[data-code="${code}"]`);
+  const hongKong = LABELS.get("HK");
+  await page.goto("/?metric=pct_member&year=1996");
+  await expect(cell("HK")).toHaveAttribute("data-bin", "nonmember");
+  await expect(cell("HK").locator("title")).toHaveText(
+    `${hongKong}: Not covered in 1996 on WIPO's current list; PCT applies through China since 1997-07-01 (not a Contracting State)`);
+  await page.goto("/?metric=pct_member&year=1997");
+  await expect(cell("HK")).toHaveAttribute("data-bin", "member");
+  await expect(cell("HK").locator("title")).toHaveText(`${hongKong}: PCT applies through China since 1997-07-01 (not a Contracting State)`);
+  await expect(cell("MO")).toHaveAttribute("data-bin", "nonmember");  // WIPO footnote: not applicable to Macau, China
+  expect(Object.values(file.values.MO)).not.toContain(true);
+  // the note counts listed States only: their dates by 31 December 1997, territories left out
+  const bound1997 = Object.values(file.in_force).filter((day) => day <= "1997-12-31").length;
+  expect(pct.count["1997"]).toBe(bound1997);
+  await expect(map(page).locator(".chart-note")).toContainText(`${bound1997} of today's PCT Contracting States bound by 31 December 1997`);
+  // Guernsey from 23 March 2021 (figures table: every territory row names its State)
+  for (const [year, member] of [["2020", false], ["2021", true]] as const) {
+    expect(file.values.GG[year]).toBe(member);
+    await page.goto(`/?metric=pct_member&year=${year}`);
+    await map(page).getByRole("button", { name: "Show figures" }).click();
+    const row = figureRows(page).filter({ has: page.getByRole("cell", { name: LABELS.get("GG"), exact: true }) });
+    await expect(row.locator("td").nth(1)).toHaveText(expectedMemberTip(file, "GG", year).replace(`${LABELS.get("GG")}: `, ""));
+    await expect(row.locator("td").nth(2)).toHaveText("–");
+  }
+});
+
+test("PCT membership: a successor State before its own date is no data (hatch), never a non-member; tooltip names its predecessor", async ({ page }) => {
+  const file = memberFile();
+  expect(Object.keys(file.successor_of)).toEqual(expect.arrayContaining(["CZ", "ME", "SS", "UA"]));
+  for (const [code, year, predecessor] of [["UA", "1985", "Soviet Union"], ["CZ", "1992", "Czechoslovakia"], ["ME", "2005", "Yugoslavia"],
+    ["SS", "2010", "Sudan"]] as const) {
+    const successor = file.successor_of[code];
+    expect(successor.name.startsWith(predecessor), code).toBe(true);
+    await page.goto(`/?metric=pct_member&year=${year}`);
+    const cell = map(page).locator(`[data-code="${code}"]`);
+    await expect(cell).toHaveAttribute("data-bin", "null");
+    await expect(cell).toHaveAttribute("data-reason", "successor_state");
+    expect(await cell.evaluate((el) => getComputedStyle(el).fill)).toContain("world-map-hatch");
+    await expect(cell.locator("title")).toHaveText(`${LABELS.get(code)}: Before ${successor.own_date}: part of ${successor.name}; not shown (${year})`);
+    // every successor State: no data before its own year, never a non-member then
+    for (const { code: drawn, bin } of await drawnBins(page)) {
+      if (file.successor_of[drawn] && year < file.successor_of[drawn].own_date.slice(0, 4)) expect(bin, `${year} ${drawn}`).toBe("null");
+    }
+  }
+  // own dates: Ukraine from 1991 (its printed date), South Sudan from 2011 (left Sudan; not listed: non-member)
+  expect([file.values.UA["1990"], file.values.UA["1991"]]).toEqual([null, true]);
+  expect([file.values.SS["2010"], file.values.SS["2011"]]).toEqual([null, false]);
+  await page.goto("/?metric=pct_member&year=2011");
+  await expect(map(page).locator('[data-code="SS"]')).toHaveAttribute("data-bin", "nonmember");
+  await page.goto("/?metric=pct_member&year=1985");
+  await map(page).getByRole("button", { name: "Show figures" }).click();
+  const ukraine = figureRows(page).filter({ has: page.getByRole("cell", { name: LABELS.get("UA"), exact: true }) });
+  await expect(ukraine.locator("td")).toHaveText([LABELS.get("UA")!, `Before ${file.in_force.UA}: part of Soviet Union; not shown`, file.in_force.UA]);
 });
 
 test("PCT membership: codes with no WIPO entity are named under the map (patched)", async ({ page }) => {

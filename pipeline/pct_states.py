@@ -10,16 +10,19 @@
 - `territories` [{code, name, via, from, footnote}]: a territory the PCT applies to through a listed State (`via`)
   from `from`, as the page's footnote to that State prints it (`footnote`, verbatim; `name` as the footnote names it).
   Added only when `code` is an entities.json country entity; never a Contracting State, never counted.
-- `successors` {former entity: {name, iso_3166_3, codes, note?}}: the listed States that succeeded a former entity
-  of the data, from ISO 3166-3 (former country codes); `note` = where the list departs from ISO 3166-3.
+- `successors` {predecessor: {name, source, codes, own_dates?, note?}}: the States that succeeded a predecessor, from
+  ISO 3166 (`source`: ISO 3166-3 former country codes; ISO 3166-1 for a new code). Predecessor = a former entity of
+  the data (not on the list; successors listed, own date = their printed date) or a listed State that continues (its
+  successors' own dates in `own_dates`: the day each left it). `note` = where the list departs from ISO 3166.
 - States sorted by code. A code with no WIPO entity stays listed (`unmatched`, reported by run.py).
 
 Membership (map/pct_member.json, overview `pct_membership`; write.py): years PCT_FIRST_YEAR (treaty in force)..
 status_on.year; member in year Y = in force by 31 December Y; in status_on.year the view is as of `status_on` (the same
 result: no date is after it). A territory: true from its `from` (same rule), else false. A successor State: null
-(SUCCESSOR_STATE) every year before its own date, never false: the list gives no dates for former States, so neither
-member nor non-member is claimed. Any other country entity not on the list = non-member (false) every year. A former
-entity (kind historical) is never false: null, reason NOT_ON_CURRENT_LIST (the list names today's States only).
+(SUCCESSOR_STATE) every year before its own date, never false then: the list gives no dates for former States, so
+neither member nor non-member is claimed; from its own date, the member rule. Any other country entity not on the list
+= non-member (false) every year. A former entity (kind historical) is never false: null, reason NOT_ON_CURRENT_LIST
+(the list names today's States only).
 Regional offices: not on the map, skipped. Counts = Contracting States only.
 """
 from __future__ import annotations
@@ -50,13 +53,15 @@ class Territory:
 
 
 @dataclass(frozen=True)
-class Former:
-    """A former entity of the data and its successor States on the list (ISO 3166-3 code(s) `iso_3166_3`)."""
+class Predecessor:
+    """A former entity of the data, or a listed State that continues, and its successor States (ISO 3166 `source`);
+    `own_dates` = the day a successor left a continuing State (others: their printed date)."""
     code: str
     name: str
-    iso_3166_3: str
+    source: str
     codes: tuple[str, ...]
     note: str = ""
+    own_dates: dict[str, datetime.date] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -70,7 +75,7 @@ class PctStates:
     names: dict[str, str]
     continuing: dict[str, str]
     territories: dict[str, Territory] = field(default_factory=dict)
-    successors: dict[str, Former] = field(default_factory=dict)
+    successors: dict[str, Predecessor] = field(default_factory=dict)
 
 
 def _date(value: object, where: str) -> datetime.date:
@@ -102,22 +107,32 @@ def _territories(rows: list[dict], in_force: dict[str, datetime.date],
     return result
 
 
-def _successors(content: dict[str, dict], in_force: dict[str, datetime.date]) -> dict[str, Former]:
-    result: dict[str, Former] = {}
+def _successors(content: dict[str, dict], in_force: dict[str, datetime.date],
+                status_on: datetime.date) -> dict[str, Predecessor]:
+    result: dict[str, Predecessor] = {}
     seen: set[str] = set()
-    for former, entry in content.items():
-        if former in in_force:
-            raise ValueError(f"pct_states: former entity {former} is on the list")
+    for predecessor, entry in content.items():
         codes = tuple(entry["codes"])
-        missing = sorted(set(codes) - set(in_force))
+        own_dates = {code: _date(day, f"{predecessor} own date of {code}")
+                     for code, day in entry.get("own_dates", {}).items()}
+        if predecessor in codes:
+            raise ValueError(f"pct_states: predecessor {predecessor} among its own successors")
+        if not set(own_dates) <= set(codes):
+            raise ValueError(f"pct_states: own dates of {predecessor} for codes not among its successors")
+        if predecessor in in_force and set(own_dates) != set(codes):
+            raise ValueError(f"pct_states: predecessor {predecessor} is on the list: own dates needed for {codes}")
+        late = sorted(code for code, day in own_dates.items() if day > status_on)
+        if late:
+            raise ValueError(f"pct_states: own dates of {late} after status date {status_on}")
+        missing = sorted(set(codes) - set(in_force) - set(own_dates))
         if missing:
-            raise ValueError(f"pct_states: successors of {former} not on the list: {missing}")
+            raise ValueError(f"pct_states: successors of {predecessor} not on the list: {missing}")
         twice = sorted(seen & set(codes))
         if twice:
-            raise ValueError(f"pct_states: successor States under more than one former entity: {twice}")
+            raise ValueError(f"pct_states: successor States under more than one predecessor: {twice}")
         seen |= set(codes)
-        result[former] = Former(code=former, name=entry["name"], iso_3166_3=entry["iso_3166_3"], codes=codes,
-                                note=entry.get("note", ""))
+        result[predecessor] = Predecessor(code=predecessor, name=entry["name"], source=entry["source"], codes=codes,
+                                          note=entry.get("note", ""), own_dates=own_dates)
     return result
 
 
@@ -125,7 +140,8 @@ def load_pct_states(path: Path = PCT_STATES_PATH) -> PctStates:
     """The list; ValueError on a bad date, a duplicate code, a row count other than `count`, an `in_force` after
     `status_on`, `status_on` after `retrieved`, a continuing State not on the list, a bad territory (a listed State,
     `via` not listed, `from` before `via` was bound or after `status_on`, no footnote) or a bad successor entry (a
-    former entity on the list, a successor not on it or under two former entities)."""
+    successor neither listed nor given an own date, a listed predecessor without its successors' own dates, an own date
+    after `status_on`, a successor under two predecessors)."""
     content = json.loads(path.read_text("utf-8"))
     status_on = _date(content["status_on"], "status_on")
     retrieved = _date(content["retrieved"], "retrieved")
@@ -150,7 +166,7 @@ def load_pct_states(path: Path = PCT_STATES_PATH) -> PctStates:
     return PctStates(source_url=content["source_url"], count_check_url=content["count_check_url"], status_on=status_on,
                      retrieved=retrieved, count=count, in_force=in_force, names=names, continuing=continuing,
                      territories=_territories(content.get("territories", []), in_force, status_on),
-                     successors=_successors(content.get("successors", {}), in_force))
+                     successors=_successors(content.get("successors", {}), in_force, status_on))
 
 
 def last_year(states: PctStates) -> int:
@@ -178,16 +194,21 @@ def unmatched(states: PctStates, entity_codes: Iterable[str]) -> list[str]:
     return sorted(code for code in states.in_force if code not in known)
 
 
-def successor_of(states: PctStates) -> dict[str, Former]:
-    """Successor State code -> the former entity it succeeded."""
-    return {code: former for former in states.successors.values() for code in former.codes}
+def successor_of(states: PctStates) -> dict[str, Predecessor]:
+    """Successor State code -> the predecessor it succeeded."""
+    return {code: predecessor for predecessor in states.successors.values() for code in predecessor.codes}
+
+
+def own_date(states: PctStates, code: str) -> datetime.date:
+    """A successor State's own date: the day it left a continuing State, else its printed date."""
+    return successor_of(states)[code].own_dates.get(code) or states.in_force[code]
 
 
 def _hidden_successors(states: PctStates, entity_codes: Iterable[str]) -> list[str]:
     """Successor States of the entities with a year before their own date (null years)."""
     successors = successor_of(states)
     return sorted(code for code in set(entity_codes)
-                  if code in successors and not is_member(states, code, PCT_FIRST_YEAR))
+                  if code in successors and not _by(states, own_date(states, code), PCT_FIRST_YEAR))
 
 
 def member_years(states: PctStates, entity_codes: Iterable[str]) -> dict[str, dict[int, bool | None]]:
@@ -205,7 +226,9 @@ def member_years(states: PctStates, entity_codes: Iterable[str]) -> dict[str, di
         if code in states.territories:
             result[code] = {year: _by(states, states.territories[code].since, year) for year in years(states)}
         elif code in successors:
-            result[code] = {year: True if is_member(states, code, year) else None for year in years(states)}
+            since = own_date(states, code)
+            result[code] = {year: is_member(states, code, year) if _by(states, since, year) else None
+                            for year in years(states)}
         else:
             result[code] = {year: is_member(states, code, year) for year in years(states)}
     return result

@@ -510,8 +510,8 @@ function mapSection({ cfg, groups, entities, geoSources }: MethodsData): Section
   };
 }
 
-/** PCT membership layer: both WIPO documents, the member rule, former and continuing States; every date and count from
- * overview `pct_membership`. */
+/** PCT membership layer: both WIPO documents, the member rule, territories, former entities, successor and continuing
+ * States; every date and count from overview `pct_membership`. */
 function pctMembershipSection({ overview, entities }: MethodsData): Section | null {
   const block = overview.pct_membership;
   if (!block) return null; // data written before v2a
@@ -525,11 +525,21 @@ function pctMembershipSection({ overview, entities }: MethodsData): Section | nu
         "; the count and the status date come from WIPO's list ",
         h("a", { href: block.count_check_url, rel: "noopener" }, "PCT Contracting States and Two-letter Codes"),
         ` (PDF): ${block.count[String(block.last_year)]} States on ${block.status_on}, retrieved ${block.retrieved}.`),
-      h("p", {}, `A country is a member in a year when the PCT was in force for it by 31 December of that year; the latest year, ${block.last_year}, `,
+      h("p", {}, `A country is a member in a year when it was bound by the PCT by 31 December of that year; the latest year, ${block.last_year}, `,
         `shows the list as of ${block.status_on}. The year slider starts in ${block.first_year}, the year the PCT entered into force. `,
-        "Territories with their own WIPO code are not on the list and show as not a PCT member."),
-      h("p", {}, `WIPO's list names today's States only. A former State (${labelsOf(entities, "historical")}) is never shown as a non-member: `,
-        `it has no data, with the reason “${membershipNullText("not_on_current_list")}”.`),
+        "The card's count is of today's Contracting States bound by 31 December of each year; territories and former entities are not counted."),
+      h("p", {}, "A territory is not a Contracting State. Where a footnote on WIPO's page says the PCT applies to a territory through a ",
+        "Contracting State, the map gives the territory the member fill from that date (the footnote's date; where it gives none, the date ",
+        `the State became bound): ${block.territories.map((t) => `${t.name} (${t.code}) through ${t.state} since ${t.from}`).join("; ")}. `,
+        "Other territories with their own WIPO code are not on the list and show as not a PCT member."),
+      h("p", {}, `WIPO's list names today's States only. A former entity (${labelsOf(entities, "historical")}) is never shown as a non-member: `,
+        `it has no data, with the reason “${membershipNullText("not_on_current_list")}”. `,
+        "Nor is a successor State before its own date (the date it became bound by the PCT, or the day it left a State that continues): ",
+        "the map shows no data for those years, hatched, because WIPO's current list gives no dates for former States, so neither member nor ",
+        "non-member can be claimed. Successor States follow ISO 3166-3 (former country codes); a new State that left a continuing one, ISO 3166-1:"),
+      h("ul", { class: "pct-successors" }, block.successors.map((entry) => h("li", {},
+        `${entry.name} (${entry.source}): ${entry.codes.map((code) => `${labelOfEntities(entities)(code)} (${code})` +
+          (entry.own_dates[code] ? `, own date ${entry.own_dates[code]}` : "")).join(", ")}.${entry.note ? ` ${entry.note}` : ""}`))),
       block.continuing.length ? h("p", {}, continuingText(block)) : null,
       h("p", {}, "WIPO's PDF list prints the code MT for Mauritius as well as for Malta; WIPO's page gives Mauritius MU, which this site uses."),
       h("p", {}, `Codes on the list with no WIPO statistics entity are named under the map: ${block.unmatched.length ? block.unmatched.join(", ") : "none"}.`),
