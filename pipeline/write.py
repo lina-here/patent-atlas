@@ -31,10 +31,13 @@ Files (paths relative to the data root; JSON year keys are strings):
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
   `pct_monthly` {"YYYY": 12 months} WIPO world (origin Total, RO Total) + `pct_monthly_source`.
 - PCT membership (pct_states.py, hand-transcribed `pct_states.json`): map/pct_member.json {values: {code: {year:
-  bool}} (country entities; not listed = false), null_reason {code: "not_on_current_list"} (former entities, never
-  false), in_force {code: date} (every listed State), unmatched [listed codes with no entity], sources {pct_member}};
-  overview `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year (status_on year),
-  count {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}]}.
+  bool | null}} (country entities; not listed = false; territory = PCT applies; successor State null before its date),
+  null_reason {code: "not_on_current_list" (former entities, never false) | "successor_state"}, in_force {code: date}
+  (every listed State), unmatched [listed codes with no entity], territories {code: {via, state, from}} (entities),
+  successor_of {code: {code, name}} (successor States with null years), sources {pct_member}}; overview
+  `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year (status_on year), count
+  {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}], territories [{code, name,
+  via, state, from}], successors [{former, name, iso_3166_3, codes, note}]}.
 - manifest.json: releases, retrieval date, pipeline sha, last years, absent rows, `wdi_denominators` (WDI indicator,
   name, last updated, GDP base), `ratio_labels` (WIPO API label per ratio); run.py adds checks and, when the data
   changed, `version` (newest releases.json entry, releases.py). releases.json: run.py, never in `changed`/`_existing`.
@@ -731,21 +734,35 @@ def _pct_source(states: pct_states.PctStates) -> dict:
 
 
 def _pct_member_map_file(states: pct_states.PctStates, codes: list[str]) -> dict:
+    null_reason = pct_states.null_reasons(states, codes)
+    successors = pct_states.successor_of(states)
     return {"values": {code: {str(year): member for year, member in years.items()}
                        for code, years in pct_states.member_years(states, codes).items()},
-            "null_reason": pct_states.null_reasons(codes),
+            "null_reason": null_reason,
             "in_force": {code: day.isoformat() for code, day in states.in_force.items()},
             "unmatched": pct_states.unmatched(states, codes),
+            "territories": {code: {"via": territory.via, "state": states.names[territory.via],
+                                   "from": territory.since.isoformat()}
+                            for code, territory in sorted(states.territories.items()) if code in codes},
+            "successor_of": {code: {"code": successors[code].code, "name": successors[code].name}
+                             for code, reason in null_reason.items() if reason == pct_states.SUCCESSOR_STATE},
             "sources": {pct_states.PCT_MEMBER_ID: _pct_source(states)}}
 
 
 def _pct_membership(states: pct_states.PctStates, codes: list[str]) -> dict:
-    """Overview block: the map's year range and note counts, the methods page's dates, unmatched and continuing States."""
+    """Overview block: the map's year range and note counts; for the methods page the dates, unmatched and continuing
+    States, every territory and successor entry of the list."""
     return {**_pct_source(states), "first_year": pct_states.PCT_FIRST_YEAR, "last_year": pct_states.last_year(states),
             "count": {str(year): count for year, count in pct_states.counts(states).items()},
             "unmatched": pct_states.unmatched(states, codes),
             "continuing": [{"code": code, "name": states.names[code], "in_force": states.in_force[code].isoformat(),
-                            "continues": continues} for code, continues in sorted(states.continuing.items())]}
+                            "continues": continues} for code, continues in sorted(states.continuing.items())],
+            "territories": [{"code": code, "name": territory.name, "via": territory.via,
+                             "state": states.names[territory.via], "from": territory.since.isoformat()}
+                            for code, territory in sorted(states.territories.items())],
+            "successors": [{"former": code, "name": former.name, "iso_3166_3": former.iso_3166_3,
+                            "codes": list(former.codes), "note": former.note}
+                           for code, former in sorted(states.successors.items())]}
 
 
 def groups_listing(group_items: list[dict]) -> dict:

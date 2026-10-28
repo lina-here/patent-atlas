@@ -7,14 +7,15 @@ from pathlib import Path
 import pytest
 
 from pipeline import pct_states
-from pipeline.pct_states import PctStates, load_pct_states, member_years, null_reasons, unmatched
+from pipeline.pct_states import (Former, PctStates, Territory, load_pct_states, member_years, null_reasons,
+                                  successor_of, unmatched)
 
 DATA = Path(__file__).resolve().parents[2] / "site" / "data"
 # WIPO's count on each transcribed list: status date -> States (PDF heading "159 on 1 October 2026"). A new list adds its
 # own pair (README, Updating the PCT states list).
 PINNED_COUNTS = {datetime.date(2026, 10, 1): 159}
 # Codes as printed in WIPO's two-letter-code PDF (count_check_url), hand-copied in its order. The PDF prints MT for
-# Mauritius (a misprint: Malta is MT, Mauritius MU on WIPO's page and in ST.3), so MT appears twice and MU never.
+# Mauritius as well as for Malta; WIPO's page gives Mauritius MU. So MT appears twice and MU never.
 PDF_PRINTED_CODES = """
 AE AG AL AM AO AT AU AZ BA BB BE BF BG BH BJ BN BR BS BW BY BZ CA CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO
 DZ EC EE EG ES FI FR GA GB GD GE GH GM GN GQ GR GT GW HN HR HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KM KN KP KR KW
@@ -34,11 +35,22 @@ def write_list(tmp_path, **changes) -> Path:
     return path
 
 
-def made(in_force: dict[str, str], status_on: str = "2026-10-01") -> PctStates:
+def made(in_force: dict[str, str], status_on: str = "2026-10-01", territories: dict[str, tuple[str, str]] | None = None,
+         successors: dict[str, list[str]] | None = None) -> PctStates:
+    """A list in memory: territories code -> (via, from); successors former -> codes."""
     return PctStates(source_url="https://example.org/list", count_check_url="https://example.org/list.pdf",
                      status_on=datetime.date.fromisoformat(status_on), retrieved=datetime.date(2026, 10, 28),
-                     count=len(in_force), in_force={code: datetime.date.fromisoformat(day) for code, day in in_force.items()},
-                     names={code: code for code in in_force}, continuing={})
+                     count=len(in_force),
+                     in_force={code: datetime.date.fromisoformat(day) for code, day in in_force.items()},
+                     names={code: code for code in in_force}, continuing={},
+                     territories={code: Territory(code, code, via, datetime.date.fromisoformat(day), "footnote")
+                                  for code, (via, day) in (territories or {}).items()},
+                     successors={former: Former(former, former, "XXXX", tuple(codes))
+                                 for former, codes in (successors or {}).items()})
+
+
+def entities() -> list[dict]:
+    return json.loads((DATA / "entities.json").read_text("utf-8"))
 
 
 def test_count_matches_list():
@@ -141,7 +153,7 @@ def test_former_entity_null_not_false():
     years = member_years(states, codes)
     assert set(years) == {"CH", "VA"}
     assert not any(years["VA"].values())  # a country not on the list: non-member every year
-    assert null_reasons(codes) == {"SU": pct_states.NOT_ON_CURRENT_LIST}
+    assert null_reasons(states, codes) == {"SU": pct_states.NOT_ON_CURRENT_LIST}
 
 
 def test_counts_per_year():
@@ -150,3 +162,137 @@ def test_counts_per_year():
     assert (counts[1978], counts[1989], counts[1990], counts[2025], counts[2026]) == (1, 1, 2, 2, 3)
     assert counts[pct_states.last_year(states)] == states.count
     assert unmatched(states, ["BS", "CH"]) == ["ZZ"]
+
+
+# ---- Territories (WIPO's page footnotes) and successor States (ISO 3166-3) ----
+
+# Territory -> (State it applies through, from), as WIPO's footnotes print them: Hong Kong, China (China's footnote:
+# "with effect from 1 July 1997"); Curaçao, Sint Maarten, Bonaire, Sint Eustatius and Saba (the Netherlands' footnote:
+# ratification for the Netherlands Antilles, continuing after 10 October 2010; from the Netherlands' own date);
+# Bailiwick of Guernsey (the United Kingdom's footnote: "with effect from 23 March 2021").
+TERRITORIES = {"BQ": ("NL", "1979-07-10"), "CW": ("NL", "1979-07-10"), "GG": ("GB", "2021-03-23"),
+               "HK": ("CN", "1997-07-01"), "SX": ("NL", "1979-07-10")}
+# Former entity -> its successor States on the list. ISO 3166-3: SUHH (13 codes) plus Belarus and Ukraine (Soviet
+# republics with their own ISO 3166-1 codes); CSHH; YUCS (renamed Serbia and Montenegro) then CSXX.
+SUCCESSORS = {"CS": ("CZ", "SK"),
+              "SU": ("AM", "AZ", "BY", "EE", "GE", "KG", "KZ", "LT", "LV", "MD", "RU", "TJ", "TM", "UA", "UZ"),
+              "YU": ("ME", "RS")}
+# Former entities with no successor-State rule: AN's successors are territories (footnoted, own dates); DD merged into
+# Germany, bound since the PCT's first year; ZR's successor (CD) is not on the list.
+FORMER_WITHOUT_SUCCESSORS = {"AN", "DD", "ZR"}
+# Country entities not on the list and no footnoted territory, reviewed against WIPO's page: non-member States and
+# areas; MO: footnote "Not applicable to Macau, China". A new entity fails here until reviewed (a footnoted territory
+# goes into `territories`, anything else here).
+REVIEWED_NON_MEMBERS = set("""
+AD AF AR BD BI BO BT CD CK ER ET FJ FM GY HT KI LB MH MM MO MV NP NR NU PK PW PY SB SO SR SS TL TO TV VA VE VU YE
+""".split())
+
+
+def test_territories_transcribed():
+    states = load_pct_states()
+    assert {code: (t.via, t.since.isoformat()) for code, t in states.territories.items()} == TERRITORIES
+    for code in ("CW", "SX", "BQ"):
+        assert states.territories[code].since == states.in_force["NL"]  # the Netherlands' printed date
+    assert states.territories["HK"].footnote == "Applies also to Hong Kong, China with effect from 1 July 1997."
+    assert "Bailiwick of Guernsey with effect from 23 March 2021" in states.territories["GG"].footnote
+    assert states.territories["CW"].footnote.startswith("Ratification for the Kingdom in Europe, the Netherlands")
+    assert [t["code"] for t in raw()["territories"]] == sorted(TERRITORIES)
+
+
+def test_territories_are_country_entities_not_states():
+    """A territory is added only when its code is an entities.json country entity; never a Contracting State."""
+    states = load_pct_states()
+    kinds = {entity["code"]: entity["kind"] for entity in entities()}
+    for code, territory in states.territories.items():
+        assert kinds.get(code) == "country", code
+        assert code not in states.in_force and territory.via in states.in_force
+
+
+def test_non_listed_country_entities_reviewed():
+    states = load_pct_states()
+    countries = {entity["code"] for entity in entities() if entity["kind"] == "country"}
+    assert countries - set(states.in_force) - set(states.territories) == REVIEWED_NON_MEMBERS
+
+
+def test_successors_transcribed():
+    states = load_pct_states()
+    assert {former: entry.codes for former, entry in states.successors.items()} == SUCCESSORS
+    assert {former: entry.name for former, entry in states.successors.items()} == {
+        "CS": "Czechoslovakia", "SU": "Soviet Union", "YU": "Yugoslavia (Serbia and Montenegro from 2003)"}
+    assert successor_of(states)["UA"].code == "SU" and successor_of(states)["ME"].code == "YU"
+
+
+def test_former_entities_reviewed():
+    historical = {entity["code"] for entity in entities() if entity["kind"] == "historical"}
+    assert set(load_pct_states().successors) | FORMER_WITHOUT_SUCCESSORS == historical
+    assert not set(load_pct_states().successors) & FORMER_WITHOUT_SUCCESSORS
+
+
+def test_member_years_territories():
+    """A territory: true from its footnoted date (31 December rule), false before; never counted as a State."""
+    states = load_pct_states()
+    years = member_years(states, ["CN", "HK", "MO", "GB", "GG", "NL", "CW", "SX", "BQ"])
+    assert (years["HK"][1996], years["HK"][1997]) == (False, True)
+    assert (years["GG"][2020], years["GG"][2021]) == (False, True)
+    for code in ("CW", "SX", "BQ"):
+        assert (years[code][1978], years[code][1979]) == (False, True)
+    assert not any(years["MO"].values())  # footnote: not applicable to Macau, China
+    without = PctStates(**{**states.__dict__, "territories": {}})
+    assert pct_states.counts(states) == pct_states.counts(without)  # States only
+    assert null_reasons(states, ["HK", "GG"]) == {}
+
+
+def test_member_years_territory_31_december():
+    states = made({"CN": "1994-01-01"}, territories={"HK": ("CN", "1997-12-31"), "MO": ("CN", "1998-01-01")})
+    years = member_years(states, ["CN", "HK", "MO"])
+    assert (years["HK"][1996], years["HK"][1997]) == (False, True)
+    assert (years["MO"][1997], years["MO"][1998]) == (False, True)
+    assert years["HK"][2026] is True
+
+
+def test_successor_state_null_before_own_date():
+    """A successor State: null (successor_state) every year before its own date, never false; true from it."""
+    states = load_pct_states()
+    codes = ["UA", "BY", "KZ", "AZ", "RU", "CZ", "SK", "ME", "RS", "SI", "DE", "SU", "CS", "YU"]
+    years = member_years(states, codes)
+    assert (years["UA"][1985], years["UA"][1990], years["UA"][1991]) == (None, None, True)
+    assert (years["AZ"][1994], years["AZ"][1995]) == (None, True)
+    assert (years["CZ"][1992], years["CZ"][1993]) == (None, True)
+    assert (years["ME"][2005], years["ME"][2006]) == (None, True)
+    assert (years["RS"][1996], years["RS"][1997]) == (None, True)
+    assert all(years["RU"].values())  # continuing State: the Soviet Union's date
+    assert years["SI"][1990] is False  # not an ISO 3166-3 successor of YU
+    assert all(years["DE"].values())
+    for code in ("UA", "BY", "KZ", "AZ", "CZ", "SK", "ME", "RS"):
+        assert False not in years[code].values(), code
+    assert null_reasons(states, codes) == {
+        **{code: pct_states.SUCCESSOR_STATE for code in ("AZ", "BY", "CZ", "KZ", "ME", "RS", "SK", "UA")},
+        **{code: pct_states.NOT_ON_CURRENT_LIST for code in ("CS", "SU", "YU")}}
+
+
+def test_successor_counts_unchanged():
+    states = load_pct_states()
+    without = PctStates(**{**states.__dict__, "successors": {}})
+    assert pct_states.counts(states) == pct_states.counts(without)
+
+
+def test_load_rejects_bad_territory(tmp_path):
+    good = raw()["territories"]
+    hk = next(t for t in good if t["code"] == "HK")
+    rest = [t for t in good if t["code"] != "HK"]
+    for change, match in (({"via": "MO"}, "not on the list"), ({"code": "CN"}, "Contracting State"),
+                          ({"from": "1993-12-31"}, "before"), ({"from": "2026-10-02"}, "after"),
+                          ({"from": "1 July 1997"}, "date"), ({"footnote": ""}, "footnote")):
+        with pytest.raises(ValueError, match=match):
+            load_pct_states(write_list(tmp_path, territories=[*rest, {**hk, **change}]))
+    with pytest.raises(ValueError, match="duplicate"):
+        load_pct_states(write_list(tmp_path, territories=[*good, hk]))
+
+
+def test_load_rejects_bad_successors(tmp_path):
+    good = raw()["successors"]
+    for change, match in (({"CS": {**good["CS"], "codes": ["CZ", "QZ"]}}, "not on the list"),
+                          ({"CS": {**good["CS"], "codes": ["CZ", "SK", "UA"]}}, "more than one"),
+                          ({"CH": {**good["CS"], "codes": ["DE"]}}, "on the list")):
+        with pytest.raises(ValueError, match=match):
+            load_pct_states(write_list(tmp_path, successors={**good, **change}))

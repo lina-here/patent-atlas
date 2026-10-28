@@ -5,6 +5,18 @@
   "retrieved": "2026-10-28",
   "count": 159,
   "continuing": {"RS": "Serbia and Montenegro", "RU": "Soviet Union"},
+  "territories": [
+    {"code": "BQ", "name": "Bonaire, Sint Eustatius and Saba", "via": "NL", "from": "1979-07-10", "footnote": "Ratification for the Kingdom in Europe, the Netherlands Antilles and Aruba. The Netherlands Antilles ceased to exist on 10 October 2010. As from that date, the PCT continues to apply to Curaçao and Sint Maarten. The PCT also continues to apply to the islands of Bonaire, Sint Eustatius and Saba which, with effect from 10 October 2010, have become part of the territory of the Kingdom of the Netherlands in Europe."},
+    {"code": "CW", "name": "Curaçao", "via": "NL", "from": "1979-07-10", "footnote": "Ratification for the Kingdom in Europe, the Netherlands Antilles and Aruba. The Netherlands Antilles ceased to exist on 10 October 2010. As from that date, the PCT continues to apply to Curaçao and Sint Maarten. The PCT also continues to apply to the islands of Bonaire, Sint Eustatius and Saba which, with effect from 10 October 2010, have become part of the territory of the Kingdom of the Netherlands in Europe."},
+    {"code": "GG", "name": "Bailiwick of Guernsey", "via": "GB", "from": "2021-03-23", "footnote": "The United Kingdom extended the application of the PCT to the Isle of Man with effect from 29 October 1983, to the territory of Gibraltar with effect from 1 January 2021 and to the territory of the Bailiwick of Guernsey with effect from 23 March 2021."},
+    {"code": "HK", "name": "Hong Kong, China", "via": "CN", "from": "1997-07-01", "footnote": "Applies also to Hong Kong, China with effect from 1 July 1997."},
+    {"code": "SX", "name": "Sint Maarten", "via": "NL", "from": "1979-07-10", "footnote": "Ratification for the Kingdom in Europe, the Netherlands Antilles and Aruba. The Netherlands Antilles ceased to exist on 10 October 2010. As from that date, the PCT continues to apply to Curaçao and Sint Maarten. The PCT also continues to apply to the islands of Bonaire, Sint Eustatius and Saba which, with effect from 10 October 2010, have become part of the territory of the Kingdom of the Netherlands in Europe."}
+  ],
+  "successors": {
+    "CS": {"name": "Czechoslovakia", "iso_3166_3": "CSHH", "codes": ["CZ", "SK"]},
+    "SU": {"name": "Soviet Union", "iso_3166_3": "SUHH", "codes": ["AM", "AZ", "BY", "EE", "GE", "KG", "KZ", "LT", "LV", "MD", "RU", "TJ", "TM", "UA", "UZ"], "note": "ISO 3166-3 lists 13 successors; Belarus and Ukraine, Soviet republics that already had their own ISO 3166-1 codes, are added."},
+    "YU": {"name": "Yugoslavia (Serbia and Montenegro from 2003)", "iso_3166_3": "YUCS, CSXX", "codes": ["ME", "RS"]}
+  },
   "states": [
     {"code": "AE", "name": "United Arab Emirates", "in_force": "1999-03-10"},
     {"code": "AG", "name": "Antigua and Barbuda", "in_force": "2000-03-17"},

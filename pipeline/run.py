@@ -2,11 +2,12 @@
 
 collect (WIPO: counts, PCT months, ratios, PCT publications, women-inventor shares) -> WDI denominators (ratios) ->
 build outputs -> cross-checks (crosscheck.py) -> regression vs committed data (regress.py) -> write only when data
-changed, as a new data version (releases.py; refused for a dirty or unknown pipeline). Exit 0 = written, unchanged, or dry
-run passed; 2 = blocking failure (fetch, schema, check, regression, dirty pipeline): nothing written, last good data
-kept. PCT Contracting States (pct_states.json): a load error blocks; the line naming the count, status date and
-listed codes with no WIPO entity is a report, never blocking. --dry-run runs every check and prints the results, writes nothing. --bootstrap-version: no fetch, first data
-version for the data already in --out (refused unless their manifest names a commit of this repo).
+changed, as a new data version (releases.py; refused for a dirty or unknown pipeline). Exit 0 = written, unchanged, or
+dry run passed; 2 = blocking failure (fetch, schema, check, regression, dirty pipeline): nothing written, last good
+data kept. PCT Contracting States (pct_states.json): loaded before any fetch, a load error blocks; the line naming the
+count, status date and listed codes with no WIPO entity is a report, never blocking. --dry-run runs every check and
+prints the results, writes nothing. --bootstrap-version: no fetch, first data version for the data already in --out
+(refused unless their manifest names a commit of this repo).
 """
 from __future__ import annotations
 
@@ -298,13 +299,13 @@ def main(argv: list[str] | None = None) -> int:
     use_system_ca_bundle()
     retrieved = utc_today()
     try:
+        pct = pct_states.load_pct_states()  # ValueError: a bad list blocks the run, before any fetch
         client = WipoClient()
         fetcher = Fetcher()
         collected = collect(client, retrieved)
         collected["denominators"] = ratio_denominators(collected["series"], fetcher.get)
         release_strings = releases(client)
         ctx = groups.context(collected["series"])  # one per run: outputs and checks share it
-        pct = pct_states.load_pct_states()  # ValueError: a bad list blocks the run
         outputs = write.build_outputs(collected, release_strings, retrieved, pipeline_sha(), ctx, pct)
         failures, summary = run_checks(collected, outputs, fetcher, ctx)
         regression = regress.compare(outputs, args.out)

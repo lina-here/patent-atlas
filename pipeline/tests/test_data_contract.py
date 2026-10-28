@@ -236,8 +236,19 @@ def test_pct_member_when_published():
     expected = pct_states.member_years(states, codes)
     assert file["values"] == {code: {str(year): member for year, member in years.items()}
                               for code, years in expected.items()}
-    assert file["null_reason"] == pct_states.null_reasons(codes)
-    assert set(file["null_reason"]) == {entity["code"] for entity in entities if entity["kind"] == "historical"}
+    assert file["null_reason"] == pct_states.null_reasons(states, codes)
+    assert {code for code, reason in file["null_reason"].items() if reason == pct_states.NOT_ON_CURRENT_LIST} == {
+        entity["code"] for entity in entities if entity["kind"] == "historical"}
+    # successor States: null before their own date, never false; their former entity carried for the tooltip
+    hidden = {code for code, reason in file["null_reason"].items() if reason == pct_states.SUCCESSOR_STATE}
+    assert hidden and set(file["successor_of"]) == hidden
+    for code in hidden:
+        assert False not in file["values"][code].values(), code
+        assert file["successor_of"][code]["code"] in states.successors
+    # territories: member fill from their footnoted date, never counted
+    assert set(file["territories"]) == set(states.territories) & set(codes)
+    for code, territory in file["territories"].items():
+        assert territory["from"] == states.territories[code].since.isoformat() and code not in file["in_force"]
     assert file["in_force"] == {code: day.isoformat() for code, day in states.in_force.items()}
     assert file["unmatched"] == pct_states.unmatched(states, codes)
     assert file["sources"]["pct_member"]["status_on"] == states.status_on.isoformat()

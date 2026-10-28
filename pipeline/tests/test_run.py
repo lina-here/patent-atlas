@@ -111,10 +111,13 @@ def test_run_bad_pct_states_blocks(fake_pipeline, monkeypatch, tmp_path, capsys)
     bad.write_text(json.dumps({**content, "count": content["count"] + 1}), "utf-8")
     real = pct_states.load_pct_states
     monkeypatch.setattr(pct_states, "load_pct_states", lambda: real(bad))
+    collected = []
+    monkeypatch.setattr(run, "collect", lambda client, today: collected.append(today))
     out = tmp_path / "out"
     assert run.main(["--out", str(out)]) == 2
     assert not out.exists()
     assert "FAILED (nothing written)" in capsys.readouterr().err
+    assert collected == []  # the list loads before any WIPO fetch
 
 
 def snapshot(root):

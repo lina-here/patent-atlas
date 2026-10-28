@@ -1668,13 +1668,14 @@ def test_pct_member_map_file():
     EP (regional office, skipped); the list's other States have no entity here: unmatched, carried."""
     states = pct_states.load_pct_states()
     file = outputs()[Path("map") / "pct_member.json"]
-    assert set(file) == {"values", "null_reason", "in_force", "unmatched", "sources"}
+    assert set(file) == {"values", "null_reason", "in_force", "unmatched", "territories", "successor_of", "sources"}
     years = [str(year) for year in range(pct_states.PCT_FIRST_YEAR, states.status_on.year + 1)]
     assert set(file["values"]) == {"CH", "US", "MG", "VA"}
     assert all(list(file["values"][code]) == years for code in file["values"])
     assert not any(file["values"]["VA"].values())  # non-listed country: false every year, never null
     assert file["values"]["CH"]["1978"] is True and file["values"]["US"]["1978"] is True
     assert file["null_reason"] == {"SU": "not_on_current_list"}
+    assert file["territories"] == {} and file["successor_of"] == {}  # none among the fixture entities
     assert file["in_force"]["CH"] == "1978-01-24" and file["in_force"]["BS"] == "2026-08-19"
     assert len(file["in_force"]) == states.count
     assert file["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
@@ -1691,11 +1692,33 @@ def test_pct_membership_overview():
     assert (block["first_year"], block["last_year"]) == (pct_states.PCT_FIRST_YEAR, states.status_on.year)
     assert list(block["count"]) == [str(year) for year in range(pct_states.PCT_FIRST_YEAR, block["last_year"] + 1)]
     assert block["count"][str(block["last_year"])] == states.count
-    assert block["count"]["2025"] == states.count - 1  # Bahamas in force 2026-08-19
+    assert block["count"] == {str(year): count for year, count in pct_states.counts(states).items()}
     assert block["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
+    # every territory and successor entry of the list (the methods page names them), not only the fixture's entities
+    assert [territory["code"] for territory in block["territories"]] == sorted(states.territories)
+    assert block["territories"][[t["code"] for t in block["territories"]].index("HK")] == {
+        "code": "HK", "name": "Hong Kong, China", "via": "CN", "state": "China", "from": "1997-07-01"}
+    assert [former["former"] for former in block["successors"]] == sorted(states.successors)
+    assert block["successors"][0] == {"former": "CS", "name": "Czechoslovakia", "iso_3166_3": "CSHH",
+                                      "codes": ["CZ", "SK"], "note": ""}
     assert block["continuing"] == [
         {"code": "RS", "name": "Serbia", "in_force": "1997-02-01", "continues": "Serbia and Montenegro"},
         {"code": "RU", "name": "Russian Federation", "in_force": "1978-03-29", "continues": "Soviet Union"}]
+
+
+def test_pct_member_map_file_territories_and_successors():
+    """Territories (entities only): the State the PCT applies through and the footnoted date; successor States with null
+    years: their former entity, for the tooltip."""
+    states = pct_states.load_pct_states()
+    file = write._pct_member_map_file(states, ["CN", "HK", "MO", "NL", "CW", "UA", "RU", "SU"])
+    assert file["territories"] == {"CW": {"via": "NL", "state": "Netherlands", "from": "1979-07-10"},
+                                   "HK": {"via": "CN", "state": "China", "from": "1997-07-01"}}
+    assert file["successor_of"] == {"UA": {"code": "SU", "name": "Soviet Union"}}  # RU: no year before its date
+    assert file["null_reason"] == {"SU": "not_on_current_list", "UA": "successor_state"}
+    assert (file["values"]["UA"]["1985"], file["values"]["UA"]["1991"]) == (None, True)
+    assert (file["values"]["HK"]["1996"], file["values"]["HK"]["1997"]) == (False, True)
+    assert not any(file["values"]["MO"].values())
+    assert "HK" not in file["in_force"]
 
 
 def test_pct_states_injected():

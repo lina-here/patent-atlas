@@ -4,22 +4,29 @@
 - `source_url`: WIPO's page "PCT Contracting States"; each row = two-letter code (WIPO ST.3 = entities.json `code`),
   name as printed (footnote marks dropped), "Date on Which State Became Bound by the PCT" (`in_force`, ISO).
 - `count_check_url`: WIPO's PDF "PCT Contracting States and Two-letter Codes (<count> on <date>)": `count` and
-  `status_on` come from its heading. It prints MT for Mauritius (MU on the page): a WIPO misprint, not carried.
-- `retrieved`: when the page was read. `continuing`: code -> the State it continues, where WIPO's footnote says the
-  printed date is that State's (RU: Soviet Union; RS: Serbia and Montenegro); the date stays as printed.
+  `status_on` come from its heading. It prints MT for Mauritius as well as for Malta; the page gives MU, used here.
+- `retrieved`: when the page was read. `continuing`: code -> the State WIPO's footnote names it the continuing State
+  of (RU: Soviet Union; RS: Serbia and Montenegro); the date stays as printed.
+- `territories` [{code, name, via, from, footnote}]: a territory the PCT applies to through a listed State (`via`)
+  from `from`, as the page's footnote to that State prints it (`footnote`, verbatim; `name` as the footnote names it).
+  Added only when `code` is an entities.json country entity; never a Contracting State, never counted.
+- `successors` {former entity: {name, iso_3166_3, codes, note?}}: the listed States that succeeded a former entity
+  of the data, from ISO 3166-3 (former country codes); `note` = where the list departs from ISO 3166-3.
 - States sorted by code. A code with no WIPO entity stays listed (`unmatched`, reported by run.py).
 
 Membership (map/pct_member.json, overview `pct_membership`; write.py): years PCT_FIRST_YEAR (treaty in force)..
 status_on.year; member in year Y = in force by 31 December Y; in status_on.year the view is as of `status_on` (the same
-result: no date is after it). A country entity not on the list = non-member (false) every year. A former entity (kind
-historical) is never false: null, reason NOT_ON_CURRENT_LIST (the list names today's States only). Regional offices:
-not on the map, skipped.
+result: no date is after it). A territory: true from its `from` (same rule), else false. A successor State: null
+(SUCCESSOR_STATE) every year before its own date, never false: the list gives no dates for former States, so neither
+member nor non-member is claimed. Any other country entity not on the list = non-member (false) every year. A former
+entity (kind historical) is never false: null, reason NOT_ON_CURRENT_LIST (the list names today's States only).
+Regional offices: not on the map, skipped. Counts = Contracting States only.
 """
 from __future__ import annotations
 
 import datetime
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -29,6 +36,27 @@ PCT_STATES_PATH = Path(__file__).with_name("pct_states.json")
 PCT_MEMBER_ID = "pct_member"
 PCT_FIRST_YEAR = 1978  # PCT in force 24 January 1978
 NOT_ON_CURRENT_LIST = "not_on_current_list"
+SUCCESSOR_STATE = "successor_state"
+
+
+@dataclass(frozen=True)
+class Territory:
+    """The PCT applies to `code` through the listed State `via` from `since` (WIPO footnote, verbatim)."""
+    code: str
+    name: str
+    via: str
+    since: datetime.date
+    footnote: str
+
+
+@dataclass(frozen=True)
+class Former:
+    """A former entity of the data and its successor States on the list (ISO 3166-3 code(s) `iso_3166_3`)."""
+    code: str
+    name: str
+    iso_3166_3: str
+    codes: tuple[str, ...]
+    note: str = ""
 
 
 @dataclass(frozen=True)
@@ -41,6 +69,8 @@ class PctStates:
     in_force: dict[str, datetime.date]
     names: dict[str, str]
     continuing: dict[str, str]
+    territories: dict[str, Territory] = field(default_factory=dict)
+    successors: dict[str, Former] = field(default_factory=dict)
 
 
 def _date(value: object, where: str) -> datetime.date:
@@ -50,9 +80,52 @@ def _date(value: object, where: str) -> datetime.date:
         raise ValueError(f"pct_states: {where}: bad date {value!r} (YYYY-MM-DD)") from None
 
 
+def _territories(rows: list[dict], in_force: dict[str, datetime.date],
+                 status_on: datetime.date) -> dict[str, Territory]:
+    result: dict[str, Territory] = {}
+    for row in rows:
+        code, via = row["code"], row["via"]
+        if code in result:
+            raise ValueError(f"pct_states: duplicate territory {code}")
+        if code in in_force:
+            raise ValueError(f"pct_states: territory {code} is a Contracting State on the list")
+        if via not in in_force:
+            raise ValueError(f"pct_states: territory {code} applies through {via}, not on the list")
+        since = _date(row["from"], f"territory {code}")
+        if since < in_force[via]:
+            raise ValueError(f"pct_states: territory {code} from {since} before {via} bound ({in_force[via]})")
+        if since > status_on:
+            raise ValueError(f"pct_states: territory {code} from {since} after status date {status_on}")
+        if not row.get("footnote"):
+            raise ValueError(f"pct_states: territory {code} without its WIPO footnote")
+        result[code] = Territory(code=code, name=row["name"], via=via, since=since, footnote=row["footnote"])
+    return result
+
+
+def _successors(content: dict[str, dict], in_force: dict[str, datetime.date]) -> dict[str, Former]:
+    result: dict[str, Former] = {}
+    seen: set[str] = set()
+    for former, entry in content.items():
+        if former in in_force:
+            raise ValueError(f"pct_states: former entity {former} is on the list")
+        codes = tuple(entry["codes"])
+        missing = sorted(set(codes) - set(in_force))
+        if missing:
+            raise ValueError(f"pct_states: successors of {former} not on the list: {missing}")
+        twice = sorted(seen & set(codes))
+        if twice:
+            raise ValueError(f"pct_states: successor States under more than one former entity: {twice}")
+        seen |= set(codes)
+        result[former] = Former(code=former, name=entry["name"], iso_3166_3=entry["iso_3166_3"], codes=codes,
+                                note=entry.get("note", ""))
+    return result
+
+
 def load_pct_states(path: Path = PCT_STATES_PATH) -> PctStates:
     """The list; ValueError on a bad date, a duplicate code, a row count other than `count`, an `in_force` after
-    `status_on`, `status_on` after `retrieved`, or a continuing State not on the list."""
+    `status_on`, `status_on` after `retrieved`, a continuing State not on the list, a bad territory (a listed State,
+    `via` not listed, `from` before `via` was bound or after `status_on`, no footnote) or a bad successor entry (a
+    former entity on the list, a successor not on it or under two former entities)."""
     content = json.loads(path.read_text("utf-8"))
     status_on = _date(content["status_on"], "status_on")
     retrieved = _date(content["retrieved"], "retrieved")
@@ -75,7 +148,9 @@ def load_pct_states(path: Path = PCT_STATES_PATH) -> PctStates:
     if not set(continuing) <= set(in_force):
         raise ValueError(f"pct_states: continuing States not on the list: {sorted(set(continuing) - set(in_force))}")
     return PctStates(source_url=content["source_url"], count_check_url=content["count_check_url"], status_on=status_on,
-                     retrieved=retrieved, count=count, in_force=in_force, names=names, continuing=continuing)
+                     retrieved=retrieved, count=count, in_force=in_force, names=names, continuing=continuing,
+                     territories=_territories(content.get("territories", []), in_force, status_on),
+                     successors=_successors(content.get("successors", {}), in_force))
 
 
 def last_year(states: PctStates) -> int:
@@ -86,12 +161,15 @@ def years(states: PctStates) -> range:
     return range(PCT_FIRST_YEAR, last_year(states) + 1)
 
 
-def is_member(states: PctStates, code: str, year: int) -> bool:
-    """In force by 31 December `year`; in the status year, on the status date."""
-    since = states.in_force.get(code)
-    if since is None:
-        return False
+def _by(states: PctStates, since: datetime.date, year: int) -> bool:
+    """`since` by 31 December `year`; in the status year, on the status date."""
     return since <= (states.status_on if year == last_year(states) else datetime.date(year, 12, 31))
+
+
+def is_member(states: PctStates, code: str, year: int) -> bool:
+    """A listed State in force by 31 December `year`; in the status year, on the status date."""
+    since = states.in_force.get(code)
+    return since is not None and _by(states, since, year)
 
 
 def unmatched(states: PctStates, entity_codes: Iterable[str]) -> list[str]:
@@ -100,25 +178,47 @@ def unmatched(states: PctStates, entity_codes: Iterable[str]) -> list[str]:
     return sorted(code for code in states.in_force if code not in known)
 
 
-def member_years(states: PctStates, entity_codes: Iterable[str]) -> dict[str, dict[int, bool]]:
-    """Country entity -> year -> member; former entities and regional offices absent (null_reasons). A listed code
-    whose entity is not a country is an error (the list names States)."""
-    result: dict[str, dict[int, bool]] = {}
+def successor_of(states: PctStates) -> dict[str, Former]:
+    """Successor State code -> the former entity it succeeded."""
+    return {code: former for former in states.successors.values() for code in former.codes}
+
+
+def _hidden_successors(states: PctStates, entity_codes: Iterable[str]) -> list[str]:
+    """Successor States of the entities with a year before their own date (null years)."""
+    successors = successor_of(states)
+    return sorted(code for code in set(entity_codes)
+                  if code in successors and not is_member(states, code, PCT_FIRST_YEAR))
+
+
+def member_years(states: PctStates, entity_codes: Iterable[str]) -> dict[str, dict[int, bool | None]]:
+    """Country entity -> year -> member (territory: PCT applies; successor State: null before its date); former
+    entities and regional offices absent (null_reasons). A listed code or territory whose entity is not a country is
+    an error (the list names States)."""
+    successors = successor_of(states)
+    result: dict[str, dict[int, bool | None]] = {}
     for code in sorted(entity_codes):
         kind = classify(code)
         if kind != "country":
-            if code in states.in_force:
+            if code in states.in_force or code in states.territories:
                 raise ValueError(f"pct_states: listed {code} is a {kind} entity, not a country")
             continue
-        result[code] = {year: is_member(states, code, year) for year in years(states)}
+        if code in states.territories:
+            result[code] = {year: _by(states, states.territories[code].since, year) for year in years(states)}
+        elif code in successors:
+            result[code] = {year: True if is_member(states, code, year) else None for year in years(states)}
+        else:
+            result[code] = {year: is_member(states, code, year) for year in years(states)}
     return result
 
 
-def null_reasons(entity_codes: Iterable[str]) -> dict[str, str]:
-    """Former entities: null, never non-member."""
-    return {code: NOT_ON_CURRENT_LIST for code in sorted(entity_codes) if classify(code) == "historical"}
+def null_reasons(states: PctStates, entity_codes: Iterable[str]) -> dict[str, str]:
+    """Former entities (every year) and successor States (years before their own date): null, never non-member."""
+    codes = list(entity_codes)
+    reasons = {code: NOT_ON_CURRENT_LIST for code in codes if classify(code) == "historical"}
+    reasons |= {code: SUCCESSOR_STATE for code in _hidden_successors(states, codes)}
+    return dict(sorted(reasons.items()))
 
 
 def counts(states: PctStates) -> dict[int, int]:
-    """States on the list that are members in each year (mapped and unmatched alike)."""
+    """States on the list that are members in each year (mapped and unmatched alike); territories never counted."""
     return {year: sum(is_member(states, code, year) for code in states.in_force) for year in years(states)}
