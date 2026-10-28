@@ -1515,6 +1515,7 @@
         "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf"
       }
     },
+    "golden_growth_tolerance_pp": 0.1,
     "golden_tolerance_pct": 1,
     "group_attribution_min": 0.8,
     "group_basis": {
@@ -1619,6 +1620,13 @@
         "yoy": 1
       },
       "mode": "half away from zero"
+    },
+    "share_shift": {
+      "change": "difference of published shares",
+      "decimals": 2
+    },
+    "treemap": {
+      "fold_share_pct": 0.5
     }
   },
   "pct_monthly": {
@@ -2661,6 +2669,196 @@
     "origin_apps": "WIPO world total (WD)",
     "pct_origin": "WIPO PCT total (ZZ)"
   },
+  "share_shift": {
+    "base_year": 2014,
+    "null_reason": null,
+    "rows": [
+      {
+        "breaks": [
+          2017
+        ],
+        "change_pp": 17.06,
+        "code": "CN",
+        "label": "China",
+        "rank": 1,
+        "share": 48.23,
+        "share_base": 31.17
+      },
+      {
+        "breaks": [],
+        "change_pp": -5.27,
+        "code": "US",
+        "label": "United States of America",
+        "rank": 2,
+        "share": 13.51,
+        "share_base": 18.78
+      },
+      {
+        "breaks": [],
+        "change_pp": -5.99,
+        "code": "JP",
+        "label": "Japan",
+        "rank": 3,
+        "share": 11.3,
+        "share_base": 17.29
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.62,
+        "code": "KR",
+        "label": "Republic of Korea",
+        "rank": 4,
+        "share": 7.95,
+        "share_base": 8.57
+      },
+      {
+        "breaks": [],
+        "change_pp": -1.99,
+        "code": "DE",
+        "label": "Germany",
+        "rank": 5,
+        "share": 3.59,
+        "share_base": 5.58
+      },
+      {
+        "breaks": [],
+        "change_pp": 1.27,
+        "code": "IN",
+        "label": "India",
+        "rank": 6,
+        "share": 2.05,
+        "share_base": 0.78
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.8,
+        "code": "FR",
+        "label": "France",
+        "rank": 7,
+        "share": 1.39,
+        "share_base": 2.19
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.45,
+        "code": "GB",
+        "label": "United Kingdom",
+        "rank": 8,
+        "share": 1.26,
+        "share_base": 1.71
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.21,
+        "code": "CH",
+        "label": "Switzerland",
+        "rank": 9,
+        "share": 1.11,
+        "share_base": 1.32
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.36,
+        "code": "NL",
+        "label": "Netherlands (Kingdom of the)",
+        "rank": 10,
+        "share": 0.71,
+        "share_base": 1.07
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.19,
+        "code": "IT",
+        "label": "Italy",
+        "rank": 11,
+        "share": 0.71,
+        "share_base": 0.9
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.32,
+        "code": "RU",
+        "label": "Russian Federation",
+        "rank": 12,
+        "share": 0.66,
+        "share_base": 0.98
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.23,
+        "code": "CA",
+        "label": "Canada",
+        "rank": 13,
+        "share": 0.65,
+        "share_base": 0.88
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.17,
+        "code": "SE",
+        "label": "Sweden",
+        "rank": 14,
+        "share": 0.56,
+        "share_base": 0.73
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.07,
+        "code": "IL",
+        "label": "Israel",
+        "rank": 15,
+        "share": 0.41,
+        "share_base": 0.48
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.05,
+        "code": "FI",
+        "label": "Finland",
+        "rank": 16,
+        "share": 0.36,
+        "share_base": 0.41
+      },
+      {
+        "breaks": [],
+        "change_pp": 0.09,
+        "code": "TR",
+        "label": "Türkiye",
+        "rank": 17,
+        "share": 0.31,
+        "share_base": 0.22
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.07,
+        "code": "DK",
+        "label": "Denmark",
+        "rank": 18,
+        "share": 0.29,
+        "share_base": 0.36
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.13,
+        "code": "AU",
+        "label": "Australia",
+        "rank": 19,
+        "share": 0.29,
+        "share_base": 0.42
+      },
+      {
+        "breaks": [],
+        "change_pp": -0.07,
+        "code": "BE",
+        "label": "Belgium",
+        "rank": 20,
+        "share": 0.28,
+        "share_base": 0.35
+      }
+    ],
+    "series": "origin_apps",
+    "year": 2024
+  },
   "size_growth": [
     {
       "cagr10": 8.0,
@@ -3061,6 +3259,14 @@
       "years": "2000-2025"
     }
   },
+  "top_grower": {
+    "breaks": [],
+    "cagr10": 13.9,
+    "code": "IN",
+    "label": "India",
+    "rank": 6,
+    "value": 76473
+  },
   "top_n": 20,
   "top_origins": [
     {
@@ -3205,6 +3411,534 @@
     }
   ],
   "top_year": 2024,
+  "treemap": {
+    "continents": [
+      {
+        "countries": [],
+        "id": "africa",
+        "label": "Africa",
+        "other": {
+          "codes": [
+            "BF",
+            "BJ",
+            "BW",
+            "CF",
+            "CG",
+            "CI",
+            "CM",
+            "CV",
+            "DZ",
+            "EG",
+            "ET",
+            "GA",
+            "GN",
+            "GW",
+            "KE",
+            "LR",
+            "MA",
+            "MG",
+            "ML",
+            "MR",
+            "MU",
+            "MZ",
+            "NA",
+            "NE",
+            "RW",
+            "SN",
+            "TD",
+            "TG",
+            "TN",
+            "UG",
+            "ZA",
+            "ZM",
+            "ZW"
+          ],
+          "share": 0.13,
+          "value": 4835
+        },
+        "share": 0.13,
+        "value": 4835
+      },
+      {
+        "countries": [
+          {
+            "code": "US",
+            "label": "United States of America",
+            "share": 13.51,
+            "value": 503283
+          },
+          {
+            "code": "CA",
+            "label": "Canada",
+            "share": 0.65,
+            "value": 24184
+          }
+        ],
+        "id": "northern-america",
+        "label": "Northern America",
+        "other": null,
+        "share": 14.16,
+        "value": 527467
+      },
+      {
+        "countries": [],
+        "id": "latin-america-caribbean",
+        "label": "Latin America and the Caribbean",
+        "other": {
+          "codes": [
+            "AG",
+            "AR",
+            "BB",
+            "BR",
+            "BZ",
+            "CL",
+            "CO",
+            "CR",
+            "CU",
+            "DM",
+            "DO",
+            "EC",
+            "GT",
+            "GY",
+            "HN",
+            "JM",
+            "KN",
+            "MX",
+            "PA",
+            "PE",
+            "PY",
+            "SV",
+            "TT",
+            "UY",
+            "VE"
+          ],
+          "share": 0.35,
+          "value": 13053
+        },
+        "share": 0.35,
+        "value": 13053
+      },
+      {
+        "countries": [
+          {
+            "code": "CN",
+            "label": "China",
+            "share": 48.23,
+            "value": 1796738
+          },
+          {
+            "code": "JP",
+            "label": "Japan",
+            "share": 11.3,
+            "value": 420991
+          },
+          {
+            "code": "KR",
+            "label": "Republic of Korea",
+            "share": 7.95,
+            "value": 296041
+          },
+          {
+            "code": "IN",
+            "label": "India",
+            "share": 2.05,
+            "value": 76473
+          }
+        ],
+        "id": "asia",
+        "label": "Asia",
+        "other": {
+          "codes": [
+            "AE",
+            "AM",
+            "AZ",
+            "BD",
+            "BH",
+            "BN",
+            "BT",
+            "CY",
+            "GE",
+            "HK",
+            "ID",
+            "IL",
+            "IQ",
+            "IR",
+            "JO",
+            "KG",
+            "KH",
+            "KP",
+            "KW",
+            "KZ",
+            "LA",
+            "LK",
+            "MN",
+            "MO",
+            "MY",
+            "OM",
+            "PH",
+            "PK",
+            "QA",
+            "SA",
+            "SG",
+            "SY",
+            "TH",
+            "TR",
+            "UZ",
+            "VN"
+          ],
+          "share": 2.01,
+          "value": 75023
+        },
+        "share": 71.55,
+        "value": 2665266
+      },
+      {
+        "countries": [
+          {
+            "code": "DE",
+            "label": "Germany",
+            "share": 3.59,
+            "value": 133790
+          },
+          {
+            "code": "FR",
+            "label": "France",
+            "share": 1.39,
+            "value": 51880
+          },
+          {
+            "code": "GB",
+            "label": "United Kingdom",
+            "share": 1.26,
+            "value": 46840
+          },
+          {
+            "code": "CH",
+            "label": "Switzerland",
+            "share": 1.11,
+            "value": 41341
+          },
+          {
+            "code": "NL",
+            "label": "Netherlands (Kingdom of the)",
+            "share": 0.71,
+            "value": 26445
+          },
+          {
+            "code": "IT",
+            "label": "Italy",
+            "share": 0.71,
+            "value": 26389
+          },
+          {
+            "code": "RU",
+            "label": "Russian Federation",
+            "share": 0.66,
+            "value": 24700
+          },
+          {
+            "code": "SE",
+            "label": "Sweden",
+            "share": 0.56,
+            "value": 20756
+          }
+        ],
+        "id": "europe",
+        "label": "Europe",
+        "other": {
+          "codes": [
+            "AD",
+            "AT",
+            "BA",
+            "BE",
+            "BG",
+            "BY",
+            "CZ",
+            "DK",
+            "EE",
+            "ES",
+            "FI",
+            "GR",
+            "HR",
+            "HU",
+            "IE",
+            "IS",
+            "LI",
+            "LT",
+            "LU",
+            "LV",
+            "MC",
+            "MD",
+            "ME",
+            "MK",
+            "MT",
+            "NO",
+            "PL",
+            "PT",
+            "RO",
+            "RS",
+            "SI",
+            "SK",
+            "SM",
+            "UA"
+          ],
+          "share": 2.27,
+          "value": 84526
+        },
+        "share": 12.26,
+        "value": 456667
+      },
+      {
+        "countries": [],
+        "id": "oceania",
+        "label": "Oceania",
+        "other": {
+          "codes": [
+            "AU",
+            "NZ",
+            "TO",
+            "VU"
+          ],
+          "share": 0.35,
+          "value": 12996
+        },
+        "share": 0.35,
+        "value": 12996
+      }
+    ],
+    "no_value": [
+      {
+        "code": "AF",
+        "label": "Afghanistan"
+      },
+      {
+        "code": "AL",
+        "label": "Albania"
+      },
+      {
+        "code": "AO",
+        "label": "Angola"
+      },
+      {
+        "code": "BI",
+        "label": "Burundi"
+      },
+      {
+        "code": "BO",
+        "label": "Bolivia (Plurinational State of)"
+      },
+      {
+        "code": "BQ",
+        "label": "Bonaire, Sint Eustatius and Saba"
+      },
+      {
+        "code": "BS",
+        "label": "Bahamas"
+      },
+      {
+        "code": "CD",
+        "label": "Democratic Republic of the Congo"
+      },
+      {
+        "code": "CK",
+        "label": "Cook Islands"
+      },
+      {
+        "code": "CW",
+        "label": "Curaçao"
+      },
+      {
+        "code": "DJ",
+        "label": "Djibouti"
+      },
+      {
+        "code": "ER",
+        "label": "Eritrea"
+      },
+      {
+        "code": "FJ",
+        "label": "Fiji"
+      },
+      {
+        "code": "FM",
+        "label": "Micronesia (Federated States of)"
+      },
+      {
+        "code": "GD",
+        "label": "Grenada"
+      },
+      {
+        "code": "GH",
+        "label": "Ghana"
+      },
+      {
+        "code": "GM",
+        "label": "Gambia"
+      },
+      {
+        "code": "GQ",
+        "label": "Equatorial Guinea"
+      },
+      {
+        "code": "HT",
+        "label": "Haiti"
+      },
+      {
+        "code": "KI",
+        "label": "Kiribati"
+      },
+      {
+        "code": "KM",
+        "label": "Comoros"
+      },
+      {
+        "code": "LB",
+        "label": "Lebanon"
+      },
+      {
+        "code": "LC",
+        "label": "Saint Lucia"
+      },
+      {
+        "code": "LS",
+        "label": "Lesotho"
+      },
+      {
+        "code": "LY",
+        "label": "Libya"
+      },
+      {
+        "code": "MH",
+        "label": "Marshall Islands"
+      },
+      {
+        "code": "MM",
+        "label": "Myanmar"
+      },
+      {
+        "code": "MV",
+        "label": "Maldives"
+      },
+      {
+        "code": "MW",
+        "label": "Malawi"
+      },
+      {
+        "code": "NG",
+        "label": "Nigeria"
+      },
+      {
+        "code": "NI",
+        "label": "Nicaragua"
+      },
+      {
+        "code": "NP",
+        "label": "Nepal"
+      },
+      {
+        "code": "NR",
+        "label": "Nauru"
+      },
+      {
+        "code": "NU",
+        "label": "Niue"
+      },
+      {
+        "code": "PG",
+        "label": "Papua New Guinea"
+      },
+      {
+        "code": "PW",
+        "label": "Palau"
+      },
+      {
+        "code": "SB",
+        "label": "Solomon Islands"
+      },
+      {
+        "code": "SC",
+        "label": "Seychelles"
+      },
+      {
+        "code": "SD",
+        "label": "Sudan"
+      },
+      {
+        "code": "SL",
+        "label": "Sierra Leone"
+      },
+      {
+        "code": "SO",
+        "label": "Somalia"
+      },
+      {
+        "code": "SR",
+        "label": "Suriname"
+      },
+      {
+        "code": "SS",
+        "label": "South Sudan"
+      },
+      {
+        "code": "ST",
+        "label": "Sao Tome and Principe"
+      },
+      {
+        "code": "SX",
+        "label": "Sint Maarten (Dutch Part)"
+      },
+      {
+        "code": "SZ",
+        "label": "Eswatini"
+      },
+      {
+        "code": "TJ",
+        "label": "Tajikistan"
+      },
+      {
+        "code": "TL",
+        "label": "Timor-Leste"
+      },
+      {
+        "code": "TM",
+        "label": "Turkmenistan"
+      },
+      {
+        "code": "TV",
+        "label": "Tuvalu"
+      },
+      {
+        "code": "TZ",
+        "label": "United Republic of Tanzania"
+      },
+      {
+        "code": "VA",
+        "label": "Holy See"
+      },
+      {
+        "code": "VC",
+        "label": "Saint Vincent and the Grenadines"
+      },
+      {
+        "code": "WS",
+        "label": "Samoa"
+      },
+      {
+        "code": "YE",
+        "label": "Yemen"
+      }
+    ],
+    "null_reason": null,
+    "residual": {
+      "label": "not attributable",
+      "share": 1.2,
+      "value": 44716
+    },
+    "series": "origin_apps",
+    "unattributed": [],
+    "world": 3725000,
+    "year": 2024
+  },
   "world_last_year": {
     "pct_world": 2025,
     "world_office": 2024
@@ -3381,6 +4115,94 @@
       "tab": "ips",
       "url": "https://www3.wipo.int/ipstats/",
       "years": "1985-2024"
+    }
+  },
+  "world_yoy": {
+    "pct_world": {
+      "yoy": {
+        "1996": 20.5,
+        "1997": 18.3,
+        "1998": 17.5,
+        "1999": 13.9,
+        "2000": 22.1,
+        "2001": 16.1,
+        "2002": 2.0,
+        "2003": 4.4,
+        "2004": 6.4,
+        "2005": 11.5,
+        "2006": 9.4,
+        "2007": 6.9,
+        "2008": 2.1,
+        "2009": -4.8,
+        "2010": 5.8,
+        "2011": 11.0,
+        "2012": 7.1,
+        "2013": 5.1,
+        "2014": 4.4,
+        "2015": 1.4,
+        "2016": 7.2,
+        "2017": 4.6,
+        "2018": 3.8,
+        "2019": 5.0,
+        "2020": 3.6,
+        "2021": 0.8,
+        "2022": 0.2,
+        "2023": -1.9,
+        "2024": 0.5,
+        "2025": 0.6
+      },
+      "yoy_null_reason": {}
+    },
+    "world_office": {
+      "yoy": {
+        "1981": null,
+        "1982": null,
+        "1983": null,
+        "1984": null,
+        "1985": null,
+        "1986": 2.8,
+        "1987": 5.0,
+        "1988": 1.5,
+        "1989": 0.5,
+        "1990": -1.7,
+        "1991": -11.0,
+        "1992": 6.2,
+        "1993": 0.0,
+        "1994": -0.1,
+        "1995": 11.2,
+        "1996": 3.8,
+        "1997": 5.9,
+        "1998": 5.3,
+        "1999": 4.6,
+        "2000": 8.1,
+        "2001": 4.5,
+        "2002": -0.3,
+        "2003": 3.5,
+        "2004": 6.2,
+        "2005": 8.5,
+        "2006": 5.1,
+        "2007": 4.6,
+        "2008": 3.0,
+        "2009": -3.8,
+        "2010": 7.6,
+        "2011": 8.0,
+        "2012": 9.2,
+        "2013": 8.8,
+        "2014": 4.5,
+        "2015": 7.7,
+        "2016": 8.3,
+        "2017": null,
+        "2018": 5.2,
+        "2019": -3.0,
+        "2020": 1.5,
+        "2021": 3.6,
+        "2022": 1.6,
+        "2023": 2.8,
+        "2024": 4.9
+      },
+      "yoy_null_reason": {
+        "2017": "series_break"
+      }
     }
   }
 }

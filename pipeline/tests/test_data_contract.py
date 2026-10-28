@@ -69,10 +69,19 @@ def test_overview_method_constants_for_methods_page():
     expected = V01_METHOD_KEYS | (GROUP_METHOD_KEYS if (DATA / "groups.json").is_file() else set())
     expected |= {"ratios"} if HAS_RATIOS else set()
     expected |= {"gender"} if HAS_GENDER else set()
-    expected |= {"golden_growth_tolerance_pp"} if "world_yoy" in overview else set()  # v2a, same refresh
-    expected |= {"treemap"} if "treemap" in overview else set()  # v2a, same refresh
+    expected |= {"golden_growth_tolerance_pp", "treemap", "share_shift"}  # v2a
     assert set(method) == expected
     assert set(method["rounding"]["decimals"]) == {"yoy", "cagr", "share", "resident_share"}
+
+
+V2A_BLOCKS = {"world_yoy", "top_grower", "treemap", "share_shift"}  # overview blocks the v2a dashboard draws
+
+
+def test_v2a_blocks_published():
+    """The v2a data refresh wrote every block the dashboard draws: the *_when_published checks below run on them
+    (a missing block fails here, never a skip)."""
+    overview = load(DATA / "overview.json")
+    assert V2A_BLOCKS <= set(overview), sorted(V2A_BLOCKS - set(overview))
 
 
 SERIES_BREAK_KEYS = {"code", "label", "year", "series", "note", "citation", "url", "page", "groups"}  # site SeriesBreak
@@ -95,14 +104,11 @@ def test_series_breaks_when_published():
 
 def test_world_yoy_when_published():
     """Spec 2a key-figure tiles: world change recomputed from the committed world series (derive.yoy_growth); a
-    year of a series break listing the world's series null, reason series_break. Skipped until a refresh writes
-    `world_yoy` (v2a data refresh)."""
+    year of a series break listing the world's series null, reason series_break."""
     from pipeline import derive
     from pipeline.worlds import WORLD_SOURCES
     from pipeline.write import PUBLISHED_WORLDS
     overview = load(DATA / "overview.json")
-    if "world_yoy" not in overview:
-        pytest.skip("site/data predates world_yoy (written by the next refresh)")
     assert set(overview["world_yoy"]) == set(PUBLISHED_WORLDS)
     for key in PUBLISHED_WORLDS:
         series_id = WORLD_SOURCES[key][0]
@@ -121,8 +127,6 @@ def test_top_grower_when_published():
     from the committed entity totals (derive.cagr); null when no row has one."""
     from pipeline import derive
     overview = load(DATA / "overview.json")
-    if "top_grower" not in overview:
-        pytest.skip("site/data predates top_grower (written by the next refresh)")
     totals = entity_totals()
     rates = {row["code"]: derive.cagr({int(year): value for year, value in totals[row["code"]]["origin_apps"].items()},
                                       overview["top_year"]) for row in overview["top_origins"]}
@@ -144,12 +148,10 @@ def test_treemap_when_published():
     """Spec 2a amendments (pipeline writes the treemap): recomputed from committed files. Continent value =
     continent_share total = countries + other; continents + not-attributable rest = WD (overview.world_office); rest
     >= 0 (negative blocks the refresh); origin values = map/origin_apps.json; fold rule from method.treemap; labels
-    from groups.json / entities.json. Skipped until a refresh writes `treemap` (v2a data refresh)."""
+    from groups.json / entities.json."""
     from decimal import Decimal
     from pipeline import derive
     overview = load(DATA / "overview.json")
-    if "treemap" not in overview:
-        pytest.skip("site/data predates treemap (written by the next refresh)")
     block, year = overview["treemap"], str(overview["top_year"])
     share = overview["continent_share"]["origin_apps"]
     world = overview["world_office"].get(year)  # null or past world_last_year: absent
@@ -198,11 +200,9 @@ def test_share_shift_when_published():
     method.cagr_years; rows = top_origins (code, label, rank, share); shares = entity derived.share at both years;
     change_pp = share - share_base exact in Decimal (null base -> null), the rule method.share_shift states; breaks =
     the code's origin series breaks in (base_year, year]. WD null or past world_last_year at either year ->
-    no_wipo_world_total, no rows. Skipped until a refresh writes `share_shift` (v2a data refresh)."""
+    no_wipo_world_total, no rows."""
     from decimal import Decimal
     overview = load(DATA / "overview.json")
-    if "share_shift" not in overview:
-        pytest.skip("site/data predates share_shift (written by the next refresh)")
     block, method = overview["share_shift"], overview["method"]
     year, base_year = overview["top_year"], overview["top_year"] - method["cagr_years"]
     assert (block["series"], block["year"], block["base_year"]) == ("origin_apps", year, base_year)
