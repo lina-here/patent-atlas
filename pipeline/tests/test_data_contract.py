@@ -88,11 +88,8 @@ SERIES_BREAK_KEYS = {"code", "label", "year", "series", "note", "citation", "url
 
 
 def test_series_breaks_when_published():
-    """Audit F1: each break WIPO publishes is in the entity data too (yoy of the year null, reason series_break).
-    Skipped until a refresh writes `series_breaks` (Task 3b)."""
+    """Audit F1: each break WIPO publishes is in the entity data too (yoy of the year null, reason series_break)."""
     overview = load(DATA / "overview.json")
-    if "series_breaks" not in overview:
-        pytest.skip("site/data predates series_breaks (written by the next refresh)")
     for entry in overview["series_breaks"]:
         assert set(entry) == SERIES_BREAK_KEYS, entry
         derived = load(DATA / "entity" / f"{entry['code']}.json")["series"]
