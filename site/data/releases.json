@@ -4,10 +4,11 @@
       "method",
       "office_apps",
       "origin_apps",
+      "pct_member",
       "pct_origin",
       "pipeline"
     ],
-    "pipeline_sha": "68e1f5cfa05ee9805389e2f9658f4e80af91adbf",
+    "pipeline_sha": "cedb4a8f866cfa11e716904d64e929e6cb5ddc14",
     "version": "2026-10-28",
     "wdi_last_updated": {
       "gdp_ppp": "2026-10-08",

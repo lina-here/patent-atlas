@@ -74,7 +74,8 @@ def test_overview_method_constants_for_methods_page():
     assert set(method["rounding"]["decimals"]) == {"yoy", "cagr", "share", "resident_share"}
 
 
-V2A_BLOCKS = {"world_yoy", "top_grower", "treemap", "share_shift"}  # overview blocks the v2a dashboard draws
+V2A_BLOCKS = {"world_yoy", "top_grower", "treemap", "share_shift",  # overview blocks the v2a dashboard draws
+              "pct_membership"}  # and the map's PCT membership layer
 
 
 def test_v2a_blocks_published():
@@ -223,6 +224,30 @@ def test_share_shift_when_published():
                                        and base_year < entry["year"] <= year), row["code"]
 
 
+def test_pct_member_when_published():
+    """Committed map/pct_member.json = pct_states.member_years of the committed pct_states.json against committed
+    entities.json; former entities null (not_on_current_list), never false; overview counts match the list."""
+    import datetime
+    from pipeline import pct_states
+    states = pct_states.load_pct_states()
+    entities = load(DATA / "entities.json")
+    codes = [entity["code"] for entity in entities]
+    file = load(DATA / "map" / "pct_member.json")
+    expected = pct_states.member_years(states, codes)
+    assert file["values"] == {code: {str(year): member for year, member in years.items()}
+                              for code, years in expected.items()}
+    assert file["null_reason"] == pct_states.null_reasons(codes)
+    assert set(file["null_reason"]) == {entity["code"] for entity in entities if entity["kind"] == "historical"}
+    assert file["in_force"] == {code: day.isoformat() for code, day in states.in_force.items()}
+    assert file["unmatched"] == pct_states.unmatched(states, codes)
+    assert file["sources"]["pct_member"]["status_on"] == states.status_on.isoformat()
+    block = load(DATA / "overview.json")["pct_membership"]
+    assert (block["status_on"], block["last_year"]) == (states.status_on.isoformat(), states.status_on.year)
+    assert block["count"] == {str(year): count for year, count in pct_states.counts(states).items()}
+    assert block["count"][str(block["last_year"])] == states.count
+    assert datetime.date.fromisoformat(block["retrieved"]) >= datetime.date.fromisoformat(block["status_on"])
+
+
 def test_files_under_size_limit():
     for path in data_files():
         assert path.stat().st_size < MAX_FILE_BYTES, f"{path} is {path.stat().st_size} bytes"
@@ -248,6 +273,7 @@ def test_group_and_map_files_listed():
     from pipeline.write import MAP_RATIOS
     maps = set(load(DATA / "overview.json")["last_year"]) | (set(MAP_RATIOS) if HAS_RATIOS else set())
     maps |= set(GENDER_MEASURES) if HAS_GENDER else set()
+    maps |= {"pct_member"} if "pct_membership" in load(DATA / "overview.json") else set()
     assert {path.stem for path in (DATA / "map").glob("*.json")} == maps
     overview = load(DATA / "overview.json")
     assert set(overview["continent_share"]) == set(overview["last_year"])

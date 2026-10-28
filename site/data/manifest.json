@@ -1993,7 +1993,7 @@
     "women_any_by_field": 2025,
     "women_share": 2025
   },
-  "pipeline_sha": "68e1f5cfa05ee9805389e2f9658f4e80af91adbf",
+  "pipeline_sha": "cedb4a8f866cfa11e716904d64e929e6cb5ddc14",
   "ratio_labels": {
     "per_gdp": "9 - Resident applications per 100 billion USD GDP (2017 PPP) (by origin)",
     "per_million": "10 - Resident applications per million population (by origin)"
