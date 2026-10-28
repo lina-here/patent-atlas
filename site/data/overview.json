@@ -1701,6 +1701,103 @@
     "retrieved": "2026-10-28",
     "source_url": "https://www.wipo.int/pct/en/pct_contracting_states.html",
     "status_on": "2026-10-01",
+    "successors": [
+      {
+        "codes": [
+          "CZ",
+          "SK"
+        ],
+        "name": "Czechoslovakia",
+        "note": "",
+        "own_dates": {},
+        "predecessor": "CS",
+        "source": "ISO 3166-3: CSHH"
+      },
+      {
+        "codes": [
+          "SS"
+        ],
+        "name": "Sudan",
+        "note": "Sudan continues as the Contracting State; South Sudan, independent from 9 July 2011, is not on the list.",
+        "own_dates": {
+          "SS": "2011-07-09"
+        },
+        "predecessor": "SD",
+        "source": "ISO 3166-1: SS, Newsletter VI-10 of 2011-08-09"
+      },
+      {
+        "codes": [
+          "AM",
+          "AZ",
+          "BY",
+          "EE",
+          "GE",
+          "KG",
+          "KZ",
+          "LT",
+          "LV",
+          "MD",
+          "RU",
+          "TJ",
+          "TM",
+          "UA",
+          "UZ"
+        ],
+        "name": "Soviet Union",
+        "note": "ISO 3166-3 lists 13 successors; Belarus and Ukraine, Soviet republics that already had their own ISO 3166-1 codes, are added.",
+        "own_dates": {},
+        "predecessor": "SU",
+        "source": "ISO 3166-3: SUHH"
+      },
+      {
+        "codes": [
+          "ME",
+          "RS"
+        ],
+        "name": "Yugoslavia (Serbia and Montenegro from 2003)",
+        "note": "",
+        "own_dates": {},
+        "predecessor": "YU",
+        "source": "ISO 3166-3: YUCS, CSXX"
+      }
+    ],
+    "territories": [
+      {
+        "code": "BQ",
+        "from": "1979-07-10",
+        "name": "Bonaire, Sint Eustatius and Saba",
+        "state": "Netherlands",
+        "via": "NL"
+      },
+      {
+        "code": "CW",
+        "from": "1979-07-10",
+        "name": "Curaçao",
+        "state": "Netherlands",
+        "via": "NL"
+      },
+      {
+        "code": "GG",
+        "from": "2021-03-23",
+        "name": "Bailiwick of Guernsey",
+        "state": "United Kingdom",
+        "via": "GB"
+      },
+      {
+        "code": "HK",
+        "from": "1997-07-01",
+        "name": "Hong Kong, China",
+        "state": "China",
+        "via": "CN"
+      },
+      {
+        "code": "SX",
+        "from": "1979-07-10",
+        "name": "Sint Maarten",
+        "state": "Netherlands",
+        "via": "NL"
+      }
+    ],
     "unmatched": []
   },
   "pct_monthly": {
