@@ -70,6 +70,7 @@ def test_overview_method_constants_for_methods_page():
     expected |= {"ratios"} if HAS_RATIOS else set()
     expected |= {"gender"} if HAS_GENDER else set()
     expected |= {"golden_growth_tolerance_pp"} if "world_yoy" in overview else set()  # v2a, same refresh
+    expected |= {"treemap"} if "treemap" in overview else set()  # v2a, same refresh
     assert set(method) == expected
     assert set(method["rounding"]["decimals"]) == {"yoy", "cagr", "share", "resident_share"}
 
@@ -137,6 +138,59 @@ def test_top_grower_when_published():
     assert grower["breaks"] == sorted(  # tile footnote: breaks after the CAGR base year, up to top_year
         entry["year"] for entry in overview["series_breaks"] if entry["code"] == grower["code"]
         and "origin_apps" in entry["series"] and top_year - years < entry["year"] <= top_year)
+
+
+def test_treemap_when_published():
+    """Spec 2a amendments (pipeline writes the treemap): recomputed from committed files. Continent value =
+    continent_share total = countries + other; continents + not-attributable rest = WD (overview.world_office); rest
+    >= 0 (negative blocks the refresh); origin values = map/origin_apps.json; fold rule from method.treemap; labels
+    from groups.json / entities.json. Skipped until a refresh writes `treemap` (v2a data refresh)."""
+    from decimal import Decimal
+    from pipeline import derive
+    overview = load(DATA / "overview.json")
+    if "treemap" not in overview:
+        pytest.skip("site/data predates treemap (written by the next refresh)")
+    block, year = overview["treemap"], str(overview["top_year"])
+    share = overview["continent_share"]["origin_apps"]
+    world = overview["world_office"].get(year)  # null or past world_last_year: absent
+    assert (block["series"], block["year"], block["world"], block["null_reason"]) == (
+        "origin_apps", overview["top_year"], world, share["null_reason"].get(year))
+    if block["null_reason"] is not None:
+        assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+        return
+    values = {code: years.get(year) for code, years in load(DATA / "map" / "origin_apps.json")["values"].items()}
+    labels = {item["code"]: item["label"] for item in load(DATA / "entities.json")}
+    continents = [item for item in load(DATA / "groups.json")["items"] if item["kind"] == "continent"]
+    line = Decimal(str(overview["method"]["treemap"]["fold_share_pct"])) * world
+    assert [(row["id"], row["label"]) for row in block["continents"]] == [(item["id"], item["label"])
+                                                                           for item in continents]
+    for row, item in zip(block["continents"], continents):
+        reported = {code for code in item["members"] if values.get(code) is not None}
+        assert row["value"] == share["continent"][row["id"]][year] == sum(values[code] for code in reported), row["id"]
+        assert row["share"] == derive.share(row["value"], world)
+        for country in row["countries"]:
+            assert country == {"code": country["code"], "label": labels[country["code"]],
+                               "value": values[country["code"]], "share": derive.share(values[country["code"]], world)}
+            assert Decimal(country["value"]) * 100 >= line, country["code"]
+        assert row["countries"] == sorted(row["countries"], key=lambda country: (-country["value"], country["code"]))
+        other = row["other"] or {"value": 0, "codes": []}
+        assert other["codes"] == sorted(other["codes"]) and all(Decimal(values[code]) * 100 < line
+                                                                for code in other["codes"]), row["id"]
+        assert other["value"] == sum(values[code] for code in other["codes"])
+        assert row["other"] is None or (other["codes"] and other["share"] == derive.share(other["value"], world))
+        assert {country["code"] for country in row["countries"]} | set(other["codes"]) == reported, row["id"]
+    residual = block["residual"]
+    assert (residual["value"], residual["label"]) == (share["unallocated"][year], share["unallocated_label"])
+    assert residual["value"] >= 0 and residual["share"] == derive.share(residual["value"], world)
+    assert sum(row["value"] for row in block["continents"]) + residual["value"] == world
+    grouped = {code for item in continents for code in item["members"]}
+    assert block["unattributed"] == sorted(
+        ({"code": code, "label": labels[code], "value": value, "share": derive.share(value, world)}
+         for code, value in values.items() if code not in grouped and value is not None),
+        key=lambda row: (-row["value"], row["code"]))
+    assert sum(row["value"] for row in block["unattributed"]) <= residual["value"]  # inside the rest
+    assert block["no_value"] == [{"code": code, "label": labels[code]} for code in sorted(values)
+                                 if code in grouped and values[code] is None]
 
 
 def test_files_under_size_limit():

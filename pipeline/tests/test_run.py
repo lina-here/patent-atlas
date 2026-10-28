@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import crosscheck, gender, groups, releases, run, scale, write
+from pipeline import crosscheck, gender, groups, m49, releases, run, scale, write
 from pipeline.crosscheck import CheckError
 from pipeline.entities import iso3
 from pipeline.parse import SchemaError
@@ -15,7 +15,7 @@ from pipeline.tests.test_wdi import payload as denominator_payload
 from pipeline.wdi import WDI_ALL_URL, WDI_DENOMINATORS, WDI_WORLD
 from pipeline.wipo_client import WipoError
 from pipeline.tests.test_write import (
-    RELEASES, RETRIEVED, collected, gender_tables, make_data, wdi_denominators, wipo_ratios)
+    RELEASES, RETRIEVED, WD_2024, collected, gender_tables, make_data, treemap_data, wdi_denominators, wipo_ratios)
 from pipeline.tests.test_write import outputs as built_outputs
 
 
@@ -422,6 +422,20 @@ def test_run_checks_group_warnings_do_not_block(checks_env):
     assert failures == []
     assert any("negative" in line for line in summary["groups"])
     assert any("PCT unknown band" in line for line in summary["groups"])
+
+
+@pytest.mark.parametrize("excess, expected", [(0, []), (1, ["treemap 2024: not-attributable rest negative (-1)"])])
+def test_run_checks_negative_treemap_rest_blocks(checks_env, excess, expected):
+    """Spec 2a amendments: a negative not-attributable rest at the treemap year blocks the refresh (the band in other
+    years: warning only, groups.check_warnings); a rest of 0 passes."""
+    data = treemap_data()
+    origin = data["origin_apps"].values
+    grouped = sum(types["total"][2024] or 0 for code, types in origin.items() if m49.continent_of(code))
+    origin["JP"]["total"][2024] += WD_2024 - grouped + excess  # continents = WD + excess
+    outputs = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")
+    assert outputs[write.OVERVIEW]["treemap"]["residual"]["value"] == -excess
+    failures, _ = run_checks(data, outputs, FakeFetcher(data))
+    assert [line for line in failures if line.startswith("treemap")] == expected
 
 
 def test_run_checks_wdi_mismatch_and_world_excess_block(checks_env):

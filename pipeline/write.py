@@ -20,6 +20,8 @@ Files (paths relative to the data root; JSON year keys are strings):
   (crosscheck.GOLDEN_GROWTH_SERIES). `top_grower` {code, label, rank, value, cagr10, breaks} | null = highest
   cagr10 to top_year among top_origins (tie: better rank, then code; null cagr skipped), `breaks` = its origin
   series' break years after the CAGR base year up to top_year (tile footnote).
+- overview.json `treemap` (spec 2a treemap, written here): origin_apps at top_year by continent, shares of WD;
+  `_treemap`. Not drawable (continent_share null reason) -> reason, empty rows; a negative rest blocks (run.py).
 - overview.json views: `rank_race` {first_year, top, rows: [{code, label, ranks}]} (countries ever in the top
   RANK_RACE_TOP, RANK_RACE_FROM..top_year; ranks below the top kept, null = no value); `size_growth`
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
@@ -51,6 +53,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+from decimal import Decimal
 from pathlib import Path
 
 from pipeline import breaks, crosscheck, derive, gender, groups, m49, scale, wdi
@@ -71,13 +74,17 @@ from pipeline.series import (
     TOTAL_ROW_CODES,
     GenderDef,
 )
-from pipeline.worlds import COVERAGE_MIN_RATIO, SHARE_DENOMINATOR, WORLD_OF_SERIES, WORLD_SOURCES, World
+from pipeline.worlds import (
+    COVERAGE_MIN_RATIO, SHARE_DENOMINATOR, WORLD_OF_SERIES, WORLD_SOURCES, World, in_world_origin)
 from pipeline.worlds import totals as _totals
 
 TOP_N = 20
 GROWER_MIN = 1000  # fastest growers: countries with >= this many origin applications in the year shown
 RANK_RACE_TOP = 10  # spec Views: rank race = top 10 origins since 1995
 RANK_RACE_FROM = 1995
+# treemap: origin with value x 100 < this x WD folds into its continent's "other" (exact, before rounding);
+# published as method.treemap (the pipeline writes the treemap figures: spec 2a amendments)
+TREEMAP_FOLD_SHARE_PCT = 0.5
 PCT_MONTHLY_QUERY = (f"PCT tab; indicator {PCT_BY_FILING_DATE}; report: monthly statistics; receiving office: "
                      f"Total; origin: Total")
 SOURCE_NAME = "WIPO Statistics Database"
@@ -220,6 +227,52 @@ def _world_yoy(worlds: dict[str, World]) -> dict[str, dict]:
     return result
 
 
+def _treemap(origin: SeriesData, ctx: groups.Context, labels: dict[str, str]) -> dict:
+    """{series, year, world, null_reason, continents, residual, unattributed, no_value} at top_year (the series' cut);
+    world = WD (groups.world_total: null when null or provisional), shares = derive.share of it.
+    null_reason = continent_share's for the year (attribution floor, WD null or provisional) -> every row list empty,
+    residual null. continents (CONTINENTS order): member-sum value = its M49 members with a value; a member under
+    TREEMAP_FOLD_SHARE_PCT of WD folds into `other` {value, share, codes} (null when none). residual = the
+    not-attributable rest (groups.unallocated); unattributed = origins with a value and no continent (inside the rest);
+    no_value = M49 members WIPO lists with null that year (listed, never 0)."""
+    series_id = origin.series.id
+    year = groups.cut_year(series_id, ctx.worlds)
+    world = groups.world_total(series_id, ctx.worlds).get(year)
+    totals = groups.continent_share(series_id, ctx)
+    result: dict = {"series": series_id, "year": year, "world": world, "null_reason": totals["null_reason"].get(year),
+                    "continents": [], "residual": None, "unattributed": [], "no_value": []}
+    if result["null_reason"] is not None:
+        return result
+    values = {code: types["total"].get(year) for code, types in origin.values.items()}
+
+    def row(code: str) -> dict:
+        return {"code": code, "label": labels[code], "value": values[code], "share": derive.share(values[code], world)}
+
+    line = Decimal(str(TREEMAP_FOLD_SHARE_PCT)) * world
+    for continent in m49.CONTINENTS:
+        reported = sorted((code for code in groups.listed_members(ctx.data, series_id, continent)
+                           if values[code] is not None), key=lambda code: (-values[code], code))
+        folded = sorted(code for code in reported if Decimal(values[code]) * 100 < line)
+        value = totals["continent"][continent][year]
+        if sum(values[code] for code in reported) != value:  # holds on member_sum basis only
+            raise ValueError(f"treemap {continent} {year}: members do not add up to the continent total {value}")
+        other = sum(values[code] for code in folded)
+        result["continents"].append({
+            "id": continent, "label": groups.group_label(continent), "value": value,
+            "share": derive.share(value, world),
+            "countries": [row(code) for code in reported if code not in folded],
+            "other": {"value": other, "share": derive.share(other, world), "codes": folded} if folded else None})
+    rest = totals["unallocated"][year]
+    result["residual"] = {"value": rest, "share": derive.share(rest, world),
+                          "label": groups.unallocated_label(series_id, ctx)}
+    unattributed = [code for code, value in values.items()
+                    if value is not None and in_world_origin(code) and m49.continent_of(code) is None]
+    result["unattributed"] = [row(code) for code in sorted(unattributed, key=lambda code: (-values[code], code))]
+    result["no_value"] = [{"code": code, "label": labels[code]} for code in sorted(values)
+                          if values[code] is None and m49.continent_of(code) is not None]
+    return result
+
+
 def _size_growth(origin: SeriesData, world: World, labels: dict[str, str]) -> list[dict]:
     """Every country of `_sized`, largest first; null cagr10 listed (the chart lists it under the plot)."""
     return [{"code": code, "label": labels[code], "continent": m49.continent_of(code), "value": value,
@@ -266,6 +319,7 @@ def method_constants() -> dict:
         "origin_abroad_from": groups.ORIGIN_ABROAD_FROM,
         "ratios": scale.method_constants(),
         "gender": gender.method_constants(),
+        "treemap": {"fold_share_pct": TREEMAP_FOLD_SHARE_PCT},
     }
 
 
@@ -717,6 +771,7 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
         "top_origins": top_origins,
         "top_grower": _top_grower(data["origin_apps"], worlds["world_origin"], top_origins),
         "world_yoy": _world_yoy(worlds),
+        "treemap": _treemap(data["origin_apps"], group_ctx, labels),
         "share_denominator": {series_id: SHARE_DENOMINATOR_LABEL[key] for series_id, key in SHARE_DENOMINATOR.items()},
         "fastest_growers": _fastest_growers(data["origin_apps"], worlds["world_origin"], labels),
         "size_growth": _size_growth(data["origin_apps"], worlds["world_origin"], labels),

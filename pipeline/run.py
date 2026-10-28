@@ -177,7 +177,9 @@ def _summary_lines(key: str, result: object) -> list:
 def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetcher,
                ctx: groups.Context) -> tuple[list[str], dict]:
     """(blocking failures, manifest checks summary). `collected` = collect() result + WDI `denominators`; `ctx` =
-    the groups.context build_outputs used (its worlds too). CheckError from WDI/golden propagates (blocking)."""
+    the groups.context build_outputs used (its worlds too). CheckError from WDI/golden propagates (blocking).
+    Negative not-attributable rest: blocking at the treemap year (overview `treemap`), warning in the continent-share
+    history (groups.check_warnings)."""
     data: dict[str, SeriesData] = collected["series"]
     if ctx.data is not data:
         raise ValueError("group context built for other data")
@@ -214,6 +216,10 @@ def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetch
         golden, lambda entry: write.published_value(outputs, entry["series"], entry["code_or_world"], entry["year"]))
     failures += golden_failures
 
+    treemap = outputs[write.OVERVIEW]["treemap"]
+    if treemap["residual"] is not None and treemap["residual"]["value"] < 0:
+        failures.append(f"treemap {treemap['year']}: not-attributable rest negative ({treemap['residual']['value']})")
+
     numerators = {scale.RATIO_NUMERATOR[ratio_id] for ratio_id in scale.WIPO_RATIO_IDS}
     if len(numerators) != 1:  # ratio_crosscheck takes one numerator for both WIPO ratios (M1)
         raise ValueError(f"WIPO ratios {scale.WIPO_RATIO_IDS} need one numerator, got {sorted(numerators)}")
@@ -241,7 +247,7 @@ def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetch
         "pct_monthly": crosscheck.monthly_check(
             {int(year): values for year, values in outputs[write.OVERVIEW]["pct_monthly"].items()},
             worlds["pct_world"].published),  # warnings only: as published vs WIPO's yearly ZZ
-        # warnings only: cross-check, negative band, PCT ** band
+        # warnings only: cross-check, negative band (at the treemap year it blocks, above), PCT ** band
         "groups": groups.check_warnings(ctx),
         # warnings unless the World row or the ratio's blocking test (scale.RATIO_BLOCKING_TEST) fails
         "ratios": ratio_summary(ratio_check, write.unlisted_ratio_codes(collected, worlds)),

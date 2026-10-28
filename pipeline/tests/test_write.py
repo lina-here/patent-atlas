@@ -1,5 +1,6 @@
 import datetime
 import json
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -223,7 +224,8 @@ def test_build_outputs_shapes():
         "panel_years": groups.PANEL_YEARS,
         "origin_abroad_from": groups.ORIGIN_ABROAD_FROM,
         "ratios": scale.method_constants(),
-        "gender": gender.method_constants()}
+        "gender": gender.method_constants(),
+        "treemap": {"fold_share_pct": write.TREEMAP_FOLD_SHARE_PCT}}
     assert overview["last_year"] == {"origin_apps": 2024, "office_apps": 2024, "pct_origin": 2025}
     assert overview["world_last_year"] == {"world_office": 2024, "pct_world": 2025}
     assert all(isinstance(year, str) for year in overview["world_office"])
@@ -522,6 +524,181 @@ def test_top_grower_ends_at_top_year():
     # base 2013: MG 0 (null cagr), US 5000 -> 5500 (1.0), CH 1000 -> 2000 (7.18%)
     assert overview["top_grower"] == {"code": "CH", "label": "Switzerland", "rank": 2, "value": 2000,
                                       "cagr10": 7.2, "breaks": []}
+
+
+# Treemap (spec 2a amendments: the pipeline writes the treemap figures)
+WD_2024 = 744000  # office_data WD ramp(700000, 4000) at 2024 = the treemap year
+
+
+def fold_line():
+    """Smallest 2024 value keeping its own rectangle: value x 100 >= TREEMAP_FOLD_SHARE_PCT x WD."""
+    line = Decimal(str(write.TREEMAP_FOLD_SHARE_PCT)) * WD_2024 / 100
+    assert line == int(line)  # fixture: a whole count sits exactly on the line
+    return int(line)
+
+
+def treemap_data():
+    """origin 2024 above the attribution floor, every continent reporting, values around the fold line: KR on it
+    (kept), IN one below (folded); CH, AT, AU, MG below (africa, oceania: folded only); BR, CL tied. TW: no M49
+    continent. MX: listed, null in 2024. EU: aggregate. Other years: the default fixture (floor fails there)."""
+    data = make_data()
+    line = fold_line()
+    origin = data["origin_apps"]
+    rows = {"JP": ("Japan", 400000), "CN": ("China", 150000), "KR": ("Republic of Korea", line),
+            "IN": ("India", line - 1), "DE": ("Germany", 50000), "AT": ("Austria", 100), "BR": ("Brazil", 2 * line),
+            "CL": ("Chile", 2 * line), "MX": ("Mexico", None), "AU": ("Australia", line // 4), "TW": ("Taiwan", 500)}
+    for code, (label, value) in rows.items():
+        add_origin(origin, code, {**nulls(), 2024: value})
+        origin.labels[code] = label
+    origin.values["CH"]["total"][2024] = line // 2
+    origin.values["US"]["total"][2024] = 2 * line
+    return data
+
+
+def treemap(data):
+    return write._treemap(data["origin_apps"], groups.context(data), write._labels(data))
+
+
+def continent_rows(block):
+    return {row["id"]: row for row in block["continents"]}
+
+
+def test_treemap_sums():
+    """Countries + other = continent value = continent_share total; continents + not-attributable rest = WD;
+    continents in M49 order with their group label; countries value desc, then code."""
+    data = treemap_data()
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    block, share = overview["treemap"], overview["continent_share"]["origin_apps"]
+    assert (block["series"], block["year"], block["world"], block["null_reason"]) == (
+        "origin_apps", overview["top_year"], WD_2024, None)
+    assert [row["id"] for row in block["continents"]] == list(m49.CONTINENTS)
+    for row in block["continents"]:
+        assert row["label"] == groups.group_label(row["id"])
+        folded = row["other"]["value"] if row["other"] else 0
+        assert sum(country["value"] for country in row["countries"]) + folded == row["value"]
+        assert row["value"] == share["continent"][row["id"]]["2024"]
+        assert row["share"] == derive.share(row["value"], WD_2024)
+        assert row["countries"] == sorted(row["countries"], key=lambda country: (-country["value"], country["code"]))
+    residual = block["residual"]
+    assert sum(row["value"] for row in block["continents"]) + residual["value"] == WD_2024
+    assert residual["value"] == share["unallocated"]["2024"] and residual["value"] >= 0
+    assert residual["share"] == derive.share(residual["value"], WD_2024)
+    rows = continent_rows(block)
+    assert rows["asia"]["countries"][:2] == [
+        {"code": "JP", "label": "Japan", "value": 400000, "share": derive.share(400000, WD_2024)},
+        {"code": "CN", "label": "China", "value": 150000, "share": derive.share(150000, WD_2024)}]
+    assert [country["code"] for country in rows["latin-america-caribbean"]["countries"]] == ["BR", "CL"]  # tie
+
+
+def test_treemap_fold_boundary():
+    """value x 100 < TREEMAP_FOLD_SHARE_PCT x WD folds, exact (before rounding): KR on the line keeps its rectangle;
+    IN one below folds although its rounded share equals the threshold (methods text explains it). Every origin of a
+    continent folded -> `other` alone; other codes sorted by code."""
+    line = fold_line()
+    rows = continent_rows(treemap(treemap_data()))
+    assert [country["code"] for country in rows["asia"]["countries"]] == ["JP", "CN", "KR"]
+    assert rows["asia"]["other"] == {"value": line - 1, "share": write.TREEMAP_FOLD_SHARE_PCT, "codes": ["IN"]}
+    assert [country["code"] for country in rows["europe"]["countries"]] == ["DE"]
+    assert rows["europe"]["other"]["codes"] == ["AT", "CH"]  # CH larger: still code order
+    assert (rows["africa"]["countries"], rows["africa"]["other"]) == (
+        [], {"value": 11, "share": derive.share(11, WD_2024), "codes": ["MG"]})
+    assert (rows["oceania"]["countries"], rows["oceania"]["other"]["codes"]) == ([], ["AU"])
+    assert rows["northern-america"]["other"] is None
+
+
+@pytest.mark.parametrize("below, reason", [(0, None), (1, groups.ATTRIBUTION_FLOOR)])
+def test_treemap_null_reason_attribution_floor(below, reason):
+    """Grouped origins = GROUP_ATTRIBUTION_MIN x WD -> drawn; one application less -> reason, every row list empty
+    (the card shows the reason, no chart)."""
+    data = treemap_data()
+    origin = data["origin_apps"].values
+    floor = Decimal(str(groups.GROUP_ATTRIBUTION_MIN)) * WD_2024
+    assert floor == int(floor)
+    grouped = sum(types["total"][2024] or 0 for code, types in origin.items() if m49.continent_of(code))
+    origin["JP"]["total"][2024] -= grouped - int(floor) + below
+    block = treemap(data)
+    assert (block["null_reason"], block["world"]) == (reason, WD_2024)
+    if reason is None:
+        assert len(block["continents"]) == len(m49.CONTINENTS) and block["residual"]["value"] >= 0
+    else:
+        assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+
+
+@pytest.mark.parametrize("case", ["provisional", "null"])
+def test_treemap_wd_provisional(case):
+    """WD provisional at the treemap year (office reported by EP alone; origin a year ahead) or null: no WIPO world
+    total to divide by -> no_wipo_world_total, world null, every row list empty."""
+    data = treemap_data()
+    office = data["office_apps"].values
+    if case == "provisional":
+        for code in ("US", "CH"):
+            for key in ("total", "resident", "nonresident"):
+                office[code][key][2024] = None
+    else:
+        office["WD"]["total"][2024] = None
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    block = overview["treemap"]
+    assert overview["top_year"] == block["year"] == 2024
+    assert (block["null_reason"], block["world"]) == (groups.NO_WIPO_WORLD_TOTAL, None)
+    assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+
+
+def test_treemap_null_country_listed_not_zero():
+    """M49 countries WIPO lists with null at the year: `no_value` (code order), never a 0 rectangle; a 0 is a value."""
+    data = treemap_data()
+    origin = data["origin_apps"]
+    for code, label, value in (("AR", "Argentina", 0), ("BE", "Belgium", None)):
+        add_origin(origin, code, {**nulls(), 2024: value})
+        origin.labels[code] = label
+    block = treemap(data)
+    assert block["no_value"] == [{"code": "BE", "label": "Belgium"}, {"code": "MX", "label": "Mexico"}]
+    drawn = {country["code"] for row in block["continents"] for country in row["countries"]}
+    folded = {code for row in block["continents"] if row["other"] for code in row["other"]["codes"]}
+    assert not {"BE", "MX"} & (drawn | folded)
+    assert continent_rows(block)["latin-america-caribbean"]["other"] == {"value": 0, "share": 0.0, "codes": ["AR"]}
+
+
+def test_treemap_unattributed_inside_residual():
+    """Origins with a value and no M49 continent (TW; a former state reporting that year): listed under the rest
+    (inside it, value desc), never in a continent; aggregates (EU) never listed."""
+    data = treemap_data()
+    data["origin_apps"].values["SU"]["total"][2024] = 70
+    block = treemap(data)
+    assert block["unattributed"] == [
+        {"code": "TW", "label": "Taiwan", "value": 500, "share": derive.share(500, WD_2024)},
+        {"code": "SU", "label": "Soviet Union", "value": 70, "share": derive.share(70, WD_2024)}]
+    assert sum(row["value"] for row in block["unattributed"]) <= block["residual"]["value"]
+    drawn = {country["code"] for row in block["continents"] for country in row["countries"]}
+    folded = {code for row in block["continents"] if row["other"] for code in row["other"]["codes"]}
+    assert not {"TW", "SU", "EU"} & (drawn | folded)
+
+
+def test_treemap_members_must_add_up():
+    """Countries + other = continent value holds on member sums only: a WIPO-total continent (PCT R rows: no member
+    reports Africa's R1 here) stops the run rather than publishing rectangles that do not add up."""
+    data = make_data()
+    with pytest.raises(ValueError, match="africa 2025: members do not add up"):
+        write._treemap(data["pct_origin"], groups.context(data), write._labels(data))
+
+
+def test_treemap_residual_label(monkeypatch):
+    """Rest label = groups.unallocated_label (one source with the continent-share band)."""
+    data = treemap_data()
+    assert treemap(data)["residual"]["label"] == groups.unallocated_label("origin_apps", groups.context(data)) == \
+        groups.UNALLOCATED_LABEL["origin_apps"]
+    monkeypatch.setitem(groups.UNALLOCATED_LABEL, "origin_apps", "edited")
+    assert treemap(data)["residual"]["label"] == "edited"
+
+
+def test_method_treemap_constant(monkeypatch):
+    """method.treemap publishes the fold threshold the figures apply (methods page reads it, never a copy)."""
+    data = treemap_data()  # values around the current line
+    monkeypatch.setattr(write, "TREEMAP_FOLD_SHARE_PCT", write.TREEMAP_FOLD_SHARE_PCT * 2)
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["method"]["treemap"] == {"fold_share_pct": write.TREEMAP_FOLD_SHARE_PCT}
+    rows = continent_rows(overview["treemap"])
+    assert rows["asia"]["other"]["codes"] == ["IN", "KR"]  # KR (old line) now below
+    assert [country["code"] for country in rows["northern-america"]["countries"]] == ["US"]  # 2 x line: on the new one
 
 
 def test_write_files_sorted_two_space(tmp_path):
