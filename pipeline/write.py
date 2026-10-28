@@ -30,6 +30,11 @@ Files (paths relative to the data root; JSON year keys are strings):
   RANK_RACE_TOP, RANK_RACE_FROM..top_year; ranks below the top kept, null = no value); `size_growth`
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
   `pct_monthly` {"YYYY": 12 months} WIPO world (origin Total, RO Total) + `pct_monthly_source`.
+- PCT membership (pct_states.py, hand-transcribed `pct_states.json`): map/pct_member.json {values: {code: {year:
+  bool}} (country entities; not listed = false), null_reason {code: "not_on_current_list"} (former entities, never
+  false), in_force {code: date} (every listed State), unmatched [listed codes with no entity], sources {pct_member}};
+  overview `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year (status_on year),
+  count {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}]}.
 - manifest.json: releases, retrieval date, pipeline sha, last years, absent rows, `wdi_denominators` (WDI indicator,
   name, last updated, GDP base), `ratio_labels` (WIPO API label per ratio); run.py adds checks and, when the data
   changed, `version` (newest releases.json entry, releases.py). releases.json: run.py, never in `changed`/`_existing`.
@@ -60,7 +65,7 @@ import os
 from decimal import Decimal
 from pathlib import Path
 
-from pipeline import breaks, crosscheck, derive, gender, groups, m49, scale, wdi
+from pipeline import breaks, crosscheck, derive, gender, groups, m49, pct_states, scale, wdi
 from pipeline.collect import GenderData, RatioData, SeriesData
 from pipeline.entities import classify, iso3
 from pipeline.series import (
@@ -720,6 +725,29 @@ def _map_file(series: SeriesData, until: int) -> dict:
             "sources": {series.series.id: _source(series, None)}}
 
 
+def _pct_source(states: pct_states.PctStates) -> dict:
+    return {"source_url": states.source_url, "count_check_url": states.count_check_url,
+            "status_on": states.status_on.isoformat(), "retrieved": states.retrieved.isoformat()}
+
+
+def _pct_member_map_file(states: pct_states.PctStates, codes: list[str]) -> dict:
+    return {"values": {code: {str(year): member for year, member in years.items()}
+                       for code, years in pct_states.member_years(states, codes).items()},
+            "null_reason": pct_states.null_reasons(codes),
+            "in_force": {code: day.isoformat() for code, day in states.in_force.items()},
+            "unmatched": pct_states.unmatched(states, codes),
+            "sources": {pct_states.PCT_MEMBER_ID: _pct_source(states)}}
+
+
+def _pct_membership(states: pct_states.PctStates, codes: list[str]) -> dict:
+    """Overview block: the map's year range and note counts, the methods page's dates, unmatched and continuing States."""
+    return {**_pct_source(states), "first_year": pct_states.PCT_FIRST_YEAR, "last_year": pct_states.last_year(states),
+            "count": {str(year): count for year, count in pct_states.counts(states).items()},
+            "unmatched": pct_states.unmatched(states, codes),
+            "continuing": [{"code": code, "name": states.names[code], "in_force": states.in_force[code].isoformat(),
+                            "continues": continues} for code, continues in sorted(states.continuing.items())]}
+
+
 def groups_listing(group_items: list[dict]) -> dict:
     """groups.json: group list + former-entity successors (the map hatches a successor "reported under" its former)
     + `no_group` (code -> why M49 lists no region; methods page)."""
@@ -728,10 +756,14 @@ def groups_listing(group_items: list[dict]) -> dict:
 
 
 def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime.date, sha: str,
-                  group_ctx: groups.Context | None = None) -> dict[Path, dict | list]:
+                  group_ctx: groups.Context | None = None,
+                  pct: pct_states.PctStates | None = None) -> dict[Path, dict | list]:
     """Every site data file, keyed by path relative to the data root. Manifest `checks` filled by run.py.
     `collected` = collect() result + run.py's WDI `denominators`; `group_ctx` = groups.context of its series
-    (run.py shares it with the checks), built here when None."""
+    (run.py shares it with the checks), built here when None; `pct` = the PCT States list run.py loaded, loaded here
+    when None."""
+    if pct is None:
+        pct = pct_states.load_pct_states()
     data: dict[str, SeriesData] = collected["series"]
     for series in data.values():
         if series.last_year >= retrieved.year:
@@ -798,6 +830,7 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
     country_gender = {code: blocks for code, blocks in entity_gender.items() if classify(code) == "country"}
     for measure in gender.MEASURES:
         outputs[MAP_DIR / f"{measure}.json"] = _gender_map_file(measure, country_gender, collected)
+    outputs[MAP_DIR / f"{pct_states.PCT_MEMBER_ID}.json"] = _pct_member_map_file(pct, codes)
     gender_overview = _gender_overview(collected)
     top_origins = _top_origins(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"], labels)
     outputs[OVERVIEW] = {
@@ -835,6 +868,7 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
         "world_sources": {key: _world_source(key, data, worlds[key]) for key in PUBLISHED_WORLDS},
         "continent_share": {series.id: _continent_share(series.id, group_ctx) for series in SERIES},
         "series_breaks": [{**entry, "label": labels.get(entry["code"], entry["code"])} for entry in breaks.listing()],
+        "pct_membership": _pct_membership(pct, codes),
     }
     outputs[MANIFEST] = {
         "releases": dict(releases),

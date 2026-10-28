@@ -4,7 +4,8 @@ collect (WIPO: counts, PCT months, ratios, PCT publications, women-inventor shar
 build outputs -> cross-checks (crosscheck.py) -> regression vs committed data (regress.py) -> write only when data
 changed, as a new data version (releases.py; refused for a dirty or unknown pipeline). Exit 0 = written, unchanged, or dry
 run passed; 2 = blocking failure (fetch, schema, check, regression, dirty pipeline): nothing written, last good data
-kept. --dry-run runs every check and prints the results, writes nothing. --bootstrap-version: no fetch, first data
+kept. PCT Contracting States (pct_states.json): a load error blocks; the line naming the count, status date and
+listed codes with no WIPO entity is a report, never blocking. --dry-run runs every check and prints the results, writes nothing. --bootstrap-version: no fetch, first data
 version for the data already in --out (refused unless their manifest names a commit of this repo).
 """
 from __future__ import annotations
@@ -19,7 +20,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from pipeline import crosscheck, gender, groups, m49, regress, releases as versions, scale, wdi, write
+from pipeline import crosscheck, gender, groups, m49, pct_states, regress, releases as versions, scale, wdi, write
 from pipeline.collect import SeriesData, collect, releases
 from pipeline.crosscheck import CheckError, Fetch, Fetcher
 from pipeline.entities import classify
@@ -166,6 +167,13 @@ def _gender_lines(block: dict) -> list[str]:
             *(f"{line} (warning)" for line in block["warnings"])]
 
 
+def pct_states_line(block: dict) -> str:
+    """Report line of overview `pct_membership`: never blocking (an unmatched code stays listed, counted)."""
+    missing = ", ".join(block["unmatched"]) or "none"
+    return (f"PCT states: {block['count'][str(block['last_year'])]} (status on {block['status_on']}); "
+            f"no WIPO entity: {missing}")
+
+
 def _summary_lines(key: str, result: object) -> list:
     if key == "ratios":
         return [line for ratio_id, block in result.items() for line in _ratio_lines(ratio_id, block)]
@@ -296,7 +304,8 @@ def main(argv: list[str] | None = None) -> int:
         collected["denominators"] = ratio_denominators(collected["series"], fetcher.get)
         release_strings = releases(client)
         ctx = groups.context(collected["series"])  # one per run: outputs and checks share it
-        outputs = write.build_outputs(collected, release_strings, retrieved, pipeline_sha(), ctx)
+        pct = pct_states.load_pct_states()  # ValueError: a bad list blocks the run
+        outputs = write.build_outputs(collected, release_strings, retrieved, pipeline_sha(), ctx, pct)
         failures, summary = run_checks(collected, outputs, fetcher, ctx)
         regression = regress.compare(outputs, args.out)
     except (WipoError, SchemaError, CheckError, ValueError) as error:
@@ -307,6 +316,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.accept_regression:
         failures += regression.blocking
     print(f"releases: {release_strings}; retrieved {retrieved}")
+    print(pct_states_line(outputs[write.OVERVIEW]["pct_membership"]))
     for key, result in summary.items():
         for line in _summary_lines(key, result):
             print(f"{key}: {line}")

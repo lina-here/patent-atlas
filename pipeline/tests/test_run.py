@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import crosscheck, gender, groups, m49, releases, run, scale, write
+from pipeline import crosscheck, gender, groups, m49, pct_states, releases, run, scale, write
 from pipeline.crosscheck import CheckError
 from pipeline.entities import iso3
 from pipeline.parse import SchemaError
@@ -88,6 +88,33 @@ def test_run_errors_exit_2(fake_pipeline, monkeypatch, tmp_path, error):
     monkeypatch.setattr(run, "collect", boom)
     assert run.main(["--out", str(tmp_path)]) == 2
     assert list(tmp_path.iterdir()) == []
+
+
+def test_run_prints_pct_states_line(fake_pipeline, tmp_path, capsys):
+    """Report line, never blocking: count and status date of the list, its codes with no WIPO entity."""
+    assert run.main(["--out", str(tmp_path), "--dry-run"]) == 0
+    states = pct_states.load_pct_states()
+    codes = {entity["code"] for entity in built_outputs()[write.ENTITIES]}
+    missing = ", ".join(pct_states.unmatched(states, codes))
+    assert f"PCT states: {states.count} (status on {states.status_on.isoformat()}); no WIPO entity: {missing}\n" in (
+        capsys.readouterr().out)
+
+
+def test_pct_states_line_none():
+    block = {"status_on": "2026-10-01", "last_year": 2026, "count": {"2025": 158, "2026": 159}, "unmatched": []}
+    assert run.pct_states_line(block) == "PCT states: 159 (status on 2026-10-01); no WIPO entity: none"
+
+
+def test_run_bad_pct_states_blocks(fake_pipeline, monkeypatch, tmp_path, capsys):
+    content = json.loads(pct_states.PCT_STATES_PATH.read_text("utf-8"))
+    bad = tmp_path / "bad.json"
+    bad.write_text(json.dumps({**content, "count": content["count"] + 1}), "utf-8")
+    real = pct_states.load_pct_states
+    monkeypatch.setattr(pct_states, "load_pct_states", lambda: real(bad))
+    out = tmp_path / "out"
+    assert run.main(["--out", str(out)]) == 2
+    assert not out.exists()
+    assert "FAILED (nothing written)" in capsys.readouterr().err
 
 
 def snapshot(root):

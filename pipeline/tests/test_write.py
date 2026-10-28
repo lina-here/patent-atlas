@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import breaks, crosscheck, derive, gender, groups, m49, scale, worlds, write
+from pipeline import breaks, crosscheck, derive, gender, groups, m49, pct_states, scale, worlds, write
 from pipeline.collect import GenderData, RatioData, SeriesData
 from pipeline.series import GENDER_FIELD_IDS, GENDER_FROM, GENDER_SERIES, RATIO_FROM, RATIO_SERIES, series_by_id
 from pipeline.wdi import Denominator
@@ -193,7 +193,7 @@ def test_build_outputs_shapes():
     group_files = {Path("group") / f"{item['id']}.json" for item in groups.groups_list()}
     map_files = {Path("map") / f"{map_id}.json"
                  for map_id in ("origin_apps", "office_apps", "pct_origin", "per_million", "per_gdp", "women_any",
-                                "women_share")}
+                                "women_share", "pct_member")}
     assert set(out) == ({Path("entities.json"), Path("overview.json"), Path("manifest.json"), Path("groups.json")}
                         | entity_files | group_files | map_files)
 
@@ -1661,3 +1661,50 @@ def test_unlisted_gender_codes():
     assert write.unlisted_gender_codes(collected()) == [
         f"women_any DE: WIPO values {GENDER_FROM}-2025, no country entity (not shown)",
         f"women_share DE: WIPO values {GENDER_FROM}-2025, no country entity (not shown)"]
+
+
+def test_pct_member_map_file():
+    """map/pct_member.json (pct_states.py): fixture entities CH, US, MG (listed), VA (country, not listed), SU (former),
+    EP (regional office, skipped); the list's other States have no entity here: unmatched, carried."""
+    states = pct_states.load_pct_states()
+    file = outputs()[Path("map") / "pct_member.json"]
+    assert set(file) == {"values", "null_reason", "in_force", "unmatched", "sources"}
+    years = [str(year) for year in range(pct_states.PCT_FIRST_YEAR, states.status_on.year + 1)]
+    assert set(file["values"]) == {"CH", "US", "MG", "VA"}
+    assert all(list(file["values"][code]) == years for code in file["values"])
+    assert not any(file["values"]["VA"].values())  # non-listed country: false every year, never null
+    assert file["values"]["CH"]["1978"] is True and file["values"]["US"]["1978"] is True
+    assert file["null_reason"] == {"SU": "not_on_current_list"}
+    assert file["in_force"]["CH"] == "1978-01-24" and file["in_force"]["BS"] == "2026-08-19"
+    assert len(file["in_force"]) == states.count
+    assert file["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
+    assert file["sources"] == {"pct_member": {
+        "source_url": states.source_url, "count_check_url": states.count_check_url,
+        "status_on": states.status_on.isoformat(), "retrieved": states.retrieved.isoformat()}}
+
+
+def test_pct_membership_overview():
+    states = pct_states.load_pct_states()
+    block = outputs()[Path("overview.json")]["pct_membership"]
+    assert block["status_on"] == states.status_on.isoformat() and block["retrieved"] == states.retrieved.isoformat()
+    assert (block["source_url"], block["count_check_url"]) == (states.source_url, states.count_check_url)
+    assert (block["first_year"], block["last_year"]) == (pct_states.PCT_FIRST_YEAR, states.status_on.year)
+    assert list(block["count"]) == [str(year) for year in range(pct_states.PCT_FIRST_YEAR, block["last_year"] + 1)]
+    assert block["count"][str(block["last_year"])] == states.count
+    assert block["count"]["2025"] == states.count - 1  # Bahamas in force 2026-08-19
+    assert block["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
+    assert block["continuing"] == [
+        {"code": "RS", "name": "Serbia", "in_force": "1997-02-01", "continues": "Serbia and Montenegro"},
+        {"code": "RU", "name": "Russian Federation", "in_force": "1978-03-29", "continues": "Soviet Union"}]
+
+
+def test_pct_states_injected():
+    """build_outputs takes the list run.py loaded (a load error blocks the run before any output)."""
+    states = pct_states.load_pct_states()
+    few = pct_states.PctStates(source_url=states.source_url, count_check_url=states.count_check_url,
+                               status_on=states.status_on, retrieved=states.retrieved, count=1,
+                               in_force={"CH": states.in_force["CH"]}, names={"CH": "Switzerland"}, continuing={})
+    out = outputs(pct=few)
+    assert out[Path("map") / "pct_member.json"]["unmatched"] == []
+    assert not any(out[Path("map") / "pct_member.json"]["values"]["US"].values())
+    assert out[Path("overview.json")]["pct_membership"]["count"][str(states.status_on.year)] == 1
