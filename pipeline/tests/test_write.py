@@ -1,6 +1,7 @@
 import datetime
 import json
 from decimal import Decimal
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
@@ -225,7 +226,8 @@ def test_build_outputs_shapes():
         "origin_abroad_from": groups.ORIGIN_ABROAD_FROM,
         "ratios": scale.method_constants(),
         "gender": gender.method_constants(),
-        "treemap": {"fold_share_pct": write.TREEMAP_FOLD_SHARE_PCT}}
+        "treemap": {"fold_share_pct": write.TREEMAP_FOLD_SHARE_PCT},
+        "share_shift": {"change": "difference of published shares", "decimals": derive.SHARE_DECIMALS}}
     assert overview["last_year"] == {"origin_apps": 2024, "office_apps": 2024, "pct_origin": 2025}
     assert overview["world_last_year"] == {"world_office": 2024, "pct_world": 2025}
     assert all(isinstance(year, str) for year in overview["world_office"])
@@ -711,6 +713,121 @@ def test_method_treemap_constant(monkeypatch):
     rows = continent_rows(overview["treemap"])
     assert rows["asia"]["other"]["codes"] == ["IN", "KR"]  # KR (old line) now below
     assert [country["code"] for country in rows["northern-america"]["countries"]] == ["US"]  # 2 x line: on the new one
+
+
+# Share-shift bar (spec 2a amendments): top_origins, share of WD at base_year and top_year
+def share_shift(data=None):
+    return build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]["share_shift"]
+
+
+def shift_rows(block):
+    return {row["code"]: row for row in block["rows"]}
+
+
+def test_share_shift_rows_are_top_origins(monkeypatch):
+    """Rows = top_origins in rank order (code, label, rank, share); share and share_base = the entity derived.share
+    of both years (WIPO world total WD as denominator); top_n rows only."""
+    out = outputs()
+    overview = out[Path("overview.json")]
+    block = overview["share_shift"]
+    assert (block["series"], block["year"], block["base_year"], block["null_reason"]) == (
+        "origin_apps", overview["top_year"], 2014, None)
+    assert [(row["code"], row["label"], row["rank"], row["share"]) for row in block["rows"]] == [
+        (row["code"], row["label"], row["rank"], row["share"]) for row in overview["top_origins"]]
+    for row in block["rows"]:
+        derived = out[Path("entity") / f"{row['code']}.json"]["series"]["origin_apps"]["derived"]["share"]
+        assert (row["share_base"], row["share"]) == (derived["2014"], derived["2024"]), row["code"]
+    # US 5050 / 704000, 5550 / 744000; CH 1100 / 704000, 2100 / 744000; MG 1 and 11: 0.0 (a value, not null)
+    assert [(row["code"], row["share_base"], row["share"]) for row in block["rows"]] == [
+        ("US", 0.72, 0.75), ("CH", 0.16, 0.28), ("MG", 0.0, 0.0)]
+    monkeypatch.setattr(write, "TOP_N", 2)
+    assert [row["code"] for row in share_shift()["rows"]] == ["US", "CH"]
+
+
+def test_share_shift_base_year_from_cagr_years(monkeypatch):
+    """base_year = top_year - derive.CAGR_YEARS (the cagr10 window, method.cagr_years); year = top_year, so a
+    provisional origin year moves both."""
+    data = make_data()
+    for code in ("US", "MG"):  # origin 2024 reported by 1 of 3 countries -> provisional, top_year 2023
+        data["origin_apps"].values[code]["total"][2024] = None
+    block = share_shift(data)
+    assert (block["year"], block["base_year"]) == (2023, 2023 - derive.CAGR_YEARS)
+    monkeypatch.setattr(derive, "CAGR_YEARS", 4)
+    overview = outputs()[Path("overview.json")]
+    block = overview["share_shift"]
+    assert (block["year"], block["base_year"], overview["method"]["cagr_years"]) == (2024, 2020, 4)
+    us = shift_rows(block)["US"]
+    assert us["share_base"] == derive.share(ramp(5000, 50)[2020], ramp(700000, 4000)[2020])
+
+
+def test_share_shift_change_is_difference_of_shares():
+    """change_pp = published share - published share_base, exact in Decimal (the figures table adds up), within
+    0.01 pp of the unrounded difference; method.share_shift states the rule. CH: 0.28 - 0.16 = 0.12, where float
+    subtraction gives 0.12000000000000002 and the unrounded difference (0.126) would print 0.13."""
+    overview = outputs()[Path("overview.json")]
+    assert overview["method"]["share_shift"] == {"change": "difference of published shares",
+                                                 "decimals": derive.SHARE_DECIMALS}
+    rows = shift_rows(overview["share_shift"])
+    assert (rows["CH"]["share_base"], rows["CH"]["share"], rows["CH"]["change_pp"]) == (0.16, 0.28, 0.12)
+    assert 0.28 - 0.16 != 0.12
+    assert derive.share(2100 * 704000 - 1100 * 744000, 744000 * 704000) == 0.13
+    assert (rows["US"]["change_pp"], rows["MG"]["change_pp"]) == (0.03, 0.0)
+    origin, wd = make_data()["origin_apps"].values, make_data()["office_apps"].values["WD"]["total"]
+    for code, row in rows.items():
+        assert Decimal(repr(row["change_pp"])) == Decimal(repr(row["share"])) - Decimal(repr(row["share_base"]))
+        exact = (Fraction(100 * origin[code]["total"][2024], wd[2024])
+                 - Fraction(100 * origin[code]["total"][2014], wd[2014]))
+        assert abs(Fraction(repr(row["change_pp"])) - exact) <= Fraction(1, 100), code
+
+
+def test_share_shift_missing_base_listed_null():
+    """Spec 2a amendments: an origin with no base-year value is listed (rank, share), not plotted: share_base and
+    change_pp null, never 0."""
+    data = make_data()
+    add_origin(data["origin_apps"], "JP", {**nulls(), 2024: 300000})
+    data["origin_apps"].labels["JP"] = "Japan"
+    rows = shift_rows(share_shift(data))
+    assert rows["JP"] == {"code": "JP", "label": "Japan", "rank": 1, "share_base": None,
+                          "share": derive.share(300000, WD_2024), "change_pp": None, "breaks": []}
+    assert rows["US"]["rank"] == 2 and rows["US"]["change_pp"] is not None
+
+
+@pytest.mark.parametrize("year, expected", [
+    (2017, [2017]),  # inside the window: the two shares sit on different methods
+    (2024, [2024]),  # the end year counts
+    (2014, []),  # the base year: both shares after the change
+    (2013, []),
+])
+def test_share_shift_break_marked(monkeypatch, year, expected):
+    """breaks = break years of the code's origin series in (base_year, year] (card note); other series' breaks and
+    other codes never listed."""
+    entry = {"note": "n", "citation": "c", "url": "u", "page": "p"}
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {**entry, "code": "CN", "year": year, "series": ["origin_apps"]},
+        {**entry, "code": "CN", "year": 2018, "series": ["office_apps"]},
+        {**entry, "code": "US", "year": 2016, "series": ["office_apps"]}])
+    data = make_data()
+    add_origin(data["origin_apps"], "CN", ramp(1000, 1000))
+    data["origin_apps"].labels["CN"] = "China"
+    rows = shift_rows(share_shift(data))
+    assert rows["CN"]["breaks"] == expected
+    assert rows["US"]["breaks"] == rows["CH"]["breaks"] == []
+
+
+@pytest.mark.parametrize("case", ["base_null", "year_null", "year_provisional"])
+def test_share_shift_wd_null_base(case):
+    """WD null at the base year or the year, or provisional at the year (office 2024 reported by EP alone): no WIPO
+    world total to divide by -> no_wipo_world_total, no rows (the card shows the reason); the years still stated."""
+    data = make_data()
+    office = data["office_apps"].values
+    if case == "year_provisional":
+        for code in ("US", "CH"):
+            for key in ("total", "resident", "nonresident"):
+                office[code][key][2024] = None
+    else:
+        office["WD"]["total"][2014 if case == "base_null" else 2024] = None
+    assert share_shift(data) == {"series": "origin_apps", "base_year": 2014, "year": 2024,
+                                 "null_reason": groups.NO_WIPO_WORLD_TOTAL, "rows": []}
 
 
 def test_write_files_sorted_two_space(tmp_path):

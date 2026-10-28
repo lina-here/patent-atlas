@@ -193,6 +193,39 @@ def test_treemap_when_published():
                                  if code in grouped and values[code] is None]
 
 
+def test_share_shift_when_published():
+    """Spec 2a amendments (share-shift bar): recomputed from committed files. year = top_year, base_year = top_year -
+    method.cagr_years; rows = top_origins (code, label, rank, share); shares = entity derived.share at both years;
+    change_pp = share - share_base exact in Decimal (null base -> null), the rule method.share_shift states; breaks =
+    the code's origin series breaks in (base_year, year]. WD null or past world_last_year at either year ->
+    no_wipo_world_total, no rows. Skipped until a refresh writes `share_shift` (v2a data refresh)."""
+    from decimal import Decimal
+    overview = load(DATA / "overview.json")
+    if "share_shift" not in overview:
+        pytest.skip("site/data predates share_shift (written by the next refresh)")
+    block, method = overview["share_shift"], overview["method"]
+    year, base_year = overview["top_year"], overview["top_year"] - method["cagr_years"]
+    assert (block["series"], block["year"], block["base_year"]) == ("origin_apps", year, base_year)
+    assert method["share_shift"] == {"change": "difference of published shares",
+                                     "decimals": method["rounding"]["decimals"]["share"]}
+    if any(overview["world_office"].get(str(shown)) is None for shown in (year, base_year)):  # cut years absent
+        assert (block["null_reason"], block["rows"]) == ("no_wipo_world_total", [])
+        return
+    assert block["null_reason"] is None
+    assert [(row["code"], row["label"], row["rank"], row["share"]) for row in block["rows"]] == [
+        (row["code"], row["label"], row["rank"], row["share"]) for row in overview["top_origins"]]
+    for row in block["rows"]:
+        share = load(DATA / "entity" / f"{row['code']}.json")["series"]["origin_apps"]["derived"]["share"]
+        assert (row["share_base"], row["share"]) == (share.get(str(base_year)), share[str(year)]), row["code"]
+        if row["share_base"] is None:
+            assert row["change_pp"] is None, row["code"]
+        else:
+            assert Decimal(str(row["change_pp"])) == Decimal(str(row["share"])) - Decimal(str(row["share_base"]))
+        assert row["breaks"] == sorted(entry["year"] for entry in overview["series_breaks"]
+                                       if entry["code"] == row["code"] and "origin_apps" in entry["series"]
+                                       and base_year < entry["year"] <= year), row["code"]
+
+
 def test_files_under_size_limit():
     for path in data_files():
         assert path.stat().st_size < MAX_FILE_BYTES, f"{path} is {path.stat().st_size} bytes"

@@ -23,6 +23,9 @@ Files (paths relative to the data root; JSON year keys are strings):
 - overview.json `treemap` (spec 2a treemap, written here): origin_apps at top_year by continent, shares of WD;
   `_treemap`. Not drawable (continent_share null reason: attribution floor, WD null or provisional, none_reported)
   -> reason, empty rows; a negative rest, or unattributed origins above it, blocks (run.py).
+- overview.json `share_shift` (spec 2a share-shift bar): top_origins rows, shares of WD at base_year (top_year -
+  CAGR_YEARS) and top_year, change_pp = difference of the published shares (`method.share_shift`), breaks in
+  (base_year, top_year]; WD null or provisional at either year -> no_wipo_world_total, no rows; `_share_shift`.
 - overview.json views: `rank_race` {first_year, top, rows: [{code, label, ranks}]} (countries ever in the top
   RANK_RACE_TOP, RANK_RACE_FROM..top_year; ranks below the top kept, null = no value); `size_growth`
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
@@ -86,6 +89,7 @@ RANK_RACE_FROM = 1995
 # treemap: origin with value x 100 < this x WD folds into its continent's "other" (exact, before rounding);
 # published as method.treemap (the pipeline writes the treemap figures: spec 2a amendments)
 TREEMAP_FOLD_SHARE_PCT = 0.5
+SHARE_SHIFT_CHANGE = "difference of published shares"  # method.share_shift: how change_pp is computed
 PCT_MONTHLY_QUERY = (f"PCT tab; indicator {PCT_BY_FILING_DATE}; report: monthly statistics; receiving office: "
                      f"Total; origin: Total")
 SOURCE_NAME = "WIPO Statistics Database"
@@ -276,6 +280,36 @@ def _treemap(origin: SeriesData, ctx: groups.Context, labels: dict[str, str]) ->
     return result
 
 
+def _share_shift(origin: SeriesData, world: World, denominator: dict[int, int | None],
+                 top_origins: list[dict]) -> dict:
+    """{series, base_year, year, null_reason, rows} for the top_origins rows (rank order). year = world.last_year
+    (top_year), base_year = year - derive.CAGR_YEARS (cagr10 window). `denominator` = groups.world_total (WD), so
+    shares = entity derived.share. change_pp = published share - published share_base, exact in Decimal: the figures
+    table adds up, within 0.01 pp of the unrounded difference; null with share_base (origin missing in the base
+    year: listed, not plotted). breaks = break years of the code's origin series in (base_year, year]: the two
+    shares sit on different methods. WD null or provisional at either year -> no_wipo_world_total, rows []."""
+    series_id = origin.series.id
+    year = world.last_year
+    base_year = year - derive.CAGR_YEARS
+    result: dict = {"series": series_id, "base_year": base_year, "year": year, "null_reason": None, "rows": []}
+    if denominator.get(year) is None or denominator.get(base_year) is None:
+        result["null_reason"] = groups.NO_WIPO_WORLD_TOTAL
+        return result
+    totals = _totals(origin)
+    window = range(base_year + 1, year + 1)
+    for top in top_origins:
+        code = top["code"]
+        share = derive.share(totals[code].get(year), denominator[year])
+        share_base = derive.share(totals[code].get(base_year), denominator[base_year])
+        change = None
+        if share is not None and share_base is not None:
+            change = float(Decimal(repr(share)) - Decimal(repr(share_base)))
+        broken = sorted(item for item in breaks.break_years(code, series_id) if item in window)
+        result["rows"].append({"code": code, "label": top["label"], "rank": top["rank"], "share_base": share_base,
+                               "share": share, "change_pp": change, "breaks": broken})
+    return result
+
+
 def _size_growth(origin: SeriesData, world: World, labels: dict[str, str]) -> list[dict]:
     """Every country of `_sized`, largest first; null cagr10 listed (the chart lists it under the plot)."""
     return [{"code": code, "label": labels[code], "continent": m49.continent_of(code), "value": value,
@@ -323,6 +357,7 @@ def method_constants() -> dict:
         "ratios": scale.method_constants(),
         "gender": gender.method_constants(),
         "treemap": {"fold_share_pct": TREEMAP_FOLD_SHARE_PCT},
+        "share_shift": {"change": SHARE_SHIFT_CHANGE, "decimals": derive.SHARE_DECIMALS},
     }
 
 
@@ -775,6 +810,8 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
         "top_grower": _top_grower(data["origin_apps"], worlds["world_origin"], top_origins),
         "world_yoy": _world_yoy(worlds),
         "treemap": _treemap(data["origin_apps"], group_ctx, labels),
+        "share_shift": _share_shift(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"],
+                                    top_origins),
         "share_denominator": {series_id: SHARE_DENOMINATOR_LABEL[key] for series_id, key in SHARE_DENOMINATOR.items()},
         "fastest_growers": _fastest_growers(data["origin_apps"], worlds["world_origin"], labels),
         "size_growth": _size_growth(data["origin_apps"], worlds["world_origin"], labels),

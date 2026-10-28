@@ -75,7 +75,8 @@ def test_group_block_by_id(published):
 @pytest.mark.parametrize("key,expected", [
     ("pct_monthly", "pct_monthly"), ("pct_monthly_source", "pct_monthly"), ("method", "method"),
     ("top_n", "method"), ("top_origins", "origin_apps"), ("rank_race", "origin_apps"),
-    ("top_grower", "origin_apps"), ("treemap", "origin_apps"), ("world_office", "office_apps"),
+    ("top_grower", "origin_apps"), ("treemap", "origin_apps"), ("share_shift", "origin_apps"),
+    ("world_office", "office_apps"),
     ("pct_world", "pct_origin")])
 def test_overview_keys(published, key, expected):
     root, new = published
