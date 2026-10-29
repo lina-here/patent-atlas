@@ -19,7 +19,8 @@ import { TREEMAP_CARD_ID, treemapCard } from "./treemap";
 /** `?view=` value of the page (params.ts VIEWS). */
 export const DASHBOARD_VIEW = "dashboard";
 /** The tiles' card ids, in page order (the key figures, then MAP_CARD_ID, TREEMAP_CARD_ID, SHARE_SHIFT_CARD_ID). */
-export const DASHBOARD_TILE_IDS = ["key-world-patents", "key-world-pct", "key-top-origin", "key-top-grower", "world-map", "treemap", "share-shift"];
+export const DASHBOARD_TILE_IDS = ["key-world-patents", "key-world-pct", "key-top-origin", "key-top-grower", "world-map", "treemap", "share-shift"] as const;
+export type DashboardTileId = (typeof DASHBOARD_TILE_IDS)[number];
 
 const [KEY_WORLD_PATENTS, KEY_WORLD_PCT, KEY_TOP_ORIGIN, KEY_TOP_GROWER] = DASHBOARD_TILE_IDS;
 const NO_DATA = "There is no data to draw this chart.";

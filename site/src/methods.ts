@@ -2,6 +2,7 @@
 // entity/CH.json (no figure typed into the page). Formulas restate pipeline/derive.py in words.
 import type { GroupNullReason, GroupsFile } from "./atlas";
 import type { Config, Entities, EntityFile, EntityKind, GenderMeasure, Manifest, Overview, RatioCheck, RatioDenominator, RatioMethod, SeriesBreak, SeriesId, SourceBlock, WipoRatioId, WorldId } from "./data";
+import { DASHBOARD_TILE_IDS, type DashboardTileId } from "./dashboard";
 import { h, formatCount, type Child } from "./dom";
 import { fixedHalfAway, fixedPercent } from "./format";
 import { GENDER_BASIS_LABEL, GENDER_TITLES, coverageFloorText, formatShare, genderCaveat, genderDecimals, genderNullText, unlistedMembersText } from "./genderText";
@@ -185,7 +186,7 @@ function worldSection({ manifest, overview }: MethodsData): Section {
       h("p", {}, "Patent Atlas adds up all reporting entities only as a check. A sum above WIPO's total is treated as a data error and stops ",
         "publication, except in years where WIPO's own data are known to show this (listed below as warnings)."),
       h("table", { class: "data-table" },
-        h("thead", {}, h("tr", {}, h("th", {}, "World total"), h("th", {}, "Years"), h("th", {}, "Our sum ÷ WIPO total, lowest"), h("th", {}, "highest"))),
+        h("thead", {}, h("tr", {}, h("th", {}, "World total"), h("th", {}, "Years"), h("th", {}, "Patent Atlas sum ÷ WIPO total, lowest"), h("th", {}, "highest"))),
         h("tbody", {}, (Object.keys(ratios) as WorldId[]).map((id) =>
           h("tr", {}, h("td", {}, WORLD_TITLES[id] ?? id), h("td", {}, ratios[id].years ?? "–"),
             h("td", { class: "num" }, percent(ratios[id].min, 2)), h("td", { class: "num" }, percent(ratios[id].max, 2))))),
@@ -281,7 +282,7 @@ function yearsSection({ manifest, overview }: MethodsData): Section {
 }
 
 /** Terms of the overview views: what each plots and how it is computed (all figures from overview.json). */
-function viewTerms(overview: Overview): [string, string][] {
+function viewTerms(overview: Overview): [string, Child][] {
   const { rank_race: race, method } = overview;
   const share = overview.continent_share.origin_apps;
   return [
@@ -303,19 +304,21 @@ function viewTerms(overview: Overview): [string, string][] {
 }
 
 /** The treemap term; left out of data without the fold rule (older data). */
-function treemapTerms(overview: Overview): [string, string][] {
+function treemapTerms(overview: Overview): [string, Child][] {
   const { method, treemap } = overview;
   const fold = method.treemap?.fold_share_pct;
   if (fold === undefined) return [];
   const denominator = overview.share_denominator.origin_apps;
   const rest = treemap?.residual?.label;
-  return [["Treemap", `Patent applications by origin in ${treemap?.year ?? overview.top_year}. The area of a rectangle is the origin's share of the ${denominator}, grouped by continent. ` +
-    `An origin folds into “Other <continent>” when its share is below ${fold} % of WD, exact, before rounding, so a folded origin may show as ${fold}% after rounding. ` +
-    "A continent where every origin folds is one rectangle named after the continent. " +
-    (rest ? `“${rest}” is what the continents' totals leave of the world total; origins that no continent holds are inside it. ` : "") +
-    `The treemap is drawn only when the grouped countries of all continents together account for at least ${Math.round(method.group_attribution_min * 100)}% of the world total (the attribution floor), and the WIPO world total is present and not provisional; otherwise the chart says why it is not drawn. ` +
-    `A negative${rest ? ` “${rest}”` : " not-attributable"} rest is a warning in the continent-share history and blocks at the treemap year: the refresh stops and the last good data stays. The refresh also stops when origins without a continent exceed that rest. ` +
-    `Shares are each rounded on their own (${decimals(method.rounding.decimals.share)}), so they may add up to 100 ± a few hundredths of a percent.`]];
+  return [["Treemap", [
+    h("p", {}, `Patent applications by origin in ${treemap?.year ?? overview.top_year}. The area of a rectangle is the origin's share of the ${denominator}, grouped by continent.`,
+      rest ? ` “${rest}” is what the continents' totals leave of the world total; origins that no continent holds are inside it.` : ""),
+    h("p", {}, `An origin folds into “Other <continent>” when its share is below ${fold}% of WD, exact, before rounding, so a folded origin may show as ${fold}% after rounding. `,
+      "A continent where every origin folds is one rectangle named after the continent."),
+    h("p", {}, `The treemap is drawn only when the grouped countries of all continents together account for at least ${Math.round(method.group_attribution_min * 100)}% of the world total (the attribution floor), and the WIPO world total is present and not provisional; otherwise the chart says why it is not drawn. `,
+      `A negative${rest ? ` “${rest}”` : " not-attributable"} rest is a warning in the continent-share history and blocks at the treemap year: the refresh stops and the last good data stays. The refresh also stops when origins without a continent exceed that rest. `,
+      `Shares are each rounded on their own (${decimals(method.rounding.decimals.share)}), so they may add up to 100 ± a few hundredths of a percent.`),
+  ]]];
 }
 
 /** The share-shift term; left out of data without its rule (older data). */
@@ -327,7 +330,7 @@ function shareShiftTerms(overview: Overview): [string, string][] {
   const bound = (10 ** -rule.decimals).toFixed(rule.decimals);
   const base = block ? ` (${block.base_year})` : "";
   return [["Share shift", `The change in share of the ${overview.share_denominator.origin_apps} of the top ${overview.top_n} origins of ${block?.year ?? overview.top_year}. The base year is ${years} years before the latest complete year${base}. ` +
-    `The change is in percentage points (pp): the share in the latest year minus the share in the base year, a ${rule.change}, both as published (rounded to ${decimals(rule.decimals)}). ` +
+    `The change is in percentage points (pp): the share in the latest year minus the share in the base year, a ${rule.change} (both rounded to ${decimals(rule.decimals)}). ` +
     `So each row of the figures table adds up, the change is within ${bound} pp of the exact difference and its sign never flips. ` +
     "An origin with no figure in the base year is listed under the chart, not plotted. " +
     "If the world total is missing or provisional in either year, the chart is not drawn. " +
@@ -664,15 +667,15 @@ function scaleSection({ manifest, overview, entities }: MethodsData): Section | 
         "World: WIPO's own World row, whose numerator is the residents' applications at all offices (World, WD). ",
         "PCT per million: WIPO's PCT applications by origin (total), with WIPO's PCT world total over WDI's world population for the World figure."),
       h("h3", {}, "Computed cases"),
-      h("ul", {},
-        h("li", {}, h("strong", {}, "A country-year WIPO publishes no value for"), ": computed with the formula above, with WIPO's thresholds applied."),
-        h("li", {}, h("strong", {}, "Regions and continents"), ": the sum of the members' numerators ÷ the sum of their denominators, over the members that have both values that year, ",
+      h("dl", { class: "terms" },
+        h("dt", {}, "A country-year WIPO publishes no value for"), h("dd", {}, "Computed with the formula above, with WIPO's thresholds applied."),
+        h("dt", {}, "Regions and continents"), h("dd", {}, "The sum of the members' numerators ÷ the sum of their denominators, over the members that have both values that year, ",
           "shown with “n of m”: n members counted of m members. The attribution floor of the numerator series applies (",
           `the grouped countries must cover at least ${groupFloor}% of its world total), so a year it empties stays empty. `,
           `A group year is empty when the summed denominator is at or below the threshold, with the reason “${ratioNullText("below_wipo_threshold", "per_million", overview, "group")}”.`),
-        h("li", {}, h("strong", {}, "PCT per million"), ": WIPO publishes no PCT figure per population. The population threshold WIPO uses for its per-million figures is applied; ",
+        h("dt", {}, "PCT per million"), h("dd", {}, "WIPO publishes no PCT figure per population. The population threshold WIPO uses for its per-million figures is applied; ",
           "groups sum their members' PCT counts ÷ the sum of their population, regions and continents alike."),
-        h("li", { "data-no-denominator": "" }, h("strong", {}, "No denominator"), ": a country without a WDI value gets no computed figure; WIPO's own value is still shown where it exists. ",
+        h("dt", {}, "No denominator"), h("dd", { "data-no-denominator": "" }, "A country without a WDI value gets no computed figure; WIPO's own value is still shown where it exists. ",
           `Without WDI population in any year: ${noDenominatorLabels(overview, entities, "population")}; their empty years give the reason “${ratioNullText("no_population", "per_million", overview)}”. `,
           `Without WDI GDP in any year: ${noDenominatorLabels(overview, entities, "gdp_ppp")}; reason “${ratioNullText("no_gdp", "per_gdp", overview)}”. `,
           `Former entities (${labelsOf(entities, "historical")}) have no per-capita or per-GDP figures: ratios are given for current countries only, `,
@@ -739,7 +742,7 @@ function ratioCheckSection({ manifest, overview }: MethodsData): Section | null 
     body: [
       h("p", {}, "For every WIPO ratio value whose inputs Patent Atlas also has, the computed value is compared with WIPO's published figure. The site always shows WIPO's value. ",
         `A cell passes when the two differ by at most ${method.abs_tolerance} + ${limitPercent(method.rel_tolerance)}% of WIPO's value.`),
-      h("p", {}, "Each ratio has its own blocking test, applied to that ratio alone; the other test only warns. ",
+      h("p", {}, "Each ratio is tested on its own: of its two tests below, one blocks the update and the other only warns. ",
         "The World row always blocks: a World cell outside tolerance, or no World cell compared, stops the update. ",
         `WDI's World row must also have a value within ${method.wdi_max_lag} years of the last year requested, or the update stops.`),
       h("p", {}, "Known drift: the World Bank revises GDP and population after WIPO's release, so a country's whole series can differ from WIPO's by one factor. This is listed here as a warning and does not stop the update."),
@@ -793,7 +796,7 @@ function checksSection(data: MethodsData): Section {
         h("p", { class: "wdi-warning-reason" }, checks.wdi_warning_reason ?? ""),
         list(checks.wdi_warnings, ""),
       ],
-      h("h3", {}, "Published WIPO figures (blocking)"),
+      h("h3", { id: "check-golden" }, "Published WIPO figures (blocking)"),
       h("p", {}, "Headline figures from WIPO's World Intellectual Property Indicators and PCT Yearly Review must agree with the published value: ",
         `${growthTolerance === undefined ? "every figure" : "every figure except growth"} within ${overview.method.golden_tolerance_pct}% (relative)`,
         growthTolerance === undefined ? "" : `, growth figures within ${growthTolerance} percentage points (absolute)`, ". Last result:"),
@@ -802,7 +805,7 @@ function checksSection(data: MethodsData): Section {
       h("ul", { class: "golden-sources" }, checks.golden_sources.map((src) => h("li", {},
         h("code", {}, src.id), `: ${src.citation}. ${src.page}. `, h("a", { href: src.url, rel: "noopener" }, src.url)))),
       h("h3", {}, "World totals (blocking)"),
-      h("p", {}, "Our sum of reporting entities against WIPO's totals: see ", h("a", { href: "#world-totals" }, "World totals and shares"), "."),
+      h("p", {}, "The Patent Atlas sum of reporting entities against WIPO's totals: see ", h("a", { href: "#world-totals" }, "World totals and shares"), "."),
       h("h3", {}, "OECD trend (warning only)"),
       h("p", {}, "OECD patent statistics (PATSTAT, priority date) are counted differently, so only the direction of yearly change for the largest PCT origins is compared. Differences are logged."),
       list(checks.oecd, "No differences in direction flagged."),
@@ -812,8 +815,8 @@ function checksSection(data: MethodsData): Section {
         ? h("p", { class: "muted" }, "Not recorded in this release.")
         : list(checks.pct_monthly, "No differences."),
       h("h3", { id: "check-groups" }, "Group figures (warning only)"),
-      h("p", {}, `Group cross-check outside the expected range of ${wholePercent(overview.method.group_crosscheck_range[0])} to ${wholePercent(overview.method.group_crosscheck_range[1])}, `,
-        "a negative band under the continents, and a PCT “Unknown” row that does not match the world total are listed here."),
+      h("p", {}, `Listed here: group cross-check gaps outside the expected range of ${wholePercent(overview.method.group_crosscheck_range[0])} to ${wholePercent(overview.method.group_crosscheck_range[1])}, `,
+        "a negative band under the continents, and a PCT “Unknown” row that does not match the world total."),
       list(checks.groups ?? [], "None in this release."),
       regressionBlock(data),
     ],
@@ -832,6 +835,17 @@ function revisionsSection(): Section {
   };
 }
 
+/** One line per dashboard tile; the list follows DASHBOARD_TILE_IDS (page order), a tile without its line fails the typecheck. */
+const DASHBOARD_TILE_TEXT: Record<DashboardTileId, string> = {
+  "key-world-patents": "World patent applications: WIPO's total for all offices (WD), with its change on the year.",
+  "key-world-pct": "World PCT applications: WIPO's PCT total (ZZ), with its change on the year.",
+  "key-top-origin": "Top origin: the country with the most patent applications by origin.",
+  "key-top-grower": "Fastest grower: the country with the highest compound annual growth among the top origins.",
+  "world-map": "World map: applications by origin, as on the overview.",
+  "treemap": "Treemap: who files the world's patents, as on the overview.",
+  "share-shift": "Share shift: who gained and lost ground, as on the overview.",
+};
+
 function dashboardSection({ cfg }: MethodsData): Section {
   const { minSeconds, resumeAfterSeconds, pauseMovePixels } = cfg.rotation;
   const { seconds, slides } = cfg.dashboard;
@@ -845,14 +859,7 @@ function dashboardSection({ cfg }: MethodsData): Section {
     body: [
       h("p", {}, "The dashboard (", h("code", {}, "?view=dashboard"), ", “Dashboard” in the header) shows the headline figures and charts on one page. ",
         "Each tile names its year and source and links to its full chart on the overview. A tile whose data is missing says so; it is never left blank or filled with 0. The tiles:"),
-      h("ul", { class: "dashboard-tiles" },
-        h("li", { "data-tile": "key-world-patents" }, "World patent applications: WIPO's total for all offices (WD), with its change on the year."),
-        h("li", { "data-tile": "key-world-pct" }, "World PCT applications: WIPO's PCT total (ZZ), with its change on the year."),
-        h("li", { "data-tile": "key-top-origin" }, "Top origin: the country with the most patent applications by origin."),
-        h("li", { "data-tile": "key-top-grower" }, "Fastest grower: the country with the highest compound annual growth among the top origins."),
-        h("li", { "data-tile": "world-map" }, "World map: applications by origin, as on the overview."),
-        h("li", { "data-tile": "treemap" }, "Treemap: who files the world's patents, as on the overview."),
-        h("li", { "data-tile": "share-shift" }, "Share shift: who gained and lost ground, as on the overview.")),
+      h("ul", { class: "dashboard-tiles" }, DASHBOARD_TILE_IDS.map((id) => h("li", { "data-tile": id }, DASHBOARD_TILE_TEXT[id]))),
       h("p", {}, `Next to the world map, a carousel shows ${slides.length} charts one at a time, each for ${seconds} seconds. `,
         "Its buttons are ", h("code", {}, "Play"), " and ", h("code", {}, "Pause"), " (one button that changes its name), ",
         h("code", {}, "Previous"), " and ", h("code", {}, "Next"), ". Without ", h("code", {}, "?rotate"), " it never starts by itself. ",
@@ -863,7 +870,7 @@ function dashboardSection({ cfg }: MethodsData): Section {
         h("li", {}, "Keyboard focus inside the carousel holds it, except on the Play or Pause button. A mouse click on a button does not."),
         h("li", {}, "A hidden browser tab holds it."),
         h("li", {}, "An open figures, cite or embed panel, or an open sources and notes box, holds it.")),
-      h("p", {}, "Pause stops it until Play is pressed: only Play ends that pause. Play also ends a pointer hold."),
+      h("p", {}, "Pause stops it; only Play ends that pause. Play also ends a pointer hold."),
     ],
   };
 }
@@ -939,7 +946,7 @@ function womenGroupPart({ overview, groups, entities }: MethodsData): Child[] {
       ? h("p", { class: "muted" }, "The data carry no group summary, so the left-out members are not listed here.")
       : leftOut.length === 0 ? h("p", { class: "muted" }, "No member is left out.")
         : h("ul", { class: "women-left-out" }, leftOut.map(({ group, text }) => h("li", {}, `${group.label}: ${text}`))),
-    h("p", {}, `${GENDER_TITLES.women_share} is ${genderNullText("not_computable", overview)} for a group, since a share of inventors cannot be averaged without them. `,
+    h("p", {}, `${GENDER_TITLES.women_share} is ${genderNullText("not_computable", overview)} for a group. `,
       "The exception is a figure WIPO itself prints, shown as published and labelled “", GENDER_BASIS_LABEL.wipo, "”:"),
     printed === null || printed.length === 0
       ? h("p", { class: "muted" }, "No printed group figure in the data.")
@@ -1117,8 +1124,8 @@ export function renderMethods(el: HTMLElement, data: MethodsData): void {
   el.replaceChildren(
     h("header", { class: "page-intro" },
       h("h1", {}, "Methods and sources"),
-      h("p", { class: "lede" }, "The data behind Patent Atlas: sources and release dates, definitions, formulas, and the checks that run before each ",
-        "update against WIPO's published figures and other sources. Patent and PCT figures come from the WIPO Statistics Database; population ",
+      h("p", { class: "lede" }, "The data behind Patent Atlas: sources and release dates, definitions, formulas, and the checks run before each ",
+        "update against WIPO's published figures, World Bank and OECD data. Patent and PCT figures come from the WIPO Statistics Database; population ",
         "and GDP for the per capita and per GDP figures come from the World Bank's World Development Indicators (WDI)."),
       h("p", { class: "methods-made" }, AI_METHODS_LINE),
     ),

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 import { fixtureBreak, routeSeriesBreaks } from "./seriesBreaks";
-import { BOARD_FALLBACK } from "./siteConstants";
+import { BOARD_FALLBACK, DASHBOARD_TILE_IDS } from "./siteConstants";
 import { stateInProse } from "./pctProse";
 
 // Methods page (methods.html): home of methods-page tests from v0.2b on. Wording checks quote the page's own text;
@@ -148,6 +148,7 @@ test("ratio check: tolerances, blocking and warning tests, World row and counts 
   await expect(page.locator('.toc a[href="#ratio-check"]')).toHaveCount(1);
   await expect(check).toContainText(`${method.abs_tolerance} + ${percentOf(method.rel_tolerance)}%`);
   await expect(check).toContainText("The World row always blocks");
+  await expect(check).toContainText("Each ratio is tested on its own: of its two tests below, one blocks the update and the other only warns.");
   await expect(check).toContainText(`within ${method.wdi_max_lag} years`);
   await expect(check).toContainText("revises GDP and population after WIPO's release");
   for (const id of WIPO_IDS) {
@@ -652,7 +653,13 @@ test("methods: the treemap term states fold rule, residual, denominator, floor a
   await page.goto("/methods.html");
   const dd = term(page, "Treemap");
   const { fold_share_pct: fold } = overview.method.treemap;
-  await expect(dd).toContainText(`below ${fold} % of WD, exact, before rounding`);
+  await expect(dd).toContainText(`below ${fold}% of WD, exact, before rounding`);
+  // three short paragraphs: what the area is; the fold rule; when it is not drawn, what blocks, share rounding
+  await expect(dd.locator("> p")).toHaveCount(3);
+  await expect(dd.locator("> p").nth(0)).toContainText("The area of a rectangle");
+  await expect(dd.locator("> p").nth(1)).toContainText("folds into");
+  await expect(dd.locator("> p").nth(2)).toContainText("The treemap is drawn only when");
+  await expect(dd.locator("> p").nth(2)).toContainText("each rounded on their own");
   await expect(dd).toContainText("a folded origin may show as");
   await expect(dd).toContainText("“Other <continent>”");
   await expect(dd).toContainText("one rectangle named after the continent");
@@ -680,7 +687,8 @@ test("methods: the share shift term states the base year, the change rule, the b
   await expect(dd).toContainText(`${overview.share_shift.base_year}`);
   await expect(dd).toContainText("percentage points");
   await expect(dd).toContainText(shift.change);
-  await expect(dd).toContainText(`rounded to ${shift.decimals} decimals`);
+  await expect(dd).toContainText(`(both rounded to ${shift.decimals} decimals)`);
+  await expect(dd).not.toContainText("as published");
   await expect(dd).toContainText(`within ${bound} pp of the exact difference`);
   await expect(dd).toContainText("sign never flips");
   await expect(dd).toContainText("no figure in the base year is listed under the chart, not plotted");
@@ -728,6 +736,30 @@ test("methods: the treemap, share shift and growth tolerance are left out of dat
   expect(errors).toEqual([]);
 });
 
+test("methods: one voice and plain wording in the computed cases, checks, women and lede", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  // computed cases: a term list like the definitions, no bold labels
+  const cases = page.locator("#scale h3", { hasText: /^Computed cases$/ }).locator("xpath=following-sibling::*[1]");
+  await expect(cases).toHaveJSProperty("tagName", "DL");
+  await expect(cases).toHaveClass("terms");
+  await expect(cases.locator("dt")).toHaveText(["A country-year WIPO publishes no value for", "Regions and continents", "PCT per million", "No denominator"]);
+  await expect(cases.locator("strong")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("Our sum");
+  await expect(page.locator("#world-totals th", { hasText: "÷ WIPO total" })).toHaveText("Patent Atlas sum ÷ WIPO total, lowest");
+  await expect(page.locator("#cross-checks")).toContainText("The Patent Atlas sum of reporting entities against WIPO's totals");
+  await expect(page.locator("#check-golden")).toHaveText("Published WIPO figures (blocking)");
+  // the range as the methods page writes a signed whole percent (+x% above zero)
+  const [low, high] = overview.method.group_crosscheck_range.map((value: number) => `${Math.round(value * 100) > 0 ? "+" : ""}${Math.round(value * 100)}%`);
+  await expect(page.locator("#check-groups + p")).toHaveText(`Listed here: group cross-check gaps outside the expected range of ${low} to ${high}, ` +
+    "a negative band under the continents, and a PCT “Unknown” row that does not match the world total.");
+  await expect(page.locator("main")).not.toContainText("cannot be averaged");
+  const lede = page.locator(".page-intro .lede");
+  await expect(lede).toContainText("the checks run before each update against WIPO's published figures, World Bank and OECD data.");
+  await expect(lede).toContainText("World Development Indicators (WDI)");
+  expect(errors).toEqual([]);
+});
+
 test("methods: the dashboard section lists the tiles, the controls, the holds and ?rotate=", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/methods.html");
@@ -736,7 +768,7 @@ test("methods: the dashboard section lists the tiles, the controls, the holds an
   await expect(page.locator('.toc a[href="#dashboard"]')).toHaveCount(1);
   await expect(section).toContainText("?view=dashboard");
   // one list entry per tile of the dashboard, in page order (dashboard.ts DASHBOARD_TILE_IDS, read from the source)
-  const tileIds: string[] = JSON.parse(/^export const DASHBOARD_TILE_IDS = (\[[^\]]+\]);/m.exec(readFileSync("site/src/dashboard.ts", "utf8"))![1]);
+  const tileIds = DASHBOARD_TILE_IDS;
   await expect(section.locator(".dashboard-tiles li")).toHaveCount(tileIds.length);
   expect(await section.locator(".dashboard-tiles li").evaluateAll((items) => items.map((item) => item.getAttribute("data-tile")))).toEqual(tileIds);
   await expect(section).toContainText("Next to the world map, a carousel shows");
@@ -756,7 +788,7 @@ test("methods: the dashboard section lists the tiles, the controls, the holds an
   await expect(holds.nth(3)).toContainText("open figures, cite or embed panel");
   await expect(holds.nth(3)).toContainText("open sources and notes box");
   await expect(section).toContainText("Play also ends a pointer hold");
-  await expect(section).toContainText("only Play ends that pause");
+  await expect(section).toContainText("Pause stops it; only Play ends that pause.");
   await expect(section).toContainText("it never starts by itself");
   await expect(section).toContainText("even with reduced motion; reduced motion only turns off the fade between slides");
   await expect(section).toContainText(`?rotate=<seconds>`);
