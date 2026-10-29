@@ -19,6 +19,8 @@ import { PCT_LATE_FILINGS, WORLD_TITLES, originAbroadNote, seriesBreakNotes } fr
 export type CardContent = Omit<ChartSpec, "id" | "visual"> & {
   /** `height` = the room the chart may take (wallboard focus fit); charts that cannot shrink ignore it. */
   draw: (width: number, height?: number) => SVGElement | HTMLElement;
+  /** The least height (px) a fit may draw the chart at, for a chart that still reads below `minChartHeight` (default: that). */
+  minHeight?: (width: number) => number;
 };
 /** `build` returns null when the data for the card is missing (card left out); `wide` = spans the whole grid
  * row (class `chart-card--wide`). `params` = a card with its own state (map metric, year): the params its cite and
@@ -358,7 +360,7 @@ function fitToRoom(card: DrawnCard, room?: HTMLElement, fill = false): void {
       if (grown.getBoundingClientRect().height <= current) return; // drawn at its largest
       continue;
     }
-    const height = Math.max(map ? minMapHeight() : minChartHeight(), current - overflow);
+    const height = Math.max(map ? minMapHeight() : card.content.minHeight?.(card.width) ?? minChartHeight(), current - overflow);
     if (height >= current) return; // at its smallest
     if (map) visual.style.maxHeight = `${height}px`;
     else replaceChart(card.shell, card.content.draw(card.width, height) as SVGElement);
@@ -474,10 +476,10 @@ export function worldCards(overview: Overview, atlas: Atlas | null, ctx: MapCont
     { id: "fastest-growers", build: fastestGrowers(overview) },
     { id: "rank-race", build: rankRace(overview) },
     { id: "continent-share", build: continentShare(overview, groups, ctx.idPrefix), problem: continentNamesProblem(overview, groups, "continent-share") },
-    { id: "size-growth", build: sizeGrowth(overview, groups), problem: continentNamesProblem(overview, groups, "size-growth") },
-    { id: "pct-monthly", build: pctMonthly(overview, ctx.idPrefix) },
     treemapCard(overview, ctx.idPrefix),
     shareShiftCard(overview),
+    { id: "size-growth", build: sizeGrowth(overview, groups), problem: continentNamesProblem(overview, groups, "size-growth") },
+    { id: "pct-monthly", build: pctMonthly(overview, ctx.idPrefix) },
   ];
 }
 

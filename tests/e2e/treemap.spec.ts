@@ -516,3 +516,30 @@ test("treemap card: no share decimals in the method leaves the card out, no gues
   await expect(page.locator("svg.treemap-chart")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText("could not be loaded");
 });
+
+// ---- Rotation focus: ?rotate=<minSeconds>&chart=treemap (the size and theme set of controls.spec "every rotation chart view fits") ----
+const FOCUS_SIZES = [{ width: 1920, height: 1080 }, { width: 1280, height: 900 }, { width: 1366, height: 768 }];
+for (const { wide, suffix } of FONT_VARIANTS) for (const size of FOCUS_SIZES) {
+  test(`?rotate=<minSeconds>&chart=treemap focus layout fits ${size.width}x${size.height} in every theme${suffix}`, async ({ page }) => {
+    const errors = trackErrors(page);
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize(size);
+    for (const theme of config.themes.filter((name: string) => name !== config.embedTheme)) {
+      await page.goto(`/?rotate=${config.rotation.minSeconds}&theme=${theme}&chart=treemap`);
+      await expect(page.locator("html.focus-layout.view-ready")).toHaveCount(1);
+      await expect(page.locator(`${CARD} svg`).first()).toBeVisible();
+      await page.waitForTimeout(600); // the first resize redraw, fitted again
+      const fit = await page.evaluate(() => {
+        const card = document.querySelector<HTMLElement>(".chart-card")!.getBoundingClientRect();
+        const footer = document.querySelector<HTMLElement>(".site-footer")!.getBoundingClientRect();
+        const root = document.documentElement;
+        return {
+          card: card.bottom <= footer.top + 0.5 && card.right <= innerWidth + 0.5 && card.left >= -0.5,
+          page: root.scrollHeight <= innerHeight && root.scrollWidth <= innerWidth,
+        };
+      });
+      expect(fit, theme).toEqual({ card: true, page: true });
+    }
+    expect(errors).toEqual([]);
+  });
+}

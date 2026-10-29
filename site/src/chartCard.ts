@@ -26,6 +26,9 @@ export type ChartSpec = {
   note?: string;
   /** Lines under the chart, before the source line: years left out and why, items listed apart from the plot, caveats. */
   footnotes?: string[];
+  /** Reference lines after the footnotes (code lists): kept on the page and in the embed, left off the wallboard, where they
+   * cannot be read from a distance and the room goes to the chart. */
+  referenceNotes?: string[];
   /** Credits beside the source line other than WIPO's (map geometry). */
   credits?: string[];
   /** Credits of data behind the figures other than WIPO's (World Bank WDI): shown like `credits` and named in the
@@ -246,7 +249,10 @@ export function renderChartCard(el: HTMLElement, spec: ChartSpec, ctx: CardConte
   const parts: Node[] = [h("h2", { id: titleId }, spec.title)];
   if (spec.note) parts.push(h("p", { class: "chart-note" }, spec.note));
   // compact (embed, wallboard slide): footnotes stay under the chart; a full card folds them into its details
-  const footnotes = (spec.footnotes ?? []).map((line) => h("p", { class: "chart-footnote" }, line));
+  const footnotes = [
+    ...(spec.footnotes ?? []).map((line) => h("p", { class: "chart-footnote" }, line)),
+    ...(spec.referenceNotes ?? []).map((line) => h("p", { class: "chart-footnote chart-footnote--reference" }, line)),
+  ];
   parts.push(h("figure", { class: "chart-figure" },
     spec.visual,
     ctx.compact ? footnotes : [],

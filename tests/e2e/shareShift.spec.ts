@@ -8,6 +8,7 @@ import { fixedHalfAway } from "../../site/src/format";
 // Share-shift card, "Who gained and lost ground?": each top origin's change in share of world applications, base year to
 // year, as a diverging bar chart. Expected rows, order and figures are read from overview.json; change_pp is displayed as
 // published, never recomputed here.
+const config = JSON.parse(readFileSync("site/config.json", "utf8"));
 const overview = JSON.parse(readFileSync("site/data/overview.json", "utf8"));
 const shift = overview.share_shift;
 const decimals: number = overview.method.rounding.decimals.share;
@@ -233,3 +234,30 @@ test("share-shift: origins whose names cut to the same text stay separate bars",
   expect(bars).toHaveLength(plotted().length);
   expect(new Set(bars).size).toBe(bars.length);
 });
+
+// ---- Rotation focus: ?rotate=<minSeconds>&chart=share-shift (the size and theme set of controls.spec "every rotation chart view fits") ----
+const FOCUS_SIZES = [{ width: 1920, height: 1080 }, { width: 1280, height: 900 }, { width: 1366, height: 768 }];
+for (const { wide, suffix } of FONT_VARIANTS) for (const size of FOCUS_SIZES) {
+  test(`?rotate=<minSeconds>&chart=share-shift focus layout fits ${size.width}x${size.height} in every theme${suffix}`, async ({ page }) => {
+    const errors = trackErrors(page);
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize(size);
+    for (const theme of config.themes.filter((name: string) => name !== config.embedTheme)) {
+      await page.goto(`/?rotate=${config.rotation.minSeconds}&theme=${theme}&chart=share-shift`);
+      await expect(page.locator("html.focus-layout.view-ready")).toHaveCount(1);
+      await expect(page.locator(`${CARD} svg`).first()).toBeVisible();
+      await page.waitForTimeout(600); // the first resize redraw, fitted again
+      const fit = await page.evaluate(() => {
+        const card = document.querySelector<HTMLElement>(".chart-card")!.getBoundingClientRect();
+        const footer = document.querySelector<HTMLElement>(".site-footer")!.getBoundingClientRect();
+        const root = document.documentElement;
+        return {
+          card: card.bottom <= footer.top + 0.5 && card.right <= innerWidth + 0.5 && card.left >= -0.5,
+          page: root.scrollHeight <= innerHeight && root.scrollWidth <= innerWidth,
+        };
+      });
+      expect(fit, theme).toEqual({ card: true, page: true });
+    }
+    expect(errors).toEqual([]);
+  });
+}

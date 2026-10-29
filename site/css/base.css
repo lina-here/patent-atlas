@@ -717,10 +717,18 @@ input {
   font-size: var(--size-small);
   color: var(--muted);
 }
+/* reference lines (code lists) stay on the page and in the embed; the wallboard gives their room to the chart */
+.board .chart-footnote--reference,
+.focus-layout .chart-footnote--reference { display: none; }
+/* wallboard: the lines around a chart are tight, so a card with notes still leaves the chart its height */
+.board .chart-note,
+.focus-layout .chart-note { margin-bottom: var(--space-2); }
+.board .chart-footnote,
+.focus-layout .chart-footnote { margin-top: var(--space-1); }
 
 /* Wallboard focus (main.ts adds .focus-layout for a rotation view that shows one card): the frame is tightened so the card
    and the chart drawn to the height left (overview.ts fitToRoom) fit the viewport without scrolling. */
-.focus-layout .site-header { padding-block: var(--space-3); }
+.focus-layout .site-header { padding-block: var(--space-2); }
 .focus-layout .page { padding-block: var(--space-2); }
 .focus-layout .site-footer { padding-block: var(--space-2); }
 .focus-layout .site-footer .disclaimer { max-width: none; margin-top: var(--space-1); }

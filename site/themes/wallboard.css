@@ -104,7 +104,8 @@
   --treemap-residual: #2c4a5f;
   /* treemap continent outline: kept thin so it never hides a small rectangle's fill (a stroke covers half its width on each side) */
   --treemap-band-width: 2px;
-  --treemap-key-number-size: 0.85em;
+  /* full chart text size: the wallboard minimum text size (config wallboard.minTextPx) covers the key numbers too */
+  --treemap-key-number-size: 1em;
   --map-bin-1: #2b5166;
   --map-bin-2: #2d6474;
   --map-bin-3: #2f7a86;
@@ -149,7 +150,11 @@
 }
 
 /* One card alone (rotation focus view): type also follows the screen height, so the card fits without scrolling */
-:root.focus-layout { --size-base: clamp(18px, min(1.35vw, 1.9vh), 28px); }
+:root.focus-layout {
+  --size-base: clamp(18px, min(1.35vw, 1.9vh), 28px);
+  --card-pad: 0.6rem;
+  --leading-body: 1.3;
+}
 
 /* Conference wallboard (?view=wallboard, html.board-mode): every size follows the screen height, so a slide that fits one
    16:9 TV fits them all; at 1080 px high text, slide label and fine print meet config wallboard.minTextPx, minTitlePx, minFinePrintPx */
@@ -168,5 +173,6 @@
   --board-dialog-width: 40rem;
   --board-checkbox-size: 1em;
   --map-max-height: none;
-  --card-pad: 1rem;
+  --card-pad: 0.6rem;
+  --leading-body: 1.3;
 }

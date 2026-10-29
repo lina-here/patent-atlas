@@ -631,6 +631,13 @@ test("an invalid ?rotate= on the board: a notice, the configured interval", asyn
   await at(page, 2, slides.length);
 });
 
+test("config: treemap and share-shift are wallboard slides; the dashboard carousel does not rotate them", () => {
+  for (const id of ["treemap", "share-shift"]) {
+    expect(slides.find((slide) => slide.id === id)?.params, id).toBe(`chart=${id}`);
+    expect(config.dashboard.slides, id).not.toContain(id);
+  }
+});
+
 const TV_SIZES = [
   { width: 1920, height: 1080, deviceScaleFactor: 1 },
   { width: 1280, height: 720, deviceScaleFactor: 1 },
@@ -673,6 +680,41 @@ for (const size of TV_SIZES) {
     });
   });
 }
+
+// A slide short of room: the treemap plot gives way (labels drop where they no longer fit, the key and its numbers stay), the
+// share-shift bars squeeze toward the text's own height; every rectangle and bar is still drawn.
+test.describe("treemap and share-shift slides squeeze, never lose a mark", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+  const overview = readJson("site/data/overview.json");
+
+  test("treemap: every rectangle, the key and its numbers stay; the plot is shorter than its natural size", async ({ page }) => {
+    await openBoard(page, "&slides=treemap", "treemap");
+    await page.clock.runFor(RESIZE_SETTLE_MS * 2);
+    const drawn = await page.locator('.board-slot[data-slide="treemap"] svg.treemap-chart').evaluate((svg) => ({
+      rects: svg.querySelectorAll("rect.treemap-rect").length,
+      key: [...svg.querySelectorAll("g.treemap-key-item")].map((item) => item.getAttribute("data-continent")),
+      numbers: svg.querySelectorAll("text.treemap-key-number").length,
+      height: svg.getBoundingClientRect().height,
+      width: svg.getBoundingClientRect().width,
+    }));
+    const continents = overview.treemap.continents.filter((continent: any) => continent.countries.length > 0 || continent.other);
+    expect(drawn.rects).toBeGreaterThan(continents.length);
+    expect(drawn.key).toEqual([...continents.map((continent: any) => continent.id), "residual"]);
+    expect(drawn.numbers).toBe(continents.length);
+    expect(drawn.height).toBeLessThan(drawn.width / 2);
+  });
+
+  test("share-shift: one bar per origin, its step at least the text's own height", async ({ page }) => {
+    await openBoard(page, "&slides=share-shift", "share-shift");
+    await page.clock.runFor(RESIZE_SETTLE_MS * 2);
+    const drawn = await page.locator('.board-slot[data-slide="share-shift"] svg').first().evaluate((svg) => {
+      const bars = [...svg.querySelectorAll('g[aria-label="bar"] rect')].map((rect) => rect.getBoundingClientRect());
+      return { count: bars.length, step: bars[1].top - bars[0].top, font: parseFloat(getComputedStyle(svg).fontSize) };
+    });
+    expect(drawn.count).toBe(overview.share_shift.rows.filter((row: any) => row.change_pp !== null).length);
+    expect(drawn.step).toBeGreaterThanOrEqual(drawn.font - 0.5);
+  });
+});
 
 // ---- Slide picker, help, readability, entry (Task 4) ----
 

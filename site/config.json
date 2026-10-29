@@ -28,6 +28,8 @@
       { "id": "fastest-growers", "label": "Fastest growers", "params": "chart=fastest-growers" },
       { "id": "rank-race", "label": "Rank race", "params": "chart=rank-race" },
       { "id": "continent-share", "label": "Share by continent", "params": "chart=continent-share" },
+      { "id": "treemap", "label": "Who files the world's patents", "params": "chart=treemap" },
+      { "id": "share-shift", "label": "Who gained and lost ground", "params": "chart=share-shift" },
       { "id": "size-growth", "label": "Size and growth", "params": "chart=size-growth" },
       { "id": "pct-monthly", "label": "PCT filings by month", "params": "chart=pct-monthly" },
       { "id": "map-origin", "label": "World map: applications by origin", "params": "chart=world-map&metric=origin_apps" },

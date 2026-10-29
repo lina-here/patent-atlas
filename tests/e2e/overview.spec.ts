@@ -9,7 +9,7 @@ const overview = JSON.parse(readFileSync("site/data/overview.json", "utf8"));
 const groupsFile = JSON.parse(readFileSync("site/data/groups.json", "utf8"));
 
 const OVERVIEW_CHARTS = ["world-map", "world-trend", "top-origins", "fastest-growers", "pct-world-trend", "rank-race", "continent-share",
-  "size-growth", "pct-monthly", "treemap", "share-shift"];
+  "treemap", "share-shift", "size-growth", "pct-monthly"];
 /** Overview cards that count applications by origin: each carries the pre-ORIGIN_ABROAD_FROM note. */
 const ORIGIN_CARDS = ["world-map", "top-origins", "fastest-growers", "rank-race", "continent-share", "size-growth", "treemap", "share-shift"];
 
@@ -51,6 +51,16 @@ test("overview shows the world chart cards (map first), each with an SVG chart a
     await expect(card.locator(".source-line")).toContainText(manifest.retrieved);
   }
   expect(errors).toEqual([]);
+});
+
+test("overview shows treemap and share-shift after continent-share", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".chart-card").last()).toHaveAttribute("data-chart", "pct-monthly");
+  const order = await page.locator("#charts .chart-card").evaluateAll((cards) => cards.map((card) => card.getAttribute("data-chart")));
+  const at = order.indexOf("continent-share");
+  expect(at).toBeGreaterThan(-1);
+  expect(order.slice(at, at + 3)).toEqual(["continent-share", "treemap", "share-shift"]);
+  await expect(page.locator('.chart-card[data-chart="treemap"]')).toHaveClass(/chart-card--wide/);
 });
 
 test("show figures reveals a table with the latest year", async ({ page }) => {

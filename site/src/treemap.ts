@@ -9,7 +9,7 @@ import { formatCount } from "./dom";
 import { fixedHalfAway } from "./format";
 import { nullReasonText } from "./groupText";
 import { originAbroadNote } from "./methods";
-import { FALLBACK_WIDTH, minChartHeight, readTheme, textWidth, type ChartTheme } from "./charts";
+import { FALLBACK_WIDTH, readTheme, textWidth, type ChartTheme } from "./charts";
 import { hatchDefs } from "./overviewCharts";
 
 export const TREEMAP_CARD_ID = "treemap";
@@ -28,6 +28,7 @@ const PAD_X_EM = 0.4;
 const PAD_Y_EM = 0.3;
 const TEXT_HEIGHT_EM = 1.25;
 const KEY_ROW_EM = 1.7;
+const MIN_PLOT_EM = 4;
 const KEY_SWATCH_EM = 1.3;
 /** A continent's number in its key swatch and, set tight, in its largest rectangle (a digit needs only its cap height); the
  * fit ratios are exposed as data attributes on the svg (`data-number-*`) for the tests. The digit's size in the key is CSS
@@ -187,7 +188,6 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
   const width = opts.width > 0 ? opts.width : FALLBACK_WIDTH;
   const decimals = opts.decimals;
   const natural = Math.max(theme.height * MIN_HEIGHT_FACTOR, width * HEIGHT_PER_WIDTH);
-  const total = opts.height === undefined ? natural : Math.max(minChartHeight(), Math.min(opts.height, natural));
 
   const hatchId = `${opts.idPrefix ?? ""}${TREEMAP_HATCH_ID}`;
   const hatchFill = `url(#${hatchId})`;
@@ -203,7 +203,10 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
   ];
   const key = keyGroup(keyItems, theme, width);
   const keyGap = theme.fontSize * 0.8;
-  const plotHeight = Math.max(theme.fontSize * 4, total - key.height - keyGap);
+  // a fit may squeeze the plot to its least (labels drop where they no longer fit; the key and its numbers stay)
+  const least = key.height + keyGap + theme.fontSize * MIN_PLOT_EM;
+  const total = opts.height === undefined ? natural : Math.max(least, Math.min(opts.height, natural));
+  const plotHeight = Math.max(theme.fontSize * MIN_PLOT_EM, total - key.height - keyGap);
 
   const root = hierarchy<TreeNode>(tree, (node) => node.children)
     .sum((node) => node.value ?? 0)
@@ -336,6 +339,7 @@ export function treemapCard(overview: Overview, idPrefix = ""): CardBuilder {
         note: `Each rectangle's area is the patent applications filed by applicants from that origin in ${block.year}, grouped by continent ` +
           `(outlined, named in the key); labels give the share of the ${denominator}.`,
         draw: (width, height) => treemapChart(block, { width, height, decimals, idPrefix }),
+        minHeight: (width) => Number(treemapChart(block, { width, height: 0, decimals, idPrefix }).getAttribute("height")),
         table: {
           headers: ["Continent", "Origin", "Applications", `Share of ${denominator}`],
           rows: figuresRows(block, decimals),
@@ -344,7 +348,6 @@ export function treemapCard(overview: Overview, idPrefix = ""): CardBuilder {
         footnotes: [
           `Origins under ${fold === undefined ? "the fold share" : `${fold}%`} of the ${denominator} are folded into “Other <continent>”; ` +
             "a continent with no larger origin is one rectangle named for the continent. The codes folded are listed below.",
-          ...foldedNotes(block.continents),
           `The hatched rectangle (“${block.residual.label}”) is the part of the ${denominator} that no continent accounts for` +
             `${unattributed.length > 0 ? `; it includes ${unattributed.join(", ")}` : ""}.`,
           ...(block.no_value.length > 0
@@ -352,6 +355,7 @@ export function treemapCard(overview: Overview, idPrefix = ""): CardBuilder {
             : []),
           originAbroadNote(overview),
         ],
+        referenceNotes: foldedNotes(block.continents),
         source,
       };
     },
