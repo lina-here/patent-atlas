@@ -198,126 +198,166 @@
   "successor_of": {
     "AM": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "AZ": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1995-12-25"
+      "to": "1991-12-25"
     },
     "BY": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "CZ": {
       "code": "CS",
+      "from": null,
       "name": "Czechoslovakia",
-      "own_date": "1993-01-01"
+      "to": "1992-12-31"
     },
     "EE": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1994-08-24"
+      "to": "1991-12-25"
     },
     "GE": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "KG": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "KZ": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "LT": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1994-07-05"
+      "to": "1991-12-25"
     },
     "LV": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1993-09-07"
+      "to": "1991-12-25"
     },
     "MD": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "ME": {
       "code": "YU",
+      "from": null,
       "name": "Yugoslavia (Serbia and Montenegro from 2003)",
-      "own_date": "2006-06-03"
+      "to": "2006-06-03"
     },
     "RS": {
       "code": "YU",
+      "from": null,
       "name": "Yugoslavia (Serbia and Montenegro from 2003)",
-      "own_date": "1997-02-01"
+      "to": "2006-06-03"
     },
     "SK": {
       "code": "CS",
+      "from": null,
       "name": "Czechoslovakia",
-      "own_date": "1993-01-01"
+      "to": "1992-12-31"
     },
     "SS": {
       "code": "SD",
+      "from": "1984-04-16",
       "name": "Sudan",
-      "own_date": "2011-07-09"
+      "to": "2011-07-08"
     },
     "TJ": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "TM": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "UA": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     },
     "UZ": {
       "code": "SU",
+      "from": "1978-03-29",
       "name": "Soviet Union",
-      "own_date": "1991-12-25"
+      "to": "1991-12-25"
     }
   },
   "territories": {
-    "BQ": {
-      "from": "1979-07-10",
-      "state": "Netherlands",
-      "via": "NL"
-    },
-    "CW": {
-      "from": "1979-07-10",
-      "state": "Netherlands",
-      "via": "NL"
-    },
-    "GG": {
-      "from": "2021-03-23",
-      "state": "United Kingdom",
-      "via": "GB"
-    },
-    "HK": {
-      "from": "1997-07-01",
-      "state": "China",
-      "via": "CN"
-    },
-    "SX": {
-      "from": "1979-07-10",
-      "state": "Netherlands",
-      "via": "NL"
-    }
+    "BQ": [
+      {
+        "from": "1979-07-10",
+        "state": "Netherlands",
+        "to": null,
+        "via": "NL"
+      }
+    ],
+    "CW": [
+      {
+        "from": "1979-07-10",
+        "state": "Netherlands",
+        "to": null,
+        "via": "NL"
+      }
+    ],
+    "GG": [
+      {
+        "from": "2021-03-23",
+        "state": "United Kingdom",
+        "to": null,
+        "via": "GB"
+      }
+    ],
+    "HK": [
+      {
+        "from": "1981-04-15",
+        "state": "United Kingdom",
+        "to": "1997-06-30",
+        "via": "GB"
+      },
+      {
+        "from": "1997-07-01",
+        "state": "China",
+        "to": null,
+        "via": "CN"
+      }
+    ],
+    "SX": [
+      {
+        "from": "1979-07-10",
+        "state": "Netherlands",
+        "to": null,
+        "via": "NL"
+      }
+    ]
   },
   "unmatched": [],
   "values": {
@@ -846,9 +886,9 @@
       "1989": null,
       "1990": null,
       "1991": null,
-      "1992": null,
-      "1993": null,
-      "1994": null,
+      "1992": false,
+      "1993": false,
+      "1994": false,
       "1995": true,
       "1996": true,
       "1997": true,
@@ -3039,8 +3079,8 @@
       "1989": null,
       "1990": null,
       "1991": null,
-      "1992": null,
-      "1993": null,
+      "1992": false,
+      "1993": false,
       "1994": true,
       "1995": true,
       "1996": true,
@@ -4150,22 +4190,22 @@
       "1978": false,
       "1979": false,
       "1980": false,
-      "1981": false,
-      "1982": false,
-      "1983": false,
-      "1984": false,
-      "1985": false,
-      "1986": false,
-      "1987": false,
-      "1988": false,
-      "1989": false,
-      "1990": false,
-      "1991": false,
-      "1992": false,
-      "1993": false,
-      "1994": false,
-      "1995": false,
-      "1996": false,
+      "1981": true,
+      "1982": true,
+      "1983": true,
+      "1984": true,
+      "1985": true,
+      "1986": true,
+      "1987": true,
+      "1988": true,
+      "1989": true,
+      "1990": true,
+      "1991": true,
+      "1992": true,
+      "1993": true,
+      "1994": true,
+      "1995": true,
+      "1996": true,
       "1997": true,
       "1998": true,
       "1999": true,
@@ -5844,8 +5884,8 @@
       "1989": null,
       "1990": null,
       "1991": null,
-      "1992": null,
-      "1993": null,
+      "1992": false,
+      "1993": false,
       "1994": true,
       "1995": true,
       "1996": true,
@@ -5946,7 +5986,7 @@
       "1989": null,
       "1990": null,
       "1991": null,
-      "1992": null,
+      "1992": false,
       "1993": true,
       "1994": true,
       "1995": true,
@@ -8941,12 +8981,12 @@
       "2026": false
     },
     "SS": {
-      "1978": null,
-      "1979": null,
-      "1980": null,
-      "1981": null,
-      "1982": null,
-      "1983": null,
+      "1978": false,
+      "1979": false,
+      "1980": false,
+      "1981": false,
+      "1982": false,
+      "1983": false,
       "1984": null,
       "1985": null,
       "1986": null,
@@ -8974,7 +9014,7 @@
       "2008": null,
       "2009": null,
       "2010": null,
-      "2011": false,
+      "2011": null,
       "2012": false,
       "2013": false,
       "2014": false,
