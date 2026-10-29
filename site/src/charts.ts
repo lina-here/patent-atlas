@@ -12,7 +12,7 @@ export type BarRow = { label: string; value: number };
 /** Drawing width when the caller cannot measure its container (e.g. not yet in the page). */
 export const FALLBACK_WIDTH = 640;
 /** Layout ratio: share of the chart width the bar labels may take before they are cut with an ellipsis. */
-const MAX_LABEL_SHARE = 0.42;
+export const MAX_LABEL_SHARE = 0.42;
 /** Only when the theme stylesheet failed to load (no tokens at all): keeps charts drawable and legible. */
 const UNTHEMED = { fontSize: 12, areaOpacity: 0.1, ringOpacity: 0.5, barPadding: 0.3, yTicks: 5 };
 
@@ -251,8 +251,10 @@ export function lineChart(data: LinePoint[],
   return svg;
 }
 
-/** Horizontal bars in the given order (ranked lists), value printed at each bar end. */
-export function barChart(rows: BarRow[], opts: { width?: number; height?: number; format?: (value: number) => string } = {}): SVGElement {
+/** Horizontal bars in the given order (ranked lists), value printed at each bar end; `fill` = a bar's colour (default: the
+ * theme's first chart colour). */
+export function barChart(rows: BarRow[], opts: { width?: number; height?: number; format?: (value: number) => string;
+  fill?: (row: BarRow) => string } = {}): SVGElement {
   const theme = readTheme();
   const format = opts.format ?? formatCount;
   const width = opts.width ?? FALLBACK_WIDTH;
@@ -283,7 +285,7 @@ export function barChart(rows: BarRow[], opts: { width?: number; height?: number
         ...cut,
       }),
       barX(rows, {
-        x: "value", y: "label", fill: theme.series[0],
+        x: "value", y: "label", fill: opts.fill ?? theme.series[0],
         title: (row: BarRow) => `${row.label}: ${format(row.value)}`,
       }),
       ruleX([0], { stroke: theme.muted }),

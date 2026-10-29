@@ -9,9 +9,9 @@ const overview = JSON.parse(readFileSync("site/data/overview.json", "utf8"));
 const groupsFile = JSON.parse(readFileSync("site/data/groups.json", "utf8"));
 
 const OVERVIEW_CHARTS = ["world-map", "world-trend", "top-origins", "fastest-growers", "pct-world-trend", "rank-race", "continent-share",
-  "size-growth", "pct-monthly", "treemap"];
+  "size-growth", "pct-monthly", "treemap", "share-shift"];
 /** Overview cards that count applications by origin: each carries the pre-ORIGIN_ABROAD_FROM note. */
-const ORIGIN_CARDS = ["world-map", "top-origins", "fastest-growers", "rank-race", "continent-share", "size-growth", "treemap"];
+const ORIGIN_CARDS = ["world-map", "top-origins", "fastest-growers", "rank-race", "continent-share", "size-growth", "treemap", "share-shift"];
 
 /** World years shown (<= world_last_year) and those among them with a null value. */
 function worldYears(world: "world_office" | "pct_world"): { shown: string[]; nulls: string[] } {
@@ -915,7 +915,8 @@ test("overview without series_breaks (data before the refresh that adds it): no 
   await page.goto("/");
   await expect(page.locator('.chart-card[data-chart="world-trend"] svg').first()).toBeVisible();
   await expect(page.locator('.chart-card[data-chart="continent-share"] svg').first()).toBeVisible();
-  await expect(page.getByText("Series break")).toHaveCount(0);
+  // the share-shift card's dagger line says "series break" in lower case: only the notes ("Series break <year>:") are meant
+  await expect(page.getByText(/Series break \d{4}:/)).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

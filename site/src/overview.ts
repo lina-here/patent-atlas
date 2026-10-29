@@ -11,6 +11,7 @@ import { fixedPercent } from "./format";
 import { nullReasonText } from "./groupText";
 import { mapCard, mapOptions, type MapContext } from "./map";
 import { withParams, type Params } from "./params";
+import { shareShiftCard } from "./shareShift";
 import { treemapCard } from "./treemap";
 import { PCT_LATE_FILINGS, WORLD_TITLES, originAbroadNote, seriesBreakNotes } from "./methods";
 
@@ -456,6 +457,7 @@ export function worldCards(overview: Overview, atlas: Atlas | null, ctx: MapCont
     { id: "size-growth", build: sizeGrowth(overview, groups), problem: continentNamesProblem(overview, groups, "size-growth") },
     { id: "pct-monthly", build: pctMonthly(overview) },
     treemapCard(overview),
+    shareShiftCard(overview),
   ];
 }
 
