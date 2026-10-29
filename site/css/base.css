@@ -593,7 +593,7 @@ input {
   gap: var(--space-2) var(--space-5);
 }
 .footer-byline strong { color: var(--ink); }
-.footer-links { display: flex; gap: var(--space-4); }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
 .site-footer .disclaimer { max-width: var(--measure-wide); margin: var(--space-2) 0 0; }
 
 /* ---- Embed page (embed.html: a chart card alone in a host's iframe) ------------------------------ */
@@ -603,6 +603,32 @@ input {
 [data-page="embed"] .site-footer { padding-block: var(--space-2) var(--space-3); border-top: 0; }
 .embed-problem-title { font-weight: var(--weight-strong); }
 
+/* ---- Dashboard (dashboard.ts: ?view=dashboard) --------------------------------------------------- */
+
+/* Rows of tiles, one card filling each tile, every chart drawn at its tile's width (an open panel grows the tile). Key figures
+   sit in two pairs: four in a row, two by two, or (phone) one column; never three and one. */
+.dashboard { display: grid; gap: var(--space-5); }
+.dashboard-row,
+.dashboard-pair {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min)), 1fr));
+}
+.dashboard-row.dashboard-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(2 * var(--dashboard-key-min) + var(--space-5))), 1fr)); }
+.dashboard-pair { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--dashboard-key-min)), 1fr)); }
+.dashboard-tile { display: grid; min-width: 0; }
+.tiles.key-figures { grid-template-columns: minmax(0, 1fr); }
+.key-figures .tile-value { overflow-wrap: anywhere; }
+.tile-reason { margin: var(--space-1) 0 0; font-size: var(--size-small); color: var(--muted); }
+/* Carousel stage: a fixed height, the slide's chart fitted to it (overview.ts fitToRoom). While a tool panel or the
+   sources-and-notes details is open the stage grows to its content (the fit finds no overflow); closed, the height is back. */
+.dashboard-stage { height: var(--dashboard-stage-height); overflow: hidden; min-width: 0; }
+.dashboard-stage > .chart-grid,
+.dashboard-stage .chart-card { height: 100%; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) { height: auto; overflow: visible; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) > .chart-grid,
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .chart-card { height: auto; }
+
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
 @media (max-width: 720px) {
@@ -611,6 +637,9 @@ input {
   .facts { grid-template-columns: minmax(0, 1fr); }
   .facts dd { margin-bottom: var(--space-2); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-row,
+  .dashboard-row.dashboard-keys,
+  .dashboard-pair { grid-template-columns: minmax(0, 1fr); }
   .data-table th,
   .data-table td { padding-right: var(--space-2); overflow-wrap: anywhere; hyphens: auto; }
 }
@@ -644,7 +673,7 @@ input {
 /* Treemap (treemap.ts): rectangles are separated by strokes only (area = applications); the not-attributable rest is hatched
    (own pattern, the `--map-hatch*` tokens) with a solid plate under its label; each continent is outlined. */
 .treemap-rect { stroke: var(--surface); stroke-width: var(--map-edge-width); vector-effect: non-scaling-stroke; }
-.treemap-residual { fill: url(#treemap-hatch); stroke: var(--map-edge); }
+.treemap-residual { stroke: var(--map-edge); } /* fill: its own pattern, set per treemap as an attribute (treemap.ts) */
 .treemap-plate { fill: var(--treemap-residual); pointer-events: none; }
 .treemap-band { fill: none; stroke: var(--ink); stroke-width: var(--treemap-band-width); vector-effect: non-scaling-stroke; pointer-events: none; }
 .treemap-label, .treemap-continent-label, .treemap-continent-number { pointer-events: none; }

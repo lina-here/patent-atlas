@@ -344,10 +344,10 @@ test("navigation links carry only the theme; the picker's carry the theme and th
   await expect(page.locator(".site-nav a").first()).toBeVisible(); // evaluateAll does not wait: the header is drawn by script
   const hrefs = await page.locator(".brand, .site-nav a, .footer-links a").evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
   expect(hrefs.length).toBeGreaterThanOrEqual(5);
-  // the "Data versions" link names its page by `view`, the "Conference wallboard" link too; no figure state travels with any link
+  // the "Data versions", "Conference wallboard" and "Dashboard" links name their page by `view`; no figure state travels with any link
   for (const href of hrefs) {
     const keys = [...new URL(href, "http://x/").searchParams.keys()];
-    expect(keys, href).toEqual(/view=(releases|wallboard)/.test(href) ? ["theme", "view"] : ["theme"]);
+    expect(keys, href).toEqual(/view=(releases|wallboard|dashboard)/.test(href) ? ["theme", "view"] : ["theme"]);
   }
   await page.locator(".picker input").fill("Switzerland");
   const picked = await page.locator(".picker-option").first().getAttribute("data-href");

@@ -3,7 +3,7 @@
 // "Embed" tools. Compact mode (embed page): title, chart, source line and a link to the full page.
 import { isListSource, type CardSource, type Config, type Manifest, type SourceBlock } from "./data";
 import { h, formatCount } from "./dom";
-import { addressTheme, linkParams, shareUrl, withParams, type Params } from "./params";
+import { PAGE_PARAMS, addressTheme, linkParams, shareUrl, withParams, type Params } from "./params";
 import { citeText, listSourceLine, sourceLine } from "./provenance";
 
 /** A cell with `href` is a link (the figures table must reach pages by keyboard); `target` opens a new tab (embed). */
@@ -31,10 +31,17 @@ export type ChartSpec = {
   /** Credits of data behind the figures other than WIPO's (World Bank WDI): shown like `credits` and named in the
    * citation (final review I1). */
   dataCredits?: string[];
+  /** The overview chart a dashboard tile links to (`CardContext.linkOverview`) when it is not the card itself (key figures). */
+  overviewChart?: string;
 };
 
-/** `openNotes`: the card's sources-and-notes `<details>` starts open (the wallboard focus view, which shows the footnotes). */
-export type CardContext = { cfg: Config; manifest: Manifest; params: Params; compact?: boolean; openNotes?: boolean };
+/** `openNotes`: the card's sources-and-notes `<details>` starts open (the wallboard focus view, which shows the footnotes).
+ * `idPrefix`: put before every id the card makes (card, title, tool panels), so a chart shown twice on one page (dashboard
+ * carousel) keeps its ids unique; `data-chart` stays the chart id. `linkOverview`: a full card that links to its chart on the
+ * overview, same tab (dashboard). */
+export type CardContext = {
+  cfg: Config; manifest: Manifest; params: Params; compact?: boolean; openNotes?: boolean; idPrefix?: string; linkOverview?: boolean;
+};
 
 /** Summary of the one `<details>` per card that holds footnotes and "To reproduce" lines (spec: Less clutter around charts). */
 export const CARD_DETAILS_SUMMARY = "Sources, notes and how to reproduce";
@@ -141,13 +148,14 @@ function embedPanel(spec: ChartSpec, ctx: CardContext): HTMLElement {
 
 /** Toolbar buttons that each open one panel (one open at a time). */
 function tools(spec: ChartSpec, ctx: CardContext): HTMLElement {
+  const id = `${ctx.idPrefix ?? ""}${spec.id}`;
   const panels = [
     { name: "figures", show: "Show figures", hide: "Hide figures", panel: h("div", { class: "chart-panel chart-figures" }, ...figuresTable(spec)) },
     { name: "cite", show: "Cite this", hide: "Cite this", panel: citePanel(spec, ctx) },
     { name: "embed", show: "Embed", hide: "Embed", panel: embedPanel(spec, ctx) },
   ];
   const buttons = panels.map(({ name, show, panel }) => {
-    panel.id = `${spec.id}-${name}`;
+    panel.id = `${id}-${name}`;
     panel.hidden = true;
     return h("button", { type: "button", class: "tool-button", "aria-expanded": "false", "aria-controls": panel.id }, show);
   });
@@ -212,18 +220,24 @@ export function replaceChart(el: HTMLElement, svg: SVGElement): void {
 export const CONTINENT_NAMES_PROBLEM = "The continent names could not be loaded.";
 
 /** A card that cannot show its chart: the title and the reason in the card, never a silent gap in the grid. */
-export function renderProblemCard(el: HTMLElement, id: string, title: string, message: string): void {
-  const titleId = `${id}-title`;
-  el.id = id;
+export function renderProblemCard(el: HTMLElement, id: string, title: string, message: string, idPrefix = ""): void {
+  const titleId = `${idPrefix}${id}-title`;
+  el.id = `${idPrefix}${id}`;
   el.dataset.chart = id;
   el.classList.add("card", "chart-card", "chart-card--problem");
   el.setAttribute("aria-labelledby", titleId);
   el.replaceChildren(h("h2", { id: titleId }, title), h("p", { class: "notice card-problem", role: "alert" }, message));
 }
 
+/** Link to `chart` on the overview: the theme kept (none when it is the default), nothing else of this page's address. */
+function overviewLink(chart: string, ctx: CardContext): string {
+  const theme = ctx.params.theme !== ctx.cfg.defaultTheme ? ctx.params.theme : undefined;
+  return withParams({ ...PAGE_PARAMS, theme, chart }, "./");
+}
+
 export function renderChartCard(el: HTMLElement, spec: ChartSpec, ctx: CardContext): void {
-  const titleId = `${spec.id}-title`;
-  el.id = spec.id;
+  const titleId = `${ctx.idPrefix ?? ""}${spec.id}-title`;
+  el.id = `${ctx.idPrefix ?? ""}${spec.id}`;
   el.dataset.chart = spec.id;
   el.classList.add("card", "chart-card");
   el.setAttribute("aria-labelledby", titleId);
@@ -254,6 +268,9 @@ export function renderChartCard(el: HTMLElement, spec: ChartSpec, ctx: CardConte
         h("summary", {}, CARD_DETAILS_SUMMARY), lines));
     }
     parts.push(tools(spec, ctx));
+    if (ctx.linkOverview) {
+      parts.push(h("p", { class: "chart-link" }, h("a", { href: overviewLink(spec.overviewChart ?? spec.id, ctx) }, "Full chart on the overview")));
+    }
   }
   el.replaceChildren(...parts);
 }

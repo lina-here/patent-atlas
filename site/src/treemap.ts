@@ -13,7 +13,9 @@ import { FALLBACK_WIDTH, minChartHeight, readTheme, textWidth, type ChartTheme }
 import { hatchDefs } from "./overviewCharts";
 
 export const TREEMAP_CARD_ID = "treemap";
-/** Pattern id of the hatched not-attributable rectangle (defined in the treemap's own svg; base.css `.treemap-residual`). */
+/** Pattern id of the hatched not-attributable rectangle, after the card's id prefix: each treemap defines its own pattern in
+ * its own svg and its rest and key swatch reference it by a `fill` attribute (a pattern inside a hidden slide does not paint,
+ * so no treemap may reference another's). */
 export const TREEMAP_HATCH_ID = "treemap-hatch";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -151,7 +153,7 @@ function buildTree(block: Treemap, decimals: number): TreeNode {
 
 /** A key row under the plot: swatch + name per continent with a rectangle (the order of the data) and the rest; wrapped to
  * `width`. Returns its group and height. */
-function keyGroup(items: { id: string; label: string; number?: number; fill?: string; hatched?: boolean }[], theme: ChartTheme, width: number): { group: SVGGElement; height: number } {
+function keyGroup(items: { id: string; label: string; number?: number; fill?: string }[], theme: ChartTheme, width: number): { group: SVGGElement; height: number } {
   const row = theme.fontSize * KEY_ROW_EM;
   const swatch = theme.fontSize * KEY_SWATCH_EM;
   const gap = theme.fontSize * 0.5;
@@ -167,7 +169,7 @@ function keyGroup(items: { id: string; label: string; number?: number; fill?: st
     const middle = (line + 0.5) * row;
     group.append(el("g", { class: "treemap-key-item", "data-continent": item.id,
       ...(item.number !== undefined ? { "data-digit-width": textWidth(String(item.number), theme) } : {}) },
-      el("rect", { class: `treemap-swatch${item.hatched ? " treemap-residual" : ""}`, x, y: middle - swatch / 2, width: swatch, height: swatch,
+      el("rect", { class: `treemap-swatch${item.id === "residual" ? " treemap-residual" : ""}`, x, y: middle - swatch / 2, width: swatch, height: swatch,
         ...(item.fill ? { fill: item.fill } : {}) }),
       ...(item.number !== undefined && item.fill
         ? [Object.assign(el("text", { class: "treemap-key-number", x: x + swatch / 2, y: middle, "text-anchor": "middle", "dominant-baseline": "central",
@@ -180,13 +182,15 @@ function keyGroup(items: { id: string; label: string; number?: number; fill?: st
 }
 
 /** Squarified treemap of `block` in a `width` x `height` svg (height = plot and key together). */
-export function treemapChart(block: Treemap, opts: { width: number; height?: number; decimals: number }): SVGElement {
+export function treemapChart(block: Treemap, opts: { width: number; height?: number; decimals: number; idPrefix?: string }): SVGElement {
   const theme = readTheme();
   const width = opts.width > 0 ? opts.width : FALLBACK_WIDTH;
   const decimals = opts.decimals;
   const natural = Math.max(theme.height * MIN_HEIGHT_FACTOR, width * HEIGHT_PER_WIDTH);
   const total = opts.height === undefined ? natural : Math.max(minChartHeight(), Math.min(opts.height, natural));
 
+  const hatchId = `${opts.idPrefix ?? ""}${TREEMAP_HATCH_ID}`;
+  const hatchFill = `url(#${hatchId})`;
   const tree = buildTree(block, decimals);
   // continents with a rectangle, numbered 1..n in the order of the data (the key and each continent's largest rectangle carry the number)
   const drawn = (tree.children ?? []).map((band) => band.continent ?? "").filter((id) => id !== "residual" && id !== "");
@@ -195,7 +199,7 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
   const labelFor = (id: string): string => block.continents.find((continent) => continent.id === id)?.label ?? id;
   const keyItems = [
     ...drawn.map((id) => ({ id, label: labelFor(id), number: numberOf(id), fill: theme.continent(id, block.continents.findIndex((continent) => continent.id === id)) })),
-    ...(residualShown && block.residual ? [{ id: "residual", label: block.residual.label, hatched: true }] : []),
+    ...(residualShown && block.residual ? [{ id: "residual", label: block.residual.label, fill: hatchFill }] : []),
   ];
   const key = keyGroup(keyItems, theme, width);
   const keyGap = theme.fontSize * 0.8;
@@ -213,7 +217,7 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
   svg.dataset.numberCapEm = String(NUMBER_CAP_EM);
   svg.dataset.numberPadEm = String(NUMBER_PAD_EM);
   svg.dataset.textSlack = String(TEXT_SLACK);
-  svg.append(hatchDefs(TREEMAP_HATCH_ID));
+  svg.append(hatchDefs(hatchId));
   const plateColour = getComputedStyle(document.documentElement).getPropertyValue("--treemap-residual").trim() || theme.surface;
 
   const labels = el("g", { class: "treemap-labels" });
@@ -237,7 +241,7 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
       svg.append(el("rect", {
         class: `treemap-rect${residual ? " treemap-residual" : ""}`, x, y, width: w, height: h, "data-index": at, "data-kind": leaf.kind,
         "data-continent": leaf.continent, "data-code": leaf.code, "data-value": leaf.value,
-        ...(residual ? {} : { fill }),
+        fill: residual ? hatchFill : fill,
       }, Object.assign(el("title"), { textContent: leaf.title })));
       const colour = textOn(fill, theme);
       let taken = 0;
@@ -309,7 +313,7 @@ const NEGATIVE_REST = (year: number): string =>
 
 /** The treemap card; left out when the data has no `treemap` (older data), a message in its place when the year cannot be drawn
  * (a null reason, or a negative rest). */
-export function treemapCard(overview: Overview): CardBuilder {
+export function treemapCard(overview: Overview, idPrefix = ""): CardBuilder {
   const block = overview.treemap;
   const title = block ? `Who files the world's patents? Applications by origin, ${block.year}` : "";
   const negative = Boolean(block?.residual && block.residual.value !== null && block.residual.value < 0);
@@ -331,7 +335,7 @@ export function treemapCard(overview: Overview): CardBuilder {
         title,
         note: `Each rectangle's area is the patent applications filed by applicants from that origin in ${block.year}, grouped by continent ` +
           `(outlined, named in the key); labels give the share of the ${denominator}.`,
-        draw: (width, height) => treemapChart(block, { width, height, decimals }),
+        draw: (width, height) => treemapChart(block, { width, height, decimals, idPrefix }),
         table: {
           headers: ["Continent", "Origin", "Applications", `Share of ${denominator}`],
           rows: figuresRows(block, decimals),

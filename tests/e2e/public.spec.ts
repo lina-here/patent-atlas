@@ -9,7 +9,7 @@ const DISCLAIMER = /^export const DISCLAIMER =\s*"([^"]+)";/m.exec(provenance)![
 // Lina's wording, verbatim: the test holds its own copy so a change to the site text fails here
 const METHODS_LINE = "Built with the help of AI coding tools. No AI runs on this site or produces its figures; every figure comes from WIPO or the World Bank and is checked against WIPO's published values.";
 
-const PAGES = ["/", "/methods.html", "/about.html", "/?view=releases", "/embed.html?chart=world-trend", "/?view=wallboard"];
+const PAGES = ["/", "/methods.html", "/about.html", "/?view=releases", "/embed.html?chart=world-trend", "/?view=wallboard", "/?view=dashboard", "/embed.html?chart=treemap"];
 
 for (const path of PAGES) {
   test(`${path}: names the WIPO Statistics Database and carries WIPO's disclaimer; no download or raw-data link`, async ({ page }) => {

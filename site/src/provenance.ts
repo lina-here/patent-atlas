@@ -62,6 +62,7 @@ export function renderFooter(el: HTMLElement, cfg?: Config, params?: Params): vo
       h("nav", { class: "footer-links", "aria-label": "About this site" },
         h("a", { href: pageLink(cfg, params, "about.html") }, "About and citing"),
         h("a", { href: pageLink(cfg, params, "methods.html") }, "Methods and sources"),
+        h("a", { href: viewLink(cfg, params, "dashboard") }, "Dashboard"),
         h("a", { href: viewLink(cfg, params, "releases") }, "Data versions"),
         h("a", { href: viewLink(cfg, params, "wallboard") }, "Conference wallboard"),
       ),

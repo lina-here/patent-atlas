@@ -12,7 +12,7 @@ export type Params = {
 };
 
 /** Values of `?view=` (a named page of the overview family); index.html shows the overview for any other. */
-export const VIEWS = ["women-inventors", "releases", "wallboard"] as const;
+export const VIEWS = ["women-inventors", "releases", "wallboard", "dashboard"] as const;
 /** Keys that name a page of their own: they win over `view`. */
 const ENTITY_PAGE_KEYS = ["country", "office", "region", "continent"] as const;
 
@@ -45,9 +45,9 @@ export function pageLink(cfg: Config | undefined, params: Params | undefined, pa
   return withParams({ ...PAGE_PARAMS, theme }, page);
 }
 
-/** Link to a view of the full site (`?view=releases`, `?view=wallboard`): theme only, as `pageLink` (the wallboard draws in its
- * own theme). */
-export function viewLink(cfg: Config | undefined, params: Params | undefined, view: "releases" | "wallboard"): string {
+/** Link to a view of the full site (`?view=releases`, `?view=wallboard`, `?view=dashboard`): theme only, as `pageLink` (the
+ * wallboard draws in its own theme). */
+export function viewLink(cfg: Config | undefined, params: Params | undefined, view: "releases" | "wallboard" | "dashboard"): string {
   const theme = cfg && params && params.theme !== cfg.defaultTheme ? params.theme : undefined;
   return withParams({ ...PAGE_PARAMS, theme, view }, "./");
 }
@@ -93,6 +93,11 @@ export function readParams(search: string, cfg: Config): { params: Params; notic
     const seconds = WHOLE_NUMBER.test(rotate) ? Number(rotate) : NaN;
     if (isRotationSeconds(cfg, seconds)) params.rotate = String(seconds);
     else notices.push(`Invalid rotate: ${echoValue(rotate)} (whole seconds, at least ${cfg.rotation.minSeconds}): default interval used`);
+  } else if (rotate && params.view === "dashboard") {
+    // the carousel's start-playing interval (dashboard.ts): never office rotation, which would navigate away
+    const seconds = WHOLE_NUMBER.test(rotate) ? Number(rotate) : NaN;
+    if (isRotationSeconds(cfg, seconds)) params.rotate = String(seconds);
+    else notices.push(`Invalid rotate: ${echoValue(rotate)} (whole seconds, at least ${cfg.rotation.minSeconds}): the carousel stays paused`);
   } else if (rotate) {
     const seconds = WHOLE_NUMBER.test(rotate) ? Number(rotate) : NaN;
     if (cfg.rotation.views.length === 0) notices.push("Rotation has no views configured: no rotation");

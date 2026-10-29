@@ -61,6 +61,8 @@
   --toc-width: 10rem;
   --card-min: 22rem;
   --tile-min: 7rem;
+  --dashboard-key-min: 13rem;
+  --dashboard-stage-height: 36rem;
 
   --radius: 4px;
   --rule-width: 1px;

@@ -34,6 +34,7 @@
       { "id": "map-per-million", "label": "World map: per million people", "params": "chart=world-map&metric=per_million" }
     ]
   },
+  "dashboard": {"seconds": 20, "slides": ["world-trend", "pct-world-trend", "top-origins", "fastest-growers", "rank-race", "continent-share", "size-growth", "pct-monthly"]},
   "map": { "logBase": 10, "bins": 7, "ratio": { "logBase": 10, "bins": 5, "lowest": 0.1 },
     "share": { "women_any": { "step": 10, "bins": 6 }, "women_share": { "step": 5, "bins": 6 } } }
 }

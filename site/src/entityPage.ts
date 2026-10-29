@@ -123,7 +123,8 @@ function seriesCard(file: EntityFile, overview: Overview, series: SeriesId): Car
 type Tile = { label: string; value: string };
 type TileGroup = { series: SeriesId; year: number; tiles: Tile[]; source: SourceBlock };
 
-function percent(value: number | null | undefined, places: number, signed = false): string {
+/** A percent tile value: "–" when null; `signed` puts "+" before a gain. */
+export function percent(value: number | null | undefined, places: number, signed = false): string {
   if (value === null || value === undefined) return "–";
   return `${signed && value > 0 ? "+" : ""}${value.toFixed(places)}%`;
 }

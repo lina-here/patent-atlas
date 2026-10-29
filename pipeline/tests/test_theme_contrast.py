@@ -138,7 +138,11 @@ def test_treemap_residual_label_on_a_solid_plate(theme):
     """The rest's label sits on a solid --treemap-residual plate, so the hatch tokens never lie under text."""
     base = (ROOT / "site" / "css" / "base.css").read_text()
     assert re.search(r"\.treemap-plate \{[^}]*fill: var\(--treemap-residual\)", base)
-    assert re.search(r"\.treemap-residual \{[^}]*fill: url\(#treemap-hatch\)", base)
+    # the hatch fill is an attribute per treemap (its own pattern id, treemap.ts); a stylesheet fill would override it
+    assert re.search(r"\.treemap-residual \{[^}]*stroke: var\(--map-edge\)", base)
+    assert not re.search(r"\.treemap-residual \{[^}]*fill:", base)
+    treemap = (ROOT / "site" / "src" / "treemap.ts").read_text()
+    assert re.search(r"hatchFill = `url\(#\$\{hatchId\}\)`", treemap)
     assert "treemap-residual" in tokens(theme)
 
 

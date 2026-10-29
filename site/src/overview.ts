@@ -41,7 +41,7 @@ const RESIZE_SETTLE_MS = 150;
  * PCT sum). */
 const REPORTING: Record<WorldId, string> = { world_office: "offices", pct_world: "origins" };
 /** Series each world total sums (pipeline/worlds.py WORLD_SOURCES): the series its break notes look up. */
-const WORLD_SERIES: Record<WorldId, SeriesId> = { world_office: "office_apps", pct_world: "pct_origin" };
+export const WORLD_SERIES: Record<WorldId, SeriesId> = { world_office: "office_apps", pct_world: "pct_origin" };
 
 /** Years up to `lastYear`, ascending; later (provisional) years are left out, null stays null (gap). */
 function worldPoints(series: YearMap, lastYear: number): LinePoint[] {
@@ -420,7 +420,7 @@ export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: Car
     const shell = shells[index];
     const content = builder.build();
     if (!content) {
-      if (builder.problem) renderProblemCard(shell, builder.id, builder.problem.title, builder.problem.message);
+      if (builder.problem) renderProblemCard(shell, builder.id, builder.problem.title, builder.problem.message, ctx.idPrefix);
       else shell.remove();
       return;
     }
@@ -456,7 +456,7 @@ export function worldCards(overview: Overview, atlas: Atlas | null, ctx: MapCont
     { id: "continent-share", build: continentShare(overview, groups), problem: continentNamesProblem(overview, groups, "continent-share") },
     { id: "size-growth", build: sizeGrowth(overview, groups), problem: continentNamesProblem(overview, groups, "size-growth") },
     { id: "pct-monthly", build: pctMonthly(overview) },
-    treemapCard(overview),
+    treemapCard(overview, ctx.idPrefix),
     shareShiftCard(overview),
   ];
 }

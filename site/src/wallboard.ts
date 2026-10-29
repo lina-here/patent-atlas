@@ -160,7 +160,7 @@ export function boardFacts(cfg: Config): { seconds: number; slideIds: string[] }
 async function drawSlide(slot: HTMLElement, slide: BoardSlide, cfg: Config, manifest: Manifest): Promise<SlideResult> {
   try {
     const [entities, overview] = await Promise.all([loadJson<Entities>("data/entities.json"), loadJson<Overview>("data/overview.json")]);
-    return await renderSlide(slot, slide.params, { cfg, manifest, entities, overview }, true);
+    return await renderSlide(slot, slide.params, { cfg, manifest, entities, overview }, { fitToStage: true });
   } catch (error) {
     console.error(error);
     return { ok: false, title: "", sources: [], dataCredits: [], notices: [], problem: [String(error)], dispose: () => {} };

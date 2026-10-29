@@ -26,6 +26,9 @@ export type Config = {
     minTextPx: number; minTitlePx: number; minFinePrintPx: number;
     slides: { id: string; label: string; params: string }[];
   };
+  /** Dashboard (`?view=dashboard`, dashboard.ts): the carousel's seconds per slide and its slides, ids of `wallboard.slides`
+   * (never a chart a dashboard tile already shows). */
+  dashboard: { seconds: number; slides: string[] };
   /** World map colour scale: bins of powers of `logBase` (bin 1 = 1 to base-1), the last open-ended; `bins`
    * = their count, one theme colour each (`--map-bin-1`..). A reported 0 and no data have their own swatches.
    * `ratio` = the scale of the per-million and per-GDP metrics: bin 1 = above 0 and below `lowest` × `logBase`, each next
