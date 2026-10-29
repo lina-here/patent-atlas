@@ -183,7 +183,7 @@ SUCCESSORS = {"CS": ("CZ", "SK"), "SD": ("SS",),
 # Germany, bound since the PCT's first year; ZR's successor (CD) is not on the list.
 FORMER_WITHOUT_SUCCESSORS = {"AN", "DD", "ZR"}
 # Country entities not on the list and no footnoted territory, reviewed against WIPO's page: non-member States and
-# areas; MO: footnote "Not applicable to Macau, China"; SS: part of Sudan before its own date (SUCCESSORS). A new
+# areas; MO: footnote "Not applicable to Macau, China"; SS: null in Sudan's window (SUCCESSORS), else false. A new
 # entity fails here until reviewed (a footnoted territory goes into `territories`, anything else here).
 REVIEWED_NON_MEMBERS = set("""
 AD AF AR BD BI BO BT CD CK ER ET FJ FM GY HT KI LB MH MM MO MV NP NR NU PK PW PY SB SO SR SS TL TO TV VA VE VU YE
@@ -250,7 +250,7 @@ def test_former_entities_reviewed():
 
 
 def test_member_years_territories():
-    """A territory: true from its footnoted date (31 December rule), false before; never counted as a State."""
+    """A territory: true in a year one of its periods covers (31 December rule), else false; never counted as a State."""
     states = load_pct_states()
     years = member_years(states, ["CN", "HK", "MO", "GB", "GG", "NL", "CW", "SX", "BQ"])
     assert (years["HK"][1980], years["HK"][1981], years["HK"][1996], years["HK"][1997]) == (False, True, True, True)
@@ -272,7 +272,8 @@ def test_member_years_territory_31_december():
 
 
 def test_successor_state_null_before_own_date():
-    """A successor State: null (successor_state) every year before its own date, never false; true from it."""
+    """A successor State: null (successor_state) in a year its window covers; true from its own date; else false (the
+    normal rule: AZ 1992-1994, EE 1992-1993, SS before Sudan was bound and after independence)."""
     states = load_pct_states()
     codes = ["UA", "BY", "KZ", "AZ", "EE", "RU", "CZ", "SK", "ME", "RS", "SI", "DE", "SU", "CS", "YU", "SD", "SS"]
     years = member_years(states, codes)
@@ -287,7 +288,7 @@ def test_successor_state_null_before_own_date():
     assert all(years["DE"].values())
     for code in ("UA", "BY", "KZ", "CZ", "SK", "ME", "RS"):
         assert False not in years[code].values(), code
-    # South Sudan: part of Sudan (continuing, listed) before 9 July 2011, null; then not listed: false
+    # South Sudan: window of Sudan (continuing, listed) from 16 April 1984 to 8 July 2011, null; then not listed: false
     assert {years["SS"][year] for year in range(1978, 1984)} == {False}  # Sudan bound 16 April 1984
     assert {years["SS"][year] for year in range(1984, 2012)} == {None}  # window to 8 July 2011 covers 2011
     assert {years["SS"][year] for year in range(2012, 2027)} == {False}
@@ -333,6 +334,12 @@ def test_load_rejects_bad_successors(tmp_path):
                           ({"SD": {**sudan, "own_dates": {"SS": "2026-10-02"}}}, "after status date"),
                           ({"SD": {**sudan, "own_dates": {"SS": "9 July 2011"}}}, "date"),
                           ({"SD": {**sudan, "own_dates": {"SS": "2011-07-09", "ER": "1993-05-24"}}}, "not among"),
-                          ({"SD": {**sudan, "codes": ["SD", "SS"]}}, "own successors")):
+                          ({"SD": {**sudan, "codes": ["SD", "SS"]}}, "own successors"),
+                          ({"SD": {**sudan, "own_dates": {"SS": "2011-07-08"}}}, "not after its end"),
+                          ({"SU": {**good["SU"], "bound_on": "QZ"}}, "bound on QZ"),
+                          ({"SU": {**good["SU"], "end": "25 December 1991"}}, "SU end: bad date"),
+                          ({"SU": {**good["SU"], "end": "1978-03-28"}}, "SU end 1978-03-28 before its start 1978-03-29"),
+                          ({"SU": {**good["SU"], "end": "2026-10-02"}}, "SU end 2026-10-02 before its start"),
+                          ({"SU": {**good["SU"], "end_source": ""}}, "SU end 1991-12-25 before its start")):
         with pytest.raises(ValueError, match=match):
             load_pct_states(write_list(tmp_path, successors={**good, **change}))

@@ -31,7 +31,7 @@ Files (paths relative to the data root; JSON year keys are strings):
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
   `pct_monthly` {"YYYY": 12 months} WIPO world (origin Total, RO Total) + `pct_monthly_source`.
 - PCT membership (pct_states.py, hand-transcribed `pct_states.json`): map/pct_member.json {values: {code: {year:
-  bool | null}} (country entities; not listed = false; territory = PCT applies; successor State null before its date),
+  bool | null}} (country entities; not listed = false; territory = PCT applies; successor State null in its window),
   null_reason {code: "not_on_current_list" (former entities, never false) | "successor_state"}, in_force {code: date}
   (every listed State), unmatched [listed codes with no entity], territories {code: [{via, state, from, to}]}
   (entities), successor_of {code: {code, name, from, to}} (null-year successors: predecessor, window), sources

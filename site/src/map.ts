@@ -17,8 +17,8 @@
 // PCT membership (map/pct_member.json, overview `pct_membership`): country mode only; member in year Y = PCT in force by
 // 31 December Y (latest year as of WIPO's status date); member = solid fill, non-member = own pattern (dashes), a former
 // entity is never a non-member (no data, its reason); a territory the PCT applies to through a Contracting State = member
-// fill from its date; a successor State before its own date = no data (hatch). Source: WIPO's list, cited by link (a list
-// source, never fetched).
+// fill in its periods; a successor State in its window = no data (hatch), tooltip neutral (its own name and date, never
+// the State it depended on). Source: WIPO's list, cited by link (a list source, never fetched).
 // Colours, strokes, sizes: theme tokens `--map-*` via base.css classes; none here.
 import { geoCentroid, geoEqualEarth, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
@@ -1016,12 +1016,27 @@ export const MEMBERSHIP_LABELS = {
 } as const;
 const MEMBERSHIP_NULL_TEXT: Record<MembershipNullReason, string> = {
   not_on_current_list: "not on WIPO's current list of PCT Contracting States (former entity)",
-  successor_state: "part of a former entity, or of a State it left, in that year; not shown",
+  successor_state: "treaty status depended on a former State, or on a State it left, in that year; not shown",
 };
+/** Contracting States whose English name takes "the" in a sentence ("through the United Kingdom"); WIPO's list prints
+ * the bare name. */
+const NAME_WITH_ARTICLE = /^(Netherlands|United |Russian Federation|Republic of |Philippines|Dominican Republic)/;
 const PCT_LIST_NAME = "WIPO, PCT Contracting States";
 
 export function membershipNullText(reason: MembershipNullReason): string {
   return MEMBERSHIP_NULL_TEXT[reason] ?? reason;
+}
+
+/** A State's name as a sentence reads it: "the Netherlands", "China". */
+export function stateInProse(name: string): string {
+  return NAME_WITH_ARTICLE.test(name) ? `the ${name}` : name;
+}
+
+/** One period of a territory: "applied through the United Kingdom 1981-04-15 to 1997-06-30" (closed) or "applies
+ * through China since 1997-07-01". */
+function territorySpan(period: PctTerritoryLink[number]): string {
+  return period.to ? `applied through ${stateInProse(period.state)} ${period.from} to ${period.to}`
+    : `applies through ${stateInProse(period.state)} since ${period.from}`;
 }
 
 /** "58 of today's PCT Contracting States bound by 31 December 1990"; the latest year "as of" the status date. Today's
@@ -1055,23 +1070,26 @@ type MemberRow = {
 };
 
 /** Tooltip / table text of a row (no label): a listed State, a territory (PCT through a Contracting State, never one
- * itself), a successor State before its own date (part of a predecessor; not shown), or a non-member. */
+ * itself), a successor State in its window (not shown; its own name and date only, neutral), or a non-member. */
 function memberText(row: MemberRow, year: string): string {
   const { member, territory, successorOf } = row;
   if (territory) {
-    const span = (period: PctTerritoryLink[number]) => `through ${period.state} ${period.to ? `${period.from} to ${period.to}` : `since ${period.from}`}`;
     const covering = territory.filter((period) => period.from.slice(0, 4) <= year && (!period.to || period.to.slice(0, 4) >= year));
-    return `${member ? `PCT applies ${covering.map(span).join("; ")}` : `Not covered in ${year}; PCT applies ${territory.map(span).join("; ")}`} (not a Contracting State)`;
+    return `${member ? `PCT ${covering.map(territorySpan).join("; ")}` : `Not covered in ${year}; PCT ${territory.map(territorySpan).join("; ")}`} (not a Contracting State)`;
   }
   if (member === null) {
-    return successorOf ? `${year}: part of ${successorOf.name}; not shown`
-      : `no data${row.reason ? `: ${membershipNullText(row.reason)}` : ""}`;
+    if (successorOf) {
+      const name = row.entity.label;
+      return `${year}: not shown; ${row.inForce ? `WIPO lists ${name} as bound by the PCT only from ${row.inForce}`
+        : `WIPO does not list ${name} as bound by the PCT`}`;
+    }
+    return `no data${row.reason ? `: ${membershipNullText(row.reason)}` : ""}`;
   }
   return member ? `Bound since ${row.inForce}` : `Not a PCT member in ${year}${row.inForce ? ` (bound from ${row.inForce})` : ""}`;
 }
 
 /** Country mode of the membership layer: member (a territory: PCT applies through a Contracting State), non-member, or
- * null with its reason (a successor State before its own date; a former entity in the file: no shape, listed in its own
+ * null with its reason (a successor State in its window; a former entity in the file: no shape, listed in its own
  * table, never as a non-member). */
 function membershipContent(atlas: Atlas, values: MembershipMapValues, block: PctMembership, state: MapOptions, ctx: MapContext): ModeContent {
   const { features, countries } = shapes(atlas);

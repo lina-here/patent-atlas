@@ -2,6 +2,7 @@ import { test, expect, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 import { fixtureBreak, routeSeriesBreaks } from "./seriesBreaks";
 import { BOARD_FALLBACK } from "./siteConstants";
+import { stateInProse } from "./pctProse";
 
 // Methods page (methods.html): home of methods-page tests from v0.2b on. Wording checks quote the page's own text;
 // figures are read from data files, never typed.
@@ -578,10 +579,18 @@ async function expectPctSection(page: Page, pct: any): Promise<void> {
   await expect(section).toContainText("Where a footnote on WIPO's page says the PCT applies to a territory through a Contracting State");
   for (const territory of pct.territories) {
     for (const p of territory.periods) {
-      await expect(section).toContainText(`through ${p.state} ${p.to ? `${p.from} to ${p.to}` : `since ${p.from}`}`);
+      await expect(section).toContainText(`through ${stateInProse(p.state)} ${p.to ? `${p.from} to ${p.to}` : `since ${p.from}`}`);
       for (const cited of p.sources) if (cited.url !== pct.source_url) await expect(section.locator(`a[href="${cited.url}"]`)).toHaveCount(1);
+      // the sources of one period, as read: "footnote" for WIPO's page, else each document's name, ", " between
+      const named = p.sources.map((cited: { url: string; document: string }) => (cited.url === pct.source_url ? "footnote" : cited.document.split(" (")[0])).join(", ");
+      await expect(section).toContainText(`${p.to ? `${p.from} to ${p.to}` : `since ${p.from}`} (${named})`);
     }
   }
+  await expect(section).toContainText("PCT Notification No. 34, PCT Notification No. 122"); // Hong Kong before 1997
+  // successor States: the rule stated neutrally, no "part of" wording, no reason clause
+  await expect(section).toContainText("years while its territory's treaty status depended on a former State, or on a State it left, are not shown");
+  await expect(section).not.toContainText("part of");
+  await expect(section).not.toContainText("gives no dates for former States");
   // successor States: ISO 3166-3 (ISO 3166-1 for a State that left a continuing one); each predecessor, its States, note
   await expect(section).toContainText("Successor States follow ISO 3166-3 (former country codes)");
   const items = section.locator("ul.pct-successors li");

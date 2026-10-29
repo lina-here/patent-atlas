@@ -247,8 +247,8 @@ export type Overview = {
 
 /** A State WIPO's footnote names the continuing State of another (`continues`); its date as printed. */
 export type PctContinuingState = { code: string; name: string; in_force: string; continues: string };
-/** A territory the PCT applies to through a listed State (`via`, named `state`) from `from`, as WIPO's footnote prints it;
- * `name` as the footnote names it. */
+/** A territory the PCT applies or applied to through a listed State (`via`, named `state`), period by period (`to` null
+ * = still applies), each with its cited WIPO documents; `name` as the source names it. */
 export type PctTerritory = {
   code: string; name: string;
   periods: { via: string; state: string; from: string; to: string | null; sources: { document: string; url: string }[] }[];

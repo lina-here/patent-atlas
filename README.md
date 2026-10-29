@@ -98,14 +98,18 @@ parses them automatically (pipeline or CI).
 2. Status date and count: download WIPO's list
    [PCT Contracting States and Two-letter Codes](https://www.wipo.int/documents/d/pct-system/docs-en-list_states.pdf)
    and take `status_on` and `count` from its heading; set `retrieved` to the day you read both.
-3. Territories: read the page's footnotes. For each territory the PCT applies to through a listed State, and only when
-   its code is a country entity of the data (`site/data/entities.json`), add `territories` {code, name as the
-   footnote names it, `via` the State, `from` the footnote's date (none given: the State's date), `footnote`
-   verbatim}. A footnote saying the PCT is not applicable adds nothing.
+3. Territories: read the page's footnotes (and, for a past period, WIPO's PCT Notifications). For each territory the
+   PCT applies or applied to through a listed State, and only when its code is a country entity of the data
+   (`site/data/entities.json`), add `territories` {code, name as the source names it, `periods`}: one period per
+   State, sorted, not overlapping, each {`via` the State, `from` the source's date (none given: the State's date),
+   `to` the last day (null: still applies), `source` [{`document`, `url`, `text` verbatim}]}: the page's footnote to
+   that State, or the PCT Notifications for a past period. A footnote saying the PCT is not applicable adds nothing.
 4. Successor States: `successors` maps a predecessor to the listed States that succeeded it, from ISO 3166-3 (former
    country codes): a former entity of the data (kind `historical`), or a listed State that continues, with
-   `own_dates` for successors that left it (ISO 3166-1 for the new code). `source` names the ISO entry; `note`, any
-   departure from it.
+   `own_dates` for successors that left it (ISO 3166-1 for the new code; each after `end`). Each entry: `name`,
+   `source` (the ISO entry), `codes`, `end` (the window's last day, not after `status_on`) with `end_source`, optional
+   `bound_on` (a listed State whose footnote says its date is the predecessor's; the window then starts on it), and
+   `note`, any departure from ISO 3166. The site shows no data for a successor in the window's years.
 5. In `pipeline/tests/test_pct_states.py`: add the new list's pinned pair (status date: count) to `PINNED_COUNTS`
    (read by `test_count_matches_list`), and the codes the PDF prints to the hand-written list that
    `test_page_codes_equal_pdf_codes` compares with the page. Update `TERRITORIES` and `SUCCESSORS` to match the

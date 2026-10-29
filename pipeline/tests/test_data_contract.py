@@ -248,7 +248,7 @@ def test_pct_member_when_published():
         for year, member in file["values"][code].items():
             assert (member is None) == (start <= year <= end and member is not True), (code, year)
         assert file["successor_of"][code]["code"] in states.successors
-    # territories: member fill from their footnoted date, never counted
+    # territories: member fill in their periods, never counted
     assert set(file["territories"]) == set(states.territories) & set(codes)
     for code, territory in file["territories"].items():
         assert [period["from"] for period in territory] == [

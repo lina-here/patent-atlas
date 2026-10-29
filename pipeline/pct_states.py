@@ -15,7 +15,7 @@
   succeeded a predecessor, from ISO 3166 (`source`: ISO 3166-3 former country codes; ISO 3166-1 for a new code).
   Predecessor = a former entity of the data (not on the list; successors listed, own date = their printed date) or a
   listed State that continues (`own_dates`: the day each successor left it, e.g. independence). Window = the years
-  the successor's territory was part of the predecessor: from the predecessor's date as WIPO prints it (its own row,
+  the successor's treaty status depended on the predecessor: from the predecessor's date as WIPO prints it (its own row,
   or `bound_on`, the row whose footnote says the date is the predecessor's; none: the series' start) to `end`
   (`end_source`). `note` = where the list departs from ISO 3166.
 - States sorted by code. A code with no WIPO entity stays listed (`unmatched`, reported by run.py).
@@ -25,7 +25,7 @@ status_on.year; member in year Y = in force by 31 December Y; in status_on.year 
 result: no date is after it). A span (territory period, successor window) covers Y when it starts by 31 December Y and
 ends on or after 1 January Y (a span ending mid-year still covers that year). A territory: true in a year a period
 covers, else false. A successor State: true from its own date; null (SUCCESSOR_STATE) in a year its window covers,
-never false then (the list gives no dates for former States, so neither member nor non-member is claimed); else false.
+never false then (neither member nor non-member is claimed; conservative); else false.
 Any other country entity not on the list = non-member (false) every year. A former entity (kind historical) is never
 false: null, reason NOT_ON_CURRENT_LIST (the list names today's States only).
 Regional offices: not on the map, skipped. Counts = Contracting States only.
@@ -189,9 +189,11 @@ def _successors(content: dict[str, dict], in_force: dict[str, datetime.date],
 def load_pct_states(path: Path = PCT_STATES_PATH) -> PctStates:
     """The list; ValueError on a bad date, a duplicate code, a row count other than `count`, an `in_force` after
     `status_on`, `status_on` after `retrieved`, a continuing State not on the list, a bad territory (a listed State,
-    `via` not listed, `from` before `via` was bound or after `status_on`, no footnote) or a bad successor entry (a
-    successor neither listed nor given an own date, a listed predecessor without its successors' own dates, an own date
-    after `status_on`, a successor under two predecessors)."""
+    `via` not listed, a period before `via` was bound, after `status_on`, unsorted or overlapping, a period without
+    its cited sources) or a bad successor entry (a successor neither listed nor given an own date, a listed predecessor
+    without its successors' own dates, an own date after `status_on` or not after `end`, a successor under two
+    predecessors, `bound_on` not listed, `end` bad, before the window's start, after `status_on` or without
+    `end_source`)."""
     content = json.loads(path.read_text("utf-8"))
     status_on = _date(content["status_on"], "status_on")
     retrieved = _date(content["retrieved"], "retrieved")
@@ -266,7 +268,7 @@ def _covers(states: PctStates, since: datetime.date | None, until: datetime.date
 
 
 def _successor_year(states: PctStates, code: str, year: int) -> bool | None:
-    """Member from its own date; null while its territory was part of the predecessor (window); else false."""
+    """Member from its own date; null in a year the predecessor's window covers; else false."""
     if is_member(states, code, year):
         return True
     predecessor = successor_of(states)[code]

@@ -1715,8 +1715,8 @@ def test_pct_membership_overview():
 
 
 def test_pct_member_map_file_territories_and_successors():
-    """Territories (entities only): the State the PCT applies through and the footnoted date; successor States with null
-    years: their predecessor and own date, for the tooltip."""
+    """Territories (entities only): each period's State and dates; successor States with null years: their predecessor
+    and window."""
     states = pct_states.load_pct_states()
     file = write._pct_member_map_file(states, ["CN", "HK", "MO", "NL", "CW", "UA", "RU", "SU", "SD", "SS"])
     assert file["territories"] == {

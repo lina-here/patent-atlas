@@ -39,9 +39,10 @@ export type MapValues<Reason extends string = RatioNullReason> = {
 export type ShareMapValues = MapValues<GenderNullReason>;
 
 /** Why a membership cell is null (pipeline/pct_states.py): a former entity, not on WIPO's current list (every year); a
- * successor State before its own date (part of a former entity, or of a State it left, then). */
+ * successor State in its window (its treaty status depended on a former State, or on a State it left, then). */
 export type MembershipNullReason = "not_on_current_list" | "successor_state";
-/** A territory the PCT applies to through the listed State `via` (`state`, its name) from `from` (WIPO footnote). */
+/** A territory's periods: the PCT applies (`to` null) or applied through the listed State `via` (`state`, its name as
+ * WIPO's list prints it) from `from` to `to`, as the cited WIPO documents give them. */
 export type PctTerritoryLink = { via: string; state: string; from: string; to: string | null }[];
 /** map/pct_member.json: per country and year whether the PCT was in force for it (true / false; a territory: whether it
  * applied through a Contracting State); null with its reason (`null_reason` per code): a former entity every year, a

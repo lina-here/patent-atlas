@@ -6,7 +6,7 @@ import { h, formatCount, type Child } from "./dom";
 import { fixedHalfAway, fixedPercent } from "./format";
 import { GENDER_BASIS_LABEL, GENDER_TITLES, coverageFloorText, formatShare, genderCaveat, genderDecimals, genderNullText, unlistedMembersText } from "./genderText";
 import { PCT_UNLISTED_ORIGIN_GROUPS, nullReasonText, wipoTotalCounts, wipoTotalGapCause } from "./groupText";
-import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, continuingText, groupPageTarget, labelOfEntities, membershipNullText } from "./map";
+import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, continuingText, groupPageTarget, labelOfEntities, membershipNullText, stateInProse } from "./map";
 import { mapScale } from "./mapScale";
 import { isPauseMovePixels, isRotationSeconds, viewLink, type Params } from "./params";
 import { AI_METHODS_LINE, DISCLAIMER, sourceLine } from "./provenance";
@@ -531,17 +531,19 @@ function pctMembershipSection({ overview, entities }: MethodsData): Section | nu
       h("p", {}, "A territory is not a Contracting State. Where a footnote on WIPO's page says the PCT applies to a territory through a ",
         "Contracting State, or WIPO's PCT Notifications say it applied, the map gives the territory the member fill in those years (the ",
         "source's dates; where a footnote gives none, the date the State became bound): ",
-        block.territories.map((t) => [`${t.name} (${t.code}) `, t.periods.map((period) => [`through ${period.state} `,
+        block.territories.map((t) => [`${t.name} (${t.code}) `, t.periods.map((period) => [`through ${stateInProse(period.state)} `,
           period.to ? `${period.from} to ${period.to}` : `since ${period.from}`, " (",
-          period.sources.map((cited) => cited.url === block.source_url ? "footnote" : h("a", { href: cited.url, rel: "noopener" }, cited.document.split(" (")[0])),
+          period.sources.map((cited) => cited.url === block.source_url ? "footnote" : h("a", { href: cited.url, rel: "noopener" }, cited.document.split(" (")[0]))
+            .map((cited, index) => (index ? [", ", cited] : cited)),
           ")"]).map((part, index) => (index ? ["; ", part] : part)), ". "]),
         "Other territories with their own WIPO code are not on the list and show as not a PCT member."),
       h("p", {}, `WIPO's list names today's States only. A former entity (${labelsOf(entities, "historical")}) is never shown as a non-member: `,
         `it has no data, with the reason “${membershipNullText("not_on_current_list")}”. `,
-        "Nor is a successor State while its territory was part of a predecessor: from the predecessor's date as WIPO prints it (else ",
-        `${block.first_year}) to the predecessor's end, the map shows no data, hatched, because WIPO's current list gives no dates for `,
-        "former States, so neither member nor non-member can be claimed; before that window and after it, until the State's own date, ",
-        "the normal rule applies. Successor States follow ISO 3166-3 (former country codes); a new State that left a continuing one, ISO 3166-1:"),
+        "For a successor State, the years while its territory's treaty status depended on a former State, or on a State it left, ",
+        "are not shown: from the earlier State's date as WIPO prints it (else ",
+        `${block.first_year}) to the end below, the map shows no data, hatched, and claims neither member nor non-member. Before that `,
+        "window and after it, until the State's own date, the normal rule applies. Successor States follow ISO 3166-3 (former country ",
+        "codes); a new State that left a continuing one, ISO 3166-1. Each earlier State under its WIPO or ISO name:"),
       h("ul", { class: "pct-successors" }, block.successors.map((entry) => h("li", {},
         `${entry.name} (${entry.source}), ${entry.from ?? block.first_year} to ${entry.to} (end: ${entry.end_source}): ${entry.codes.map((code) => `${labelOfEntities(entities)(code)} (${code})` +
           (entry.own_dates[code] ? `, own date ${entry.own_dates[code]}` : "")).join(", ")}.${entry.note ? ` ${entry.note}` : ""}`))),
