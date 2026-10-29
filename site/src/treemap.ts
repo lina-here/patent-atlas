@@ -29,6 +29,7 @@ const PAD_Y_EM = 0.3;
 const TEXT_HEIGHT_EM = 1.25;
 const KEY_ROW_EM = 1.7;
 const MIN_PLOT_EM = 4;
+const KEY_GAP_EM = 0.8;
 const KEY_SWATCH_EM = 1.3;
 /** A continent's number in its key swatch and, set tight, in its largest rectangle (a digit needs only its cap height); the
  * fit ratios are exposed as data attributes on the svg (`data-number-*`) for the tests. The digit's size in the key is CSS
@@ -152,21 +153,37 @@ function buildTree(block: Treemap, decimals: number): TreeNode {
   return { children };
 }
 
-/** A key row under the plot: swatch + name per continent with a rectangle (the order of the data) and the rest; wrapped to
- * `width`. Returns its group and height. */
-function keyGroup(items: { id: string; label: string; number?: number; fill?: string }[], theme: ChartTheme, width: number): { group: SVGGElement; height: number } {
-  const row = theme.fontSize * KEY_ROW_EM;
+type KeyItem = { id: string; label: string; number?: number; fill?: string };
+
+/** Where each key item sits: wrapped to `width`; `lines` = rows used. Shared by the key and the least height of a fit. */
+function keyLayout(items: KeyItem[], theme: ChartTheme, width: number): { places: { x: number; line: number; itemWidth: number }[]; lines: number } {
   const swatch = theme.fontSize * KEY_SWATCH_EM;
   const gap = theme.fontSize * 0.5;
-  const group = el("g", { class: "treemap-key" });
   let x = 0;
   let line = 0;
-  for (const item of items) {
+  const places = items.map((item) => {
     const itemWidth = swatch + gap + textWidth(item.label, theme) * TEXT_SLACK + gap * 2;
     if (x > 0 && x + itemWidth > width) {
       x = 0;
       line += 1;
     }
+    const place = { x, line, itemWidth };
+    x += itemWidth;
+    return place;
+  });
+  return { places, lines: line + 1 };
+}
+
+/** A key row under the plot: swatch + name per continent with a rectangle (the order of the data) and the rest; wrapped to
+ * `width`. Returns its group and height. */
+function keyGroup(items: KeyItem[], theme: ChartTheme, width: number): { group: SVGGElement; height: number } {
+  const row = theme.fontSize * KEY_ROW_EM;
+  const swatch = theme.fontSize * KEY_SWATCH_EM;
+  const gap = theme.fontSize * 0.5;
+  const group = el("g", { class: "treemap-key" });
+  const { places, lines } = keyLayout(items, theme, width);
+  items.forEach((item, index) => {
+    const { x, line } = places[index];
     const middle = (line + 0.5) * row;
     group.append(el("g", { class: "treemap-key-item", "data-continent": item.id,
       ...(item.number !== undefined ? { "data-digit-width": textWidth(String(item.number), theme) } : {}) },
@@ -177,9 +194,27 @@ function keyGroup(items: { id: string; label: string; number?: number; fill?: st
           fill: textOn(item.fill, theme) }), { textContent: String(item.number) })]
         : []),
       Object.assign(el("text", { class: "treemap-key-name", x: x + swatch + gap, y: middle, "dominant-baseline": "central", fill: theme.ink }), { textContent: item.label })));
-    x += itemWidth;
-  }
-  return { group, height: (line + 1) * row };
+  });
+  return { group, height: lines * row };
+}
+
+/** The key's items: a continent with a rectangle (numbered 1..n in the order of the data) and the rest. */
+function keyItemsOf(block: Treemap, tree: TreeNode, theme: ChartTheme, hatchFill: string): KeyItem[] {
+  const drawn = (tree.children ?? []).map((band) => band.continent ?? "").filter((id) => id !== "residual" && id !== "");
+  const residualShown = block.residual !== null && block.residual.value !== null && block.residual.value > 0;
+  const labelFor = (id: string): string => block.continents.find((continent) => continent.id === id)?.label ?? id;
+  return [
+    ...drawn.map((id, index) => ({ id, label: labelFor(id), number: index + 1, fill: theme.continent(id, block.continents.findIndex((continent) => continent.id === id)) })),
+    ...(residualShown && block.residual ? [{ id: "residual", label: block.residual.label, fill: hatchFill }] : []),
+  ];
+}
+
+/** The least height (px) a fit may draw the treemap at: key, gap and a plot of `MIN_PLOT_EM`; no drawing. */
+export function treemapLeastHeight(block: Treemap, opts: { width: number; decimals: number; idPrefix?: string }): number {
+  const theme = readTheme();
+  const width = opts.width > 0 ? opts.width : FALLBACK_WIDTH;
+  const items = keyItemsOf(block, buildTree(block, opts.decimals), theme, `url(#${opts.idPrefix ?? ""}${TREEMAP_HATCH_ID})`);
+  return keyLayout(items, theme, width).lines * theme.fontSize * KEY_ROW_EM + theme.fontSize * KEY_GAP_EM + theme.fontSize * MIN_PLOT_EM;
 }
 
 /** Squarified treemap of `block` in a `width` x `height` svg (height = plot and key together). */
@@ -192,17 +227,12 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
   const hatchId = `${opts.idPrefix ?? ""}${TREEMAP_HATCH_ID}`;
   const hatchFill = `url(#${hatchId})`;
   const tree = buildTree(block, decimals);
-  // continents with a rectangle, numbered 1..n in the order of the data (the key and each continent's largest rectangle carry the number)
-  const drawn = (tree.children ?? []).map((band) => band.continent ?? "").filter((id) => id !== "residual" && id !== "");
-  const numberOf = (id: string): number => drawn.indexOf(id) + 1;
-  const residualShown = block.residual !== null && block.residual.value !== null && block.residual.value > 0;
+  const keyItems = keyItemsOf(block, tree, theme, hatchFill);
+  // a continent's number: its place in the key
+  const numberOf = (id: string): number => keyItems.findIndex((item) => item.id === id) + 1;
   const labelFor = (id: string): string => block.continents.find((continent) => continent.id === id)?.label ?? id;
-  const keyItems = [
-    ...drawn.map((id) => ({ id, label: labelFor(id), number: numberOf(id), fill: theme.continent(id, block.continents.findIndex((continent) => continent.id === id)) })),
-    ...(residualShown && block.residual ? [{ id: "residual", label: block.residual.label, fill: hatchFill }] : []),
-  ];
   const key = keyGroup(keyItems, theme, width);
-  const keyGap = theme.fontSize * 0.8;
+  const keyGap = theme.fontSize * KEY_GAP_EM;
   // a fit may squeeze the plot to its least (labels drop where they no longer fit; the key and its numbers stay)
   const least = key.height + keyGap + theme.fontSize * MIN_PLOT_EM;
   const total = opts.height === undefined ? natural : Math.max(least, Math.min(opts.height, natural));
@@ -307,8 +337,10 @@ function figuresRows(block: Treemap, decimals: number): (string | number | null)
   return rows;
 }
 
+/** The code lists, introduced by one line; shown where the notes are (not on the wallboard), so the visible fold rule points nowhere. */
 function foldedNotes(continents: TreemapContinent[]): string[] {
-  return continents.filter((continent) => continent.other).map((continent) => `Other ${continent.label}: ${(continent.other?.codes ?? []).join(", ")}.`);
+  const lists = continents.filter((continent) => continent.other).map((continent) => `Other ${continent.label}: ${(continent.other?.codes ?? []).join(", ")}.`);
+  return lists.length > 0 ? ["Origins grouped in each “Other” rectangle, by code:", ...lists] : [];
 }
 
 const NEGATIVE_REST = (year: number): string =>
@@ -339,7 +371,7 @@ export function treemapCard(overview: Overview, idPrefix = ""): CardBuilder {
         note: `Each rectangle's area is the patent applications filed by applicants from that origin in ${block.year}, grouped by continent ` +
           `(outlined, named in the key); labels give the share of the ${denominator}.`,
         draw: (width, height) => treemapChart(block, { width, height, decimals, idPrefix }),
-        minHeight: (width) => Number(treemapChart(block, { width, height: 0, decimals, idPrefix }).getAttribute("height")),
+        minHeight: (width) => treemapLeastHeight(block, { width, decimals, idPrefix }),
         table: {
           headers: ["Continent", "Origin", "Applications", `Share of ${denominator}`],
           rows: figuresRows(block, decimals),
@@ -347,7 +379,7 @@ export function treemapCard(overview: Overview, idPrefix = ""): CardBuilder {
         },
         footnotes: [
           `Origins under ${fold === undefined ? "the fold share" : `${fold}%`} of the ${denominator} are folded into “Other <continent>”; ` +
-            "a continent with no larger origin is one rectangle named for the continent. The codes folded are listed below.",
+            "a continent with no larger origin is one rectangle named for the continent.",
           `The hatched rectangle (“${block.residual.label}”) is the part of the ${denominator} that no continent accounts for` +
             `${unattributed.length > 0 ? `; it includes ${unattributed.join(", ")}` : ""}.`,
           ...(block.no_value.length > 0

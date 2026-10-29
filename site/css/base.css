@@ -729,12 +729,16 @@ input {
 /* Wallboard focus (main.ts adds .focus-layout for a rotation view that shows one card): the frame is tightened so the card
    and the chart drawn to the height left (overview.ts fitToRoom) fit the viewport without scrolling. */
 .focus-layout .site-header { padding-block: var(--space-2); }
-.focus-layout .page { padding-block: var(--space-2); }
+.focus-layout .page { padding-block: var(--space-1); }
+.focus-layout .source-line,
+.focus-layout .card-details { margin-top: var(--space-1); }
 .focus-layout .site-footer { padding-block: var(--space-2); }
 .focus-layout .site-footer .disclaimer { max-width: none; margin-top: var(--space-1); }
 .focus-layout .footer-byline p { margin: 0; } /* its paragraph margin would undo the tight footer */
 /* a wall screen has no use for the tools, map controls, footer links or the reproduction recipe (the source line, byline and
    disclaimer stay); the footer links wrap to a second line in wide fallback fonts, taking the chart's last room */
+.focus-layout .site-nav,
+.focus-layout .brand-tagline,
 .focus-layout .footer-links,
 .focus-layout .chart-tools,
 .focus-layout .chart-query,

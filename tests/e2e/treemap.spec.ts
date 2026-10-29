@@ -517,8 +517,48 @@ test("treemap card: no share decimals in the method leaves the card out, no gues
   await expect(page.locator("body")).not.toContainText("could not be loaded");
 });
 
+// ---- Reference notes (the folded origins' codes): on the card and in the embed, off the wallboard and the focus layout ----
+const FOLD_INTRO = "Origins grouped in each “Other” rectangle, by code:";
+const foldedContinents = treemap.continents.filter((entry: any) => entry.other);
+
+test("treemap: the code lists show on the card and in the embed, with their intro; the fold rule does not point below", async ({ page }) => {
+  for (const url of ["/?chart=treemap", "/embed.html?chart=treemap"]) {
+    await page.goto(url);
+    const card = page.locator(CARD);
+    await expect(card.locator("svg.treemap-chart")).toBeVisible();
+    if (url.startsWith("/?")) await openNotes(card);
+    const notes = card.locator(".chart-footnote");
+    await expect(notes.filter({ hasText: FOLD_INTRO }), url).toBeVisible();
+    for (const continent of foldedContinents) await expect(notes.filter({ hasText: `Other ${continent.label}:` }), url).toBeVisible();
+    await expect(notes.filter({ hasText: "folded into" }), url).not.toContainText("below");
+  }
+});
+
+for (const [name, url] of [["wallboard slide", "/?view=wallboard&slides=treemap"], ["focus layout", `/?rotate=${config.rotation.minSeconds}&theme=wallboard&chart=treemap`]]) {
+  test(`treemap on the ${name}: the code lists and their intro are hidden; the fold rule and the other notes stay`, async ({ page }) => {
+    await page.goto(url);
+    const card = page.locator(CARD);
+    await expect(card.locator("svg.treemap-chart")).toBeVisible();
+    const notes = card.locator(".chart-footnote");
+    await expect(notes.filter({ hasText: FOLD_INTRO })).toBeHidden();
+    for (const continent of foldedContinents) await expect(notes.filter({ hasText: `Other ${continent.label}:` })).toBeHidden();
+    await expect(notes.filter({ hasText: "folded into" })).toBeVisible();
+    await expect(notes.filter({ hasText: "folded into" })).not.toContainText("below");
+    await expect(notes.filter({ hasText: "near-empty" })).toBeVisible();
+  });
+}
+
+test("focus layout: the source line and the disclaimer stay on screen for treemap and share-shift", async ({ page }) => {
+  for (const chart of ["treemap", "share-shift"]) {
+    await page.goto(`/?rotate=${config.rotation.minSeconds}&theme=wallboard&chart=${chart}`);
+    await expect(page.locator("html.focus-layout.view-ready")).toHaveCount(1);
+    await expect(page.locator(`.chart-card[data-chart="${chart}"] .source-line`).first(), chart).toBeVisible();
+    await expect(page.locator(".site-footer .disclaimer"), chart).toBeVisible();
+  }
+});
+
 // ---- Rotation focus: ?rotate=<minSeconds>&chart=treemap (the size and theme set of controls.spec "every rotation chart view fits") ----
-const FOCUS_SIZES = [{ width: 1920, height: 1080 }, { width: 1280, height: 900 }, { width: 1366, height: 768 }];
+const FOCUS_SIZES = [{ width: 1920, height: 1080 }, { width: 1280, height: 900 }, { width: 1366, height: 768 }, { width: 1280, height: 720 }];
 for (const { wide, suffix } of FONT_VARIANTS) for (const size of FOCUS_SIZES) {
   test(`?rotate=<minSeconds>&chart=treemap focus layout fits ${size.width}x${size.height} in every theme${suffix}`, async ({ page }) => {
     const errors = trackErrors(page);

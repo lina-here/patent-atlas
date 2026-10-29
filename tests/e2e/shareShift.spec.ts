@@ -236,7 +236,7 @@ test("share-shift: origins whose names cut to the same text stay separate bars",
 });
 
 // ---- Rotation focus: ?rotate=<minSeconds>&chart=share-shift (the size and theme set of controls.spec "every rotation chart view fits") ----
-const FOCUS_SIZES = [{ width: 1920, height: 1080 }, { width: 1280, height: 900 }, { width: 1366, height: 768 }];
+const FOCUS_SIZES = [{ width: 1920, height: 1080 }, { width: 1280, height: 900 }, { width: 1366, height: 768 }, { width: 1280, height: 720 }];
 for (const { wide, suffix } of FONT_VARIANTS) for (const size of FOCUS_SIZES) {
   test(`?rotate=<minSeconds>&chart=share-shift focus layout fits ${size.width}x${size.height} in every theme${suffix}`, async ({ page }) => {
     const errors = trackErrors(page);
