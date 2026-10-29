@@ -33,6 +33,12 @@ v1 adds a **conference wallboard** (`index.html?view=wallboard`, footer link "Co
 
 New in v0.2 Stage W (women inventors, WIPO's shares by publication year): the page `index.html?view=women-inventors`; chart ids `women-world-trend`, `women-by-field`, `women-ranking`, `entity-women` (with `country=`), `group-women` (with `region=` or `continent=`) and the map metrics `metric=women_any`, `metric=women_share`; method in `methods.html#women-inventors`.
 
+v2a adds a **dashboard** (`index.html?view=dashboard`): key figures, the world map and a carousel of charts on one
+page. The carousel starts paused; add `&rotate=<seconds>` to play it on an office screen. New charts: a **treemap** of
+patent applications by origin in the latest year, grouped by continent, and **share shift**, the change in the top
+origins' shares of the world total, in percentage points. The map has a **PCT membership** layer: the Contracting
+States in each year, from WIPO's list. Methods: `methods.html#dashboard` and `methods.html#pct-membership`.
+
 ## Put a chart on another website
 
 Every chart has an **Embed** button. Click it, pick a theme, click **Copy code**, and paste the text into the page
@@ -52,7 +58,8 @@ source line and a link back to Patent Atlas; the source line cannot be removed. 
   figures and the larger themes (`atlas`, `paper`, `wallboard`) are taller: if the frame shows a scrollbar, give it
   more height.
 - `chart=` names the chart: `world-trend`, `pct-world-trend`, `top-origins`, `fastest-growers`, `rank-race`,
-  `continent-share`, `size-growth`, `pct-monthly`, `world-map` (whole world; the map also takes `metric=`, `map=`,
+  `continent-share`, `size-growth`, `pct-monthly`, `treemap`, `share-shift`, the key figures `key-world-patents`,
+  `key-world-pct`, `key-top-origin`, `key-top-grower`, `world-map` (whole world; the map also takes `metric=`, `map=`,
   `year=`), or `entity-tiles`, `origin-apps`, `office-apps`, `pct-origin` together with `country=<code>` or
   `office=<code>`, or `region-compare` with `country=<code>`, or `group-members`, `origin-apps`, `office-apps`,
   `pct-origin`, `world-map` with `region=<M49 code>` or `continent=<slug>`. Codes are WIPO's (CH, US, EP, ...). `theme=` is optional: `<embedTheme>` is the default here.
