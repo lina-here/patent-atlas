@@ -170,7 +170,7 @@ test("methods page: constants and entity names come from data files", async ({ p
   const { cagr_years: years, golden_tolerance_pct: tolerance, golden_growth_tolerance_pp: growthTolerance, rounding } = overview.method;
   await page.goto("/methods.html");
   const main = page.locator("main");
-  await expect(main).toContainText(`counts and shares within ${tolerance}% (relative), growth figures within ${growthTolerance} percentage points (absolute)`);
+  await expect(main).toContainText(`every figure except growth within ${tolerance}% (relative), growth figures within ${growthTolerance} percentage points (absolute)`);
   await expect(main).toContainText(`${years}-year compound annual growth`);
   await expect(main).toContainText(`(1 ÷ ${years})`);
   await expect(main).toContainText(`rounded ${rounding.mode}`);

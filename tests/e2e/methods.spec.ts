@@ -656,9 +656,12 @@ test("methods: the treemap term states fold rule, residual, denominator, floor a
   await expect(dd).toContainText("one rectangle named after the continent");
   await expect(dd).toContainText(`“${overview.treemap.residual.label}”`);
   await expect(dd).toContainText(overview.share_denominator.origin_apps);
-  await expect(dd).toContainText(`at least ${Math.round(overview.method.group_attribution_min * 100)}% of the world total (the attribution floor)`);
+  await expect(dd).toContainText(`grouped countries of all continents together account for at least ${Math.round(overview.method.group_attribution_min * 100)}% of the world total (the attribution floor)`);
+  await expect(dd).toContainText("the WIPO world total is present and not provisional");
+  await expect(dd).not.toContainText("A continent total counts only");
   await expect(dd).toContainText("is a warning in the continent-share history");
   await expect(dd).toContainText("blocks at the treemap year: the refresh stops and the last good data stays");
+  await expect(dd).toContainText("The refresh also stops when origins without a continent exceed that rest");
   await expect(dd).toContainText("each rounded on their own");
   await expect(dd).toContainText("add up to 100");
   expect(errors).toEqual([]);
@@ -670,6 +673,7 @@ test("methods: the share shift term states the base year, the change rule, the b
   const dd = term(page, "Share shift");
   const { cagr_years: years, share_shift: shift } = overview.method;
   const bound = (10 ** -shift.decimals).toFixed(shift.decimals);
+  await expect(dd).toContainText(`of the top ${overview.top_n} origins of ${overview.share_shift.year}`);
   await expect(dd).toContainText(`${years} years before`);
   await expect(dd).toContainText(`${overview.share_shift.base_year}`);
   await expect(dd).toContainText("percentage points");
@@ -691,7 +695,7 @@ test("methods: world change is defined, and the golden sentence states both tole
   await expect(change).toContainText("computed from WIPO's totals");
   const { golden_tolerance_pct: pct, golden_growth_tolerance_pp: pp } = overview.method;
   const sentence = page.locator("#cross-checks p", { hasText: "Headline figures from WIPO" });
-  await expect(sentence).toContainText(`counts and shares within ${pct}% (relative)`);
+  await expect(sentence).toContainText(`every figure except growth within ${pct}% (relative)`);
   await expect(sentence).toContainText(`growth figures within ${pp} percentage points (absolute)`);
   // the checks list shows both growth figures, from the manifest
   const growthIds: string[] = manifest.checks.golden_sources.map((source: Json) => source.id).filter((id: string) => id.includes("_growth_"));
@@ -729,8 +733,12 @@ test("methods: the dashboard section lists the tiles, the controls, the holds an
   await expect(section.locator("h2")).toHaveText("Dashboard");
   await expect(page.locator('.toc a[href="#dashboard"]')).toHaveCount(1);
   await expect(section).toContainText("?view=dashboard");
-  for (const text of ["World patent applications", "World PCT applications", "Top origin", "Fastest grower", "The world map, the treemap and the share shift"])
-    await expect(section.locator(".dashboard-tiles li", { hasText: new RegExp(`^${text}`) })).toHaveCount(1);
+  // one list entry per tile of the dashboard, in page order (dashboard.ts DASHBOARD_TILE_IDS, read from the source)
+  const tileIds: string[] = JSON.parse(/^export const DASHBOARD_TILE_IDS = (\[[^\]]+\]);/m.exec(readFileSync("site/src/dashboard.ts", "utf8"))![1]);
+  await expect(section.locator(".dashboard-tiles li")).toHaveCount(tileIds.length);
+  expect(await section.locator(".dashboard-tiles li").evaluateAll((items) => items.map((item) => item.getAttribute("data-tile")))).toEqual(tileIds);
+  await expect(section).toContainText("Next to the world map, a carousel shows");
+  await expect(section).not.toContainText("Beside the key figures");
   await expect(section).toContainText("links to its full chart on the overview");
   await expect(section).toContainText(`${config.dashboard.slides.length} charts`);
   await expect(section).toContainText(`${config.dashboard.seconds} seconds`);
@@ -747,7 +755,8 @@ test("methods: the dashboard section lists the tiles, the controls, the holds an
   await expect(holds.nth(3)).toContainText("open sources and notes box");
   await expect(section).toContainText("Play also ends a pointer hold");
   await expect(section).toContainText("only Play ends that pause");
-  await expect(section).toContainText("reduced motion");
+  await expect(section).toContainText("it never starts by itself");
+  await expect(section).toContainText("even with reduced motion; reduced motion only turns off the fade between slides");
   await expect(section).toContainText(`?rotate=<seconds>`);
   await expect(section).toContainText(`at least ${minSeconds}`);
   expect(errors).toEqual([]);

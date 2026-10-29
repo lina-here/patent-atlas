@@ -313,8 +313,8 @@ function treemapTerms(overview: Overview): [string, string][] {
     `An origin folds into “Other <continent>” when its share is below ${fold} % of WD, exact, before rounding, so a folded origin may show as ${fold}% after rounding. ` +
     "A continent where every origin folds is one rectangle named after the continent. " +
     (rest ? `“${rest}” is what the continents' totals leave of the world total; origins that no continent holds are inside it. ` : "") +
-    `A continent total counts only when its grouped countries account for at least ${Math.round(method.group_attribution_min * 100)}% of the world total (the attribution floor); otherwise the chart says why it is not drawn. ` +
-    `A negative${rest ? ` “${rest}”` : " not-attributable"} rest is a warning in the continent-share history and blocks at the treemap year: the refresh stops and the last good data stays. ` +
+    `The treemap is drawn only when the grouped countries of all continents together account for at least ${Math.round(method.group_attribution_min * 100)}% of the world total (the attribution floor), and the WIPO world total is present and not provisional; otherwise the chart says why it is not drawn. ` +
+    `A negative${rest ? ` “${rest}”` : " not-attributable"} rest is a warning in the continent-share history and blocks at the treemap year: the refresh stops and the last good data stays. The refresh also stops when origins without a continent exceed that rest. ` +
     `Shares are each rounded on their own (${decimals(method.rounding.decimals.share)}), so they may add up to 100 ± a few hundredths of a percent.`]];
 }
 
@@ -326,7 +326,7 @@ function shareShiftTerms(overview: Overview): [string, string][] {
   const years = method.cagr_years;
   const bound = (10 ** -rule.decimals).toFixed(rule.decimals);
   const base = block ? ` (${block.base_year})` : "";
-  return [["Share shift", `The top origins' change in share of the ${overview.share_denominator.origin_apps}. The base year is ${years} years before the latest complete year${base}. ` +
+  return [["Share shift", `The change in share of the ${overview.share_denominator.origin_apps} of the top ${overview.top_n} origins of ${block?.year ?? overview.top_year}. The base year is ${years} years before the latest complete year${base}. ` +
     `The change is in percentage points (pp): the share in the latest year minus the share in the base year, a ${rule.change}, both as published (rounded to ${decimals(rule.decimals)}). ` +
     `So each row of the figures table adds up, the change is within ${bound} pp of the exact difference and its sign never flips. ` +
     "An origin with no figure in the base year is listed under the chart, not plotted. " +
@@ -795,7 +795,7 @@ function checksSection(data: MethodsData): Section {
       ],
       h("h3", {}, "Published WIPO figures (blocking)"),
       h("p", {}, "Headline figures from WIPO's World Intellectual Property Indicators and PCT Yearly Review must agree with the published value: ",
-        `counts and shares within ${overview.method.golden_tolerance_pct}% (relative)`,
+        `${growthTolerance === undefined ? "every figure" : "every figure except growth"} within ${overview.method.golden_tolerance_pct}% (relative)`,
         growthTolerance === undefined ? "" : `, growth figures within ${growthTolerance} percentage points (absolute)`, ". Last result:"),
       list(checks.golden, "No figures compared."),
       h("p", {}, "Where each figure is published:"),
@@ -846,15 +846,17 @@ function dashboardSection({ cfg }: MethodsData): Section {
       h("p", {}, "The dashboard (", h("code", {}, "?view=dashboard"), ", “Dashboard” in the header) shows key figures and charts on one page. ",
         "Each tile names its year and source and links to its full chart on the overview. A tile whose data is missing says so; it is never left blank or filled with 0. The tiles:"),
       h("ul", { class: "dashboard-tiles" },
-        h("li", {}, "World patent applications: WIPO's total for all offices (WD), with its change on the year."),
-        h("li", {}, "World PCT applications: WIPO's PCT total (ZZ), with its change on the year."),
-        h("li", {}, "Top origin: the country with the most patent applications by origin."),
-        h("li", {}, "Fastest grower: the country with the highest compound annual growth among the top origins."),
-        h("li", {}, "The world map, the treemap and the share shift, as on the overview.")),
-      h("p", {}, `Beside the key figures, a carousel shows ${slides.length} charts one at a time, each for ${seconds} seconds. `,
+        h("li", { "data-tile": "key-world-patents" }, "World patent applications: WIPO's total for all offices (WD), with its change on the year."),
+        h("li", { "data-tile": "key-world-pct" }, "World PCT applications: WIPO's PCT total (ZZ), with its change on the year."),
+        h("li", { "data-tile": "key-top-origin" }, "Top origin: the country with the most patent applications by origin."),
+        h("li", { "data-tile": "key-top-grower" }, "Fastest grower: the country with the highest compound annual growth among the top origins."),
+        h("li", { "data-tile": "world-map" }, "World map: applications by origin, as on the overview."),
+        h("li", { "data-tile": "treemap" }, "Treemap: who files the world's patents, as on the overview."),
+        h("li", { "data-tile": "share-shift" }, "Share shift: who gained and lost ground, as on the overview.")),
+      h("p", {}, `Next to the world map, a carousel shows ${slides.length} charts one at a time, each for ${seconds} seconds. `,
         "Its buttons are ", h("code", {}, "Play"), " and ", h("code", {}, "Pause"), " (one button that changes its name), ",
-        h("code", {}, "Previous"), " and ", h("code", {}, "Next"), ". It starts paused. ",
-        h("code", {}, "?rotate=<seconds>"), ` starts it playing at that interval (at least ${minSeconds}), for an office screen; reduced motion settings do not change this.`),
+        h("code", {}, "Previous"), " and ", h("code", {}, "Next"), ". Without ", h("code", {}, "?rotate"), " it never starts by itself. ",
+        h("code", {}, "?rotate=<seconds>"), ` starts it playing at that interval (at least ${minSeconds}), for an office screen, even with reduced motion; reduced motion only turns off the fade between slides.`),
       h("p", {}, "While playing, the carousel stops (a hold) in these cases and goes on from where it stopped when the hold ends:"),
       h("ul", { class: "carousel-holds" },
         h("li", {}, `${moveText} over the carousel holds it until the pointer leaves${releaseText}.`),
