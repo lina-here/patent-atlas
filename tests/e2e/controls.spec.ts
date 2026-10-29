@@ -539,12 +539,21 @@ async function gotoWithRotationConfig(page: Page, path: string, override: Record
   await page.goto(path);
 }
 
+/** The light one-card rotation view, drawn, its clock then frozen: data loaded, the rotation timer can never fire mid-test
+ * (`location.replace` would swap the page under the next move). Time moves only by `page.clock.runFor`. */
+const ROTATING_CARD = `/?rotate=${minSeconds}&chart=world-trend`;
+async function frozenOnceReady(page: Page): Promise<void> {
+  await expect(page.locator("html")).toHaveClass(/view-ready/);
+  await page.clock.pauseAt(Date.now() + 1000);
+}
+
 const syntheticMove = (page: Page, movementX: number, movementY: number): Promise<void> =>
   page.evaluate(([x, y]) => { document.dispatchEvent(new PointerEvent("pointermove", { movementX: x, movementY: y, bubbles: true })); }, [movementX, movementY]);
 
 test("pauseMovePixels: movement under it does not pause; an invalid value is reported and any movement pauses", async ({ page }) => {
   await page.clock.install();
-  await page.goto(`/?rotate=${minSeconds}`);
+  await page.goto(ROTATING_CARD);
+  await frozenOnceReady(page);
   await expect(page.locator(".rotation-status")).toBeVisible();
   await syntheticMove(page, 1, 0);
   await expect(page.locator(".rotation-resume")).toBeHidden();
@@ -554,7 +563,8 @@ test("pauseMovePixels: movement under it does not pause; an invalid value is rep
 
 test("paused rotation: a pointermove without travel (layout shifted under a still pointer) does not restart the auto-resume wait", async ({ page }) => {
   await page.clock.install();
-  await page.goto(`/?rotate=${minSeconds}`);
+  await page.goto(ROTATING_CARD);
+  await frozenOnceReady(page);
   await expect(page.locator(".rotation-status")).toBeVisible();
   await syntheticMove(page, pauseMovePixels, 0);
   await expect(page.locator(".rotation-resume")).toBeVisible();
@@ -567,7 +577,8 @@ test("paused rotation: a pointermove without travel (layout shifted under a stil
 for (const bad of [-1, "x", null]) {
   test(`an invalid pauseMovePixels in config (${JSON.stringify(bad)}): notice, any movement pauses`, async ({ page }) => {
     await page.clock.install();
-    await gotoWithRotationConfig(page, `/?rotate=${minSeconds}`, { pauseMovePixels: bad });
+    await gotoWithRotationConfig(page, ROTATING_CARD, { pauseMovePixels: bad });
+    await frozenOnceReady(page);
     await expect(page.locator("#notices")).toContainText("rotation.pauseMovePixels");
     await expect(page.locator(".rotation-status")).toBeVisible();
     await syntheticMove(page, Number.NaN, Number.NaN); // no usable travel: not use

@@ -65,6 +65,23 @@ async function openBoard(page: Page, query = "", firstId = slides[0].id): Promis
   await ready(page, firstId);
 }
 
+/** The shown slide's `selector` element has settled: the fit's resize-settle redraw can land after `ready` and replace it
+ * (focus inside it would fall to the body). Two reads 2 x RESIZE_SETTLE_MS apart find the same element (marked) and box. */
+async function slideSettled(page: Page, selector: string): Promise<void> {
+  let last = "";
+  await expect.poll(async () => {
+    const now = await page.locator(selector).first().evaluate((element) => {
+      const marked = element.hasAttribute("data-settle-probe");
+      element.setAttribute("data-settle-probe", "");
+      const box = element.getBoundingClientRect();
+      return JSON.stringify({ marked, box: [box.x, box.y, box.width, box.height] });
+    });
+    const same = now === last && JSON.parse(now).marked;
+    last = now.replace('"marked":false', '"marked":true');
+    return same;
+  }, { intervals: [2 * RESIZE_SETTLE_MS] }).toBe(true);
+}
+
 test("never navigates: the address is unchanged after two intervals; ?rotate= is the board's interval", async ({ page }) => {
   const errors = trackErrors(page);
   const seconds = config.rotation.minSeconds;
@@ -368,10 +385,11 @@ test("keys aimed at a focused map link are the link's: no pause, no advance (Spa
   const errors = trackErrors(page);
   context.on("page", (popup) => { void popup.close(); }); // the link's own target=_blank
   await openBoard(page, "&slides=map-origin,world-trend", "map-origin");
+  await slideSettled(page, ".board-slot .map-svg");
   const link = page.locator(".board-slot .map-svg a").first();
-  await link.focus();
-  expect(await page.evaluate(() => document.activeElement?.tagName.toLowerCase())).toBe("a");
   for (const key of ["Space", "Enter"]) {
+    await link.focus();
+    await expect(link).toBeFocused();
     await page.keyboard.press(key); // each alone: two board presses would pause and resume
     await at(page, 1, 2);
     await expect(page.locator(".board-paused")).toBeHidden();

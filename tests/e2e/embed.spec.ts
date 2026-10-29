@@ -169,35 +169,38 @@ for (const theme of config.themes as string[]) {
 // in every theme nothing may overflow sideways.
 const FITTING_CHARTS = ["chart=world-trend", "chart=pct-world-trend", "chart=origin-apps&country=CH", "chart=office-apps&country=CH", "chart=pct-origin&country=CH", "chart=nope"];
 
-for (const { wide, suffix } of FONT_VARIANTS) for (const width of IFRAME_WIDTHS) {
-  test(`inside an iframe ${width}px wide and embedHeight high: embed-theme line charts have no scrollbars, no theme overflows sideways${suffix}`, async ({ page, baseURL }) => {
+// One test per theme (8 iframe loads each): a slow load fails only its own theme. Before each load the old iframe is
+// removed, its fetches with it; the frame comes from its element and is measured once its page says it has drawn
+// (`html.view-ready`, main.ts), then settled.
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of IFRAME_WIDTHS) for (const theme of config.themes as string[]) {
+  test(`inside an iframe ${width}px wide and embedHeight high, theme ${theme}: embed-theme line charts have no scrollbars, nothing overflows sideways${suffix}`, async ({ page, baseURL }) => {
     if (wide) await useWideFonts(page);
     await page.setViewportSize({ width: width + 40, height: config.embedHeight + 40 });
-    for (const theme of config.themes as string[]) {
-      for (const query of FITTING_CHARTS.concat(["chart=top-origins", "chart=entity-tiles&country=CH"])) {
-        await page.setContent(`<body style="margin:0"><iframe id="f" src="${baseURL}/embed.html?${query}&theme=${theme}" ` +
-          `width="${width}" height="${config.embedHeight}" style="border:0"></iframe></body>`);
-        const frame = page.frameLocator("#f");
-        await expect(frame.locator(".chart-card svg, .tile, .embed-problem").first()).toBeVisible();
-        const measure = () => page.frames()[1].evaluate(() => {
-          const root = document.documentElement;
-          return { scrollHeight: root.scrollHeight, clientHeight: root.clientHeight, scrollWidth: root.scrollWidth, clientWidth: root.clientWidth };
-        });
-        // settled: two successive reads, more than a resize settle period apart, agree (a pending redraw lands between)
-        let last = "";
-        await expect.poll(async () => {
-          const now = JSON.stringify(await measure());
-          const same = now === last;
-          last = now;
-          return same;
-        }, { intervals: [2 * RESIZE_SETTLE_MS] }).toBe(true);
-        if (wide) await expectWideFonts(page.frames()[1]);
-        const size: Awaited<ReturnType<typeof measure>> = JSON.parse(last);
-        const where = `${query} ${theme} ${width}px: ${JSON.stringify(size)}`;
-        expect(size.scrollWidth, where).toBeLessThanOrEqual(size.clientWidth);
-        if (theme === config.embedTheme && FITTING_CHARTS.includes(query)) {
-          expect(size.scrollHeight, where).toBeLessThanOrEqual(size.clientHeight);
-        }
+    for (const query of FITTING_CHARTS.concat(["chart=top-origins", "chart=entity-tiles&country=CH"])) {
+      await page.locator("#f").evaluateAll((frames) => frames.forEach((frame) => frame.remove()));
+      await page.setContent(`<body style="margin:0"><iframe id="f" src="${baseURL}/embed.html?${query}&theme=${theme}" ` +
+        `width="${width}" height="${config.embedHeight}" style="border:0"></iframe></body>`);
+      const frame = (await (await page.locator("#f").elementHandle())!.contentFrame())!;
+      await expect(frame.locator("html")).toHaveClass(/view-ready/);
+      await expect(frame.locator(".chart-card svg, .tile, .embed-problem").first()).toBeVisible();
+      const measure = () => frame.evaluate(() => {
+        const root = document.documentElement;
+        return { scrollHeight: root.scrollHeight, clientHeight: root.clientHeight, scrollWidth: root.scrollWidth, clientWidth: root.clientWidth };
+      });
+      // settled: two successive reads, more than a resize settle period apart, agree (a pending redraw lands between)
+      let last = "";
+      await expect.poll(async () => {
+        const now = JSON.stringify(await measure());
+        const same = now === last;
+        last = now;
+        return same;
+      }, { intervals: [2 * RESIZE_SETTLE_MS] }).toBe(true);
+      if (wide) await expectWideFonts(frame);
+      const size: Awaited<ReturnType<typeof measure>> = JSON.parse(last);
+      const where = `${query} ${theme} ${width}px: ${JSON.stringify(size)}`;
+      expect(size.scrollWidth, where).toBeLessThanOrEqual(size.clientWidth);
+      if (theme === config.embedTheme && FITTING_CHARTS.includes(query)) {
+        expect(size.scrollHeight, where).toBeLessThanOrEqual(size.clientHeight);
       }
     }
   });
