@@ -166,8 +166,10 @@ export async function renderSlide(stage: HTMLElement, params: Params, ctx: Omit<
   const grid = h("div", { id: `${idPrefix ?? ""}charts`, class: "chart-grid embed-grid" });
   stage.replaceChildren(grid);
   await themeLoaded();
-  // built once above: renderCards would build it again; no content = the card's problem message (renderCards)
-  const dispose = renderCards(grid, [{ ...builder, build: () => content, wide: true }], { cfg: ctx.cfg, manifest: ctx.manifest, params, compact: !full, linkOverview: full, idPrefix },
+  // built once above: renderCards would build it again; no content = the card's problem message (renderCards). A full
+  // card with state (`params`) keeps its builder: each redraw builds from the card's state, never the first build.
+  const build = full && builder.params ? builder.build : () => content;
+  const dispose = renderCards(grid, [{ ...builder, build, wide: true }], { cfg: ctx.cfg, manifest: ctx.manifest, params, compact: !full, linkOverview: full, idPrefix },
     fitToStage ? { fitTo: stage } : { fit: true });
   const title = grid.querySelector("h2")?.textContent ?? "";
   if (!content) return { ...failed(), title, dispose };

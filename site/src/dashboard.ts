@@ -72,7 +72,7 @@ function worldKey(overview: Overview, world: WorldId, id: string, what: string):
     build: () => {
       const year = overview.world_last_year[world];
       const value = overview[world][String(year)] ?? null;
-      const change = overview.world_yoy?.[world].yoy[String(year)] ?? null;
+      const change = overview.world_yoy?.[world]?.yoy[String(year)] ?? null;
       return keyContent({
         title: `${WORLD_TITLES[world]}, ${year}`,
         note: what,
@@ -164,10 +164,11 @@ function withOverviewChart(builder: CardBuilder, overviewChart: string): CardBui
   return { ...builder, build: () => { const content = builder.build(); return content ? { ...content, overviewChart } : null; } };
 }
 
-/** A tile's builder built once; absent data = the tile's reason, never a blank tile. */
+/** A tile's builder built once, except a stateful one (`params`: the map), rebuilt from its state on each redraw;
+ * absent data = the tile's reason, never a blank tile. */
 function tileBuilder(builder: CardBuilder): CardBuilder {
   const content = builder.build();
-  if (content || builder.problem) return { ...builder, build: () => content };
+  if (content || builder.problem) return builder.params ? builder : { ...builder, build: () => content };
   return { ...builder, build: () => null, problem: { title: MISSING_TITLES[builder.id] ?? builder.id, message: NO_DATA } };
 }
 

@@ -13,6 +13,11 @@ const TILE_IDS: string[] = JSON.parse(/^export const DASHBOARD_TILE_IDS = (\[[^\
 const CAROUSEL_PREFIX = /^export const CAROUSEL_PREFIX = "([^"]+)";/m.exec(dashboardSource)![1];
 const PCT_LATE_FILINGS = /^export const PCT_LATE_FILINGS = "([^"]+)";/m.exec(readFileSync("site/src/methods.ts", "utf8"))![1];
 const MIN_CHART_HEIGHT_EM = Number(/^const MIN_CHART_HEIGHT_EM = (\d+);/m.exec(readFileSync("site/src/charts.ts", "utf8"))![1]);
+const methodsSource = readFileSync("site/src/methods.ts", "utf8");
+const SERIES_TITLE: Record<string, string> = Object.fromEntries(["origin_apps", "office_apps"].map((id) =>
+  [id, new RegExp(`^  ${id}: "([^"]+)",`, "m").exec(methodsSource)![1]]));
+const mapValues: Record<string, any> = Object.fromEntries(["origin_apps", "office_apps"].map((id) =>
+  [id, JSON.parse(readFileSync(`site/data/map/${id}.json`, "utf8"))]));
 const { minSeconds } = config.rotation;
 const decimals = overview.method.rounding.decimals;
 
@@ -116,6 +121,19 @@ test("key figures: world_yoy and top_grower absent (older data): their figures r
   expect(errors).toEqual([]);
 });
 
+test("key figures: world_yoy without the PCT world: its change reads – with a reason, the page draws", async ({ page }) => {
+  const errors = trackErrors(page);
+  await editOverview(page, (data) => { delete data.world_yoy.pct_world; });
+  await openDashboard(page);
+  const change = tile(page, "key-world-pct").locator('[data-figure="change"]');
+  await expect(change.locator(".tile-value")).toHaveText("–");
+  await expect(change.locator(".tile-reason")).not.toBeEmpty();
+  await expect(tile(page, "key-world-patents").locator('[data-figure="change"] .tile-value'))
+    .toHaveText(signed(overview.world_yoy.world_office.yoy[String(overview.world_last_year.world_office)], decimals.yoy));
+  await expect(page.locator(".chart-card--problem")).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test("fastest-grower tile = top_grower; its label names the top_n and the growth window", async ({ page }) => {
   await openDashboard(page);
   const grower = overview.top_grower;
@@ -184,7 +202,58 @@ async function idProblems(page: Page): Promise<{ duplicates: string[]; unresolve
 test("dashboard: no duplicate ids; every aria-controls and aria-labelledby resolves", async ({ page }) => {
   await openDashboard(page);
   expect(await idProblems(page)).toEqual({ duplicates: [], unresolved: [] });
+  // the carousel's ids carry its prefix, and its aria refs stay inside the stage
+  const stage = await page.locator(STAGE).evaluate((element, prefix) => {
+    const ids = [...element.querySelectorAll("[id]")].map((node) => node.id);
+    const unprefixed = ids.filter((id) => !id.startsWith(prefix));
+    const outside: string[] = [];
+    for (const attribute of ["aria-controls", "aria-labelledby", "aria-describedby"]) {
+      for (const node of element.querySelectorAll(`[${attribute}]`)) {
+        for (const id of (node.getAttribute(attribute) ?? "").split(/\s+/).filter(Boolean)) {
+          if (!element.querySelector(`[id="${id}"]`)) outside.push(`${attribute}=${id}`);
+        }
+      }
+    }
+    return { count: ids.length, unprefixed, outside };
+  }, CAROUSEL_PREFIX);
+  expect(stage.count).toBeGreaterThan(1);
+  expect(stage.unprefixed).toEqual([]);
+  expect(stage.outside).toEqual([]);
 });
+
+/** A map card's state checks: heading names the measure and year; Canada's tooltip and figures row hold
+ * map/<measure>.json's value for that year. */
+async function expectMapShows(page: Page, card: Locator, metric: string, year: number): Promise<void> {
+  const value = (mapValues[metric].values.CA[String(year)] as number).toLocaleString("en-US");
+  await expect(card.locator("h2")).toContainText(`${SERIES_TITLE[metric]}, ${year}`);
+  await expect(card.locator('[data-code="CA"] title').first()).toHaveText(`Canada: ${value} (${year})`);
+  const table = card.locator(".data-table").first();
+  await expect(table.locator("th").filter({ hasText: `Applications, ${year}` })).toHaveCount(1);
+  await expect(table.locator("tr", { has: page.locator("td", { hasText: /^CA$/ }) })).toContainText(value);
+}
+
+test("map tile stays live: a year or measure change redraws its heading, tooltips and figures from map/<measure>.json", async ({ page }) => {
+  await openDashboard(page);
+  const card = tile(page, "world-map");
+  const slider = card.locator('input[type="range"]');
+  const start = Number(await slider.inputValue());
+  const steps = 5;
+  await card.getByRole("button", { name: "Show figures", exact: true }).click();
+  await slider.focus();
+  for (let step = 0; step < steps; step += 1) await page.keyboard.press("ArrowLeft");
+  await expectMapShows(page, card, "origin_apps", start - steps);
+  await card.locator("select").nth(1).selectOption("office_apps");
+  await expectMapShows(page, card, "office_apps", Number(await slider.inputValue()));
+});
+
+for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+  test(`dashboard opens at the top at ${size.width}x${size.height}: the carousel slide does not scroll the page`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await openDashboard(page);
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+  });
+}
 
 test("treemap tile: its hatch pattern id is unique and its rest references the pattern in its own svg", async ({ page }) => {
   await openDashboard(page);
@@ -278,7 +347,8 @@ async function stageFit(page: Page): Promise<{ height: number; fits: boolean; ch
   }, MIN_CHART_HEIGHT_EM);
 }
 
-for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+// 900: one column above the phone breakpoint (the stage alone in its row)
+for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, height: 844 }, { width: 900, height: 1000 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
   test(`dashboard fits at ${size.width}x${size.height}: no page sideways scroll, cards inside their tiles, slide fits its stage${suffix}`, async ({ page }) => {
     if (wide) await useWideFonts(page);
     await page.setViewportSize(size);
@@ -290,6 +360,11 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, 
     expect(fit.fits).toBe(true);
     expect(fit.chart).toBeGreaterThanOrEqual(fit.minChart - 1);
     await expect(page.locator(".chart-card--problem")).toHaveCount(0);
+    if (size.width === 1440) { // stage and map side by side: the stage fills its row, no blank under the slide
+      const [stage, map] = await Promise.all([page.locator(STAGE), page.locator('.dashboard-tile:has(> .chart-card[data-chart="world-map"])')]
+        .map((locator) => locator.evaluate((element) => element.getBoundingClientRect().bottom)));
+      expect(Math.abs(stage - map)).toBeLessThanOrEqual(1);
+    }
   });
 }
 
@@ -300,6 +375,10 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, 
     await openDashboard(page);
     await page.waitForTimeout(400);
     const closed = await stageFit(page);
+    const besideMap = await page.locator(STAGE).evaluate((stage) => {
+      const map = document.querySelector('.dashboard-tile:has(> .chart-card[data-chart="world-map"])') as HTMLElement;
+      return Math.abs(stage.getBoundingClientRect().top - map.getBoundingClientRect().top) <= 1;
+    });
     const card = page.locator(`${STAGE} .chart-card`);
     const openers: [string, Locator, Locator][] = [
       ...["Show figures", "Cite this", "Embed"].map((name, index): [string, Locator, Locator] =>
@@ -312,7 +391,10 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, 
       await page.waitForTimeout(400);
       const open = await stageFit(page);
       expect(open.fits, `${name}: stage holds the open panel`).toBe(true);
-      expect(open.height, `${name}: stage grew`).toBeGreaterThan(closed.height);
+      // alone in its row (phone): a fixed-height stage, so it grows; beside the map it has the row's height, and a panel
+      // that fits in it needs no growth: never smaller, and it holds the panel (fits, above)
+      if (!besideMap) expect(open.height, `${name}: stage grew`).toBeGreaterThan(closed.height);
+      else expect(open.height, `${name}: stage kept or grew`).toBeGreaterThanOrEqual(closed.height - 1);
       expect(open.chart, name).toBeGreaterThanOrEqual(open.minChart - 1);
       const reach = await panel.evaluate((element) => {
         const box = element.getBoundingClientRect();

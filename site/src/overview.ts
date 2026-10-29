@@ -407,7 +407,7 @@ function redrawOnState(shell: HTMLElement, builder: CardBuilder, ctx: CardContex
 
 /** Fills `grid` with one card per builder, in order (overview, country and office pages); `opts.fit` = fitted to the
  * viewport height (rotation focus, embed), `opts.fitTo` = fitted to that element's height (a slide's stage). Cards
- * are placed first, so each chart is drawn at its card's real width; `?chart=<id>` scrolls to that card. Returns the
+ * are placed first, so each chart is drawn at its card's real width; `?chart=<id>` scrolls to that card (full page). Returns the
  * function that removes the resize observers and listeners. */
 export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: CardContext,
   opts: { fit?: boolean; fitTo?: HTMLElement } = {}): () => void {
@@ -434,8 +434,9 @@ export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: Car
     if (builder.params) redrawOnState(shell, builder, ctx);
   });
   const stop = redrawOnResize(cards, fit, opts.fitTo);
-  // not in compact mode: scrollIntoView inside an iframe would scroll the host page
-  const wanted = ctx.compact ? undefined : ctx.params.chart;
+  // not in compact mode: scrollIntoView inside an iframe would scroll the host page; not in a slide's stage (`fitTo`):
+  // its `chart` names the slide, and the page (dashboard) opens at its top
+  const wanted = ctx.compact || opts.fitTo ? undefined : ctx.params.chart;
   if (wanted) shells.find((shell) => shell.dataset.chart === wanted)?.scrollIntoView();
   return stop;
 }
