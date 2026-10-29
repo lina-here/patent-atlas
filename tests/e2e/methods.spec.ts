@@ -639,3 +639,116 @@ test("PCT membership section follows patched data; without pct_membership no sec
   await expect(bare.locator('.toc a[href="#pct-membership"]')).toHaveCount(0);
   expect(bareErrors).toEqual([]);
 });
+
+// --- v2a: treemap, share shift, world change, golden rules, dashboard ---------------------------------------------------
+// Numbers are read from overview.json and config.json; only wording is typed.
+const config = readJson("site/config.json");
+const term = (page: Page, name: string) => page.locator("#formulas dt", { hasText: new RegExp(`^${name}$`) }).locator("xpath=following-sibling::dd[1]");
+
+test("methods: the treemap term states fold rule, residual, denominator, floor and the negative-rest rule", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const dd = term(page, "Treemap");
+  const { fold_share_pct: fold } = overview.method.treemap;
+  await expect(dd).toContainText(`below ${fold} % of WD, exact, before rounding`);
+  await expect(dd).toContainText("a folded origin may show as");
+  await expect(dd).toContainText("“Other <continent>”");
+  await expect(dd).toContainText("one rectangle named after the continent");
+  await expect(dd).toContainText(`“${overview.treemap.residual.label}”`);
+  await expect(dd).toContainText(overview.share_denominator.origin_apps);
+  await expect(dd).toContainText(`at least ${Math.round(overview.method.group_attribution_min * 100)}% of the world total (the attribution floor)`);
+  await expect(dd).toContainText("is a warning in the continent-share history");
+  await expect(dd).toContainText("blocks at the treemap year: the refresh stops and the last good data stays");
+  await expect(dd).toContainText("each rounded on their own");
+  await expect(dd).toContainText("add up to 100");
+  expect(errors).toEqual([]);
+});
+
+test("methods: the share shift term states the base year, the change rule, the bound, the gaps and the breaks", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const dd = term(page, "Share shift");
+  const { cagr_years: years, share_shift: shift } = overview.method;
+  const bound = (10 ** -shift.decimals).toFixed(shift.decimals);
+  await expect(dd).toContainText(`${years} years before`);
+  await expect(dd).toContainText(`${overview.share_shift.base_year}`);
+  await expect(dd).toContainText("percentage points");
+  await expect(dd).toContainText(shift.change);
+  await expect(dd).toContainText(`rounded to ${shift.decimals} decimals`);
+  await expect(dd).toContainText(`within ${bound} pp of the exact difference`);
+  await expect(dd).toContainText("sign never flips");
+  await expect(dd).toContainText("no figure in the base year is listed under the chart, not plotted");
+  await expect(dd).toContainText("series break");
+  expect(errors).toEqual([]);
+});
+
+test("methods: world change is defined, and the golden sentence states both tolerance rules", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const change = term(page, "World change");
+  await expect(change).toContainText("WD");
+  await expect(change).toContainText("ZZ");
+  await expect(change).toContainText("computed from WIPO's totals");
+  const { golden_tolerance_pct: pct, golden_growth_tolerance_pp: pp } = overview.method;
+  const sentence = page.locator("#cross-checks p", { hasText: "Headline figures from WIPO" });
+  await expect(sentence).toContainText(`counts and shares within ${pct}% (relative)`);
+  await expect(sentence).toContainText(`growth figures within ${pp} percentage points (absolute)`);
+  // the checks list shows both growth figures, from the manifest
+  const growthIds: string[] = manifest.checks.golden_sources.map((source: Json) => source.id).filter((id: string) => id.includes("_growth_"));
+  expect(growthIds.length).toBe(2);
+  for (const id of growthIds) {
+    await expect(page.locator("#cross-checks .check-lines li", { hasText: id })).toHaveCount(1);
+    await expect(page.locator("#cross-checks .golden-sources li", { hasText: id })).toHaveCount(1);
+  }
+  expect(errors).toEqual([]);
+});
+
+test("methods: the treemap, share shift and growth tolerance are left out of data that lacks them, without error", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.route("**/data/overview.json", async (route) => {
+    const ov: Json = await (await route.fetch()).json();
+    delete ov.method.treemap;
+    delete ov.method.share_shift;
+    delete ov.method.golden_growth_tolerance_pp;
+    delete ov.treemap;
+    delete ov.share_shift;
+    await route.fulfill({ json: ov });
+  });
+  await page.goto("/methods.html");
+  await expect(page.locator("#formulas")).toBeVisible();
+  await expect(page.locator("#formulas dt", { hasText: /^Treemap$/ })).toHaveCount(0);
+  await expect(page.locator("#formulas dt", { hasText: /^Share shift$/ })).toHaveCount(0);
+  await expect(page.locator("#cross-checks")).not.toContainText("percentage points (absolute)");
+  expect(errors).toEqual([]);
+});
+
+test("methods: the dashboard section lists the tiles, the controls, the holds and ?rotate=", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const section = page.locator("#dashboard");
+  await expect(section.locator("h2")).toHaveText("Dashboard");
+  await expect(page.locator('.toc a[href="#dashboard"]')).toHaveCount(1);
+  await expect(section).toContainText("?view=dashboard");
+  for (const text of ["World patent applications", "World PCT applications", "Top origin", "Fastest grower", "The world map, the treemap and the share shift"])
+    await expect(section.locator(".dashboard-tiles li", { hasText: new RegExp(`^${text}`) })).toHaveCount(1);
+  await expect(section).toContainText("links to its full chart on the overview");
+  await expect(section).toContainText(`${config.dashboard.slides.length} charts`);
+  await expect(section).toContainText(`${config.dashboard.seconds} seconds`);
+  for (const name of ["Play", "Pause", "Previous", "Next"]) await expect(section.locator("code", { hasText: new RegExp(`^${name}$`) })).toHaveCount(1);
+  const { resumeAfterSeconds, pauseMovePixels, minSeconds } = config.rotation;
+  const holds = section.locator("ul.carousel-holds li");
+  await expect(holds).toHaveCount(4);
+  await expect(holds.nth(0)).toContainText(`at least ${pauseMovePixels} pixels`);
+  await expect(holds.nth(0)).toContainText(`${resumeAfterSeconds} seconds without movement`);
+  await expect(holds.nth(1)).toContainText("Keyboard focus inside the carousel");
+  await expect(holds.nth(1)).toContainText("A mouse click on a button does not");
+  await expect(holds.nth(2)).toContainText("hidden browser tab");
+  await expect(holds.nth(3)).toContainText("open figures, cite or embed panel");
+  await expect(holds.nth(3)).toContainText("open sources and notes box");
+  await expect(section).toContainText("Play also ends a pointer hold");
+  await expect(section).toContainText("only Play ends that pause");
+  await expect(section).toContainText("reduced motion");
+  await expect(section).toContainText(`?rotate=<seconds>`);
+  await expect(section).toContainText(`at least ${minSeconds}`);
+  expect(errors).toEqual([]);
+});

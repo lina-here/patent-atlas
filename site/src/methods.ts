@@ -297,7 +297,41 @@ function viewTerms(overview: Overview): [string, string][] {
     ["PCT monthly heat strip", "PCT applications by filing month, WIPO world total (all receiving offices): one cell per month and year, " +
       "shaded in equal steps between the lowest and the highest month shown. A month WIPO has no figure for is hatched, never shaded as the lowest. " +
       PCT_LATE_FILINGS],
+    ...treemapTerms(overview),
+    ...shareShiftTerms(overview),
   ];
+}
+
+/** The treemap term; left out of data without the fold rule (older data). */
+function treemapTerms(overview: Overview): [string, string][] {
+  const { method, treemap } = overview;
+  const fold = method.treemap?.fold_share_pct;
+  if (fold === undefined) return [];
+  const denominator = overview.share_denominator.origin_apps;
+  const rest = treemap?.residual?.label;
+  return [["Treemap", `Patent applications by origin in ${treemap?.year ?? overview.top_year}. The area of a rectangle is the origin's share of the ${denominator}, grouped by continent. ` +
+    `An origin folds into “Other <continent>” when its share is below ${fold} % of WD, exact, before rounding, so a folded origin may show as ${fold}% after rounding. ` +
+    "A continent where every origin folds is one rectangle named after the continent. " +
+    (rest ? `“${rest}” is what the continents' totals leave of the world total; origins that no continent holds are inside it. ` : "") +
+    `A continent total counts only when its grouped countries account for at least ${Math.round(method.group_attribution_min * 100)}% of the world total (the attribution floor); otherwise the chart says why it is not drawn. ` +
+    `A negative${rest ? ` “${rest}”` : " not-attributable"} rest is a warning in the continent-share history and blocks at the treemap year: the refresh stops and the last good data stays. ` +
+    `Shares are each rounded on their own (${decimals(method.rounding.decimals.share)}), so they may add up to 100 ± a few hundredths of a percent.`]];
+}
+
+/** The share-shift term; left out of data without its rule (older data). */
+function shareShiftTerms(overview: Overview): [string, string][] {
+  const { method, share_shift: block } = overview;
+  const rule = method.share_shift;
+  if (!rule) return [];
+  const years = method.cagr_years;
+  const bound = (10 ** -rule.decimals).toFixed(rule.decimals);
+  const base = block ? ` (${block.base_year})` : "";
+  return [["Share shift", `The top origins' change in share of the ${overview.share_denominator.origin_apps}. The base year is ${years} years before the latest complete year${base}. ` +
+    `The change is in percentage points (pp): the share in the latest year minus the share in the base year, a ${rule.change}, both as published (rounded to ${decimals(rule.decimals)}). ` +
+    `So each row of the figures table adds up, the change is within ${bound} pp of the exact difference and its sign never flips. ` +
+    "An origin with no figure in the base year is listed under the chart, not plotted. " +
+    "If the world total is missing or provisional in either year, the chart is not drawn. " +
+    "A † marks an origin with a series break between the two years (see Series breaks): its two shares come from different methods."]];
 }
 
 function formulasSection({ overview }: MethodsData): Section {
@@ -307,6 +341,8 @@ function formulasSection({ overview }: MethodsData): Section {
     ["Year-on-year growth", `(value this year − value last year) ÷ value last year × 100, ${decimals(places.yoy)}.`],
     [`${years}-year compound annual growth`,
       `((value in the end year ÷ value ${years} years earlier) ^ (1 ÷ ${years}) − 1) × 100, ${decimals(places.cagr)}.`],
+    ["World change", "Year-on-year growth of a world total: WIPO's total for all offices (WD) for patent applications, WIPO's PCT total (ZZ) for PCT. " +
+      `It is computed from WIPO's totals with the year-on-year formula above, ${decimals(places.yoy)}, and left empty across a series break.`],
     ["Share of world", `value ÷ WIPO world total for the same year × 100, ${decimals(places.share)}.`],
     ["Rank", "Position in a year, 1 = most applications. " +
       `${(Object.keys(RANK_BASIS) as SeriesId[]).map((series) => `${SERIES_TITLES[series]}: ranked among ${RANK_BASIS[series]}.`).join(" ")} ` +
@@ -737,6 +773,7 @@ const RESULT_CLASS: Record<Manifest["checks"]["wdi"], string> = { pass: "result-
 function checksSection(data: MethodsData): Section {
   const { manifest, overview } = data;
   const checks = manifest.checks;
+  const growthTolerance = overview.method.golden_growth_tolerance_pp;
   return {
     id: "cross-checks",
     title: "Cross-checks",
@@ -757,7 +794,9 @@ function checksSection(data: MethodsData): Section {
         list(checks.wdi_warnings, ""),
       ],
       h("h3", {}, "Published WIPO figures (blocking)"),
-      h("p", {}, `Headline figures from WIPO's World Intellectual Property Indicators and PCT Yearly Review must agree within ${overview.method.golden_tolerance_pct}%. Last result:`),
+      h("p", {}, "Headline figures from WIPO's World Intellectual Property Indicators and PCT Yearly Review must agree with the published value: ",
+        `counts and shares within ${overview.method.golden_tolerance_pct}% (relative)`,
+        growthTolerance === undefined ? "" : `, growth figures within ${growthTolerance} percentage points (absolute)`, ". Last result:"),
       list(checks.golden, "No figures compared."),
       h("p", {}, "Where each figure is published:"),
       h("ul", { class: "golden-sources" }, checks.golden_sources.map((src) => h("li", {},
@@ -789,6 +828,40 @@ function revisionsSection(): Section {
       h("p", {}, "WIPO revises past years as offices send corrections. Every update fetches each series' whole year range again, so figures for earlier years can change between releases. ",
         `WIPO withholds the most recent months of PCT data. ${PCT_LATE_FILINGS}`),
       h("p", {}, "Data are checked for a new release monthly. A figure always carries the release and retrieval date it came from."),
+    ],
+  };
+}
+
+function dashboardSection({ cfg }: MethodsData): Section {
+  const { minSeconds, resumeAfterSeconds, pauseMovePixels } = cfg.rotation;
+  const { seconds, slides } = cfg.dashboard;
+  const moveText = isPauseMovePixels(pauseMovePixels) && pauseMovePixels > 0 ? `Pointer movement of at least ${pauseMovePixels} pixels in all` : "Pointer movement";
+  const releaseText = isRotationSeconds(cfg, resumeAfterSeconds)
+    ? `, or after ${resumeAfterSeconds} seconds without movement`
+    : "";
+  return {
+    id: "dashboard",
+    title: "Dashboard",
+    body: [
+      h("p", {}, "The dashboard (", h("code", {}, "?view=dashboard"), ", “Dashboard” in the header) shows key figures and charts on one page. ",
+        "Each tile names its year and source and links to its full chart on the overview. A tile whose data is missing says so; it is never left blank or filled with 0. The tiles:"),
+      h("ul", { class: "dashboard-tiles" },
+        h("li", {}, "World patent applications: WIPO's total for all offices (WD), with its change on the year."),
+        h("li", {}, "World PCT applications: WIPO's PCT total (ZZ), with its change on the year."),
+        h("li", {}, "Top origin: the country with the most patent applications by origin."),
+        h("li", {}, "Fastest grower: the country with the highest compound annual growth among the top origins."),
+        h("li", {}, "The world map, the treemap and the share shift, as on the overview.")),
+      h("p", {}, `Beside the key figures, a carousel shows ${slides.length} charts one at a time, each for ${seconds} seconds. `,
+        "Its buttons are ", h("code", {}, "Play"), " and ", h("code", {}, "Pause"), " (one button that changes its name), ",
+        h("code", {}, "Previous"), " and ", h("code", {}, "Next"), ". It starts paused. ",
+        h("code", {}, "?rotate=<seconds>"), ` starts it playing at that interval (at least ${minSeconds}), for an office screen; reduced motion settings do not change this.`),
+      h("p", {}, "While playing, the carousel stops (a hold) in these cases and goes on from where it stopped when the hold ends:"),
+      h("ul", { class: "carousel-holds" },
+        h("li", {}, `${moveText} over the carousel holds it until the pointer leaves${releaseText}.`),
+        h("li", {}, "Keyboard focus inside the carousel holds it, except on the Play or Pause button. A mouse click on a button does not."),
+        h("li", {}, "A hidden browser tab holds it."),
+        h("li", {}, "An open figures, cite or embed panel, or an open sources and notes box, holds it.")),
+      h("p", {}, "Pause stops it until Play is pressed: only Play ends that pause. Play also ends a pointer hold."),
     ],
   };
 }
@@ -983,7 +1056,7 @@ function disclaimerSection(): Section {
 export function renderMethods(el: HTMLElement, data: MethodsData): void {
   const sections = [
     sourcesSection(data), definitionsSection(data), groupingsSection(data), worldSection(data), seriesBreaksSection(data),
-    yearsSection(data), formulasSection(data), scaleSection(data), mapSection(data), pctMembershipSection(data), womenSection(data), checksSection(data), ratioCheckSection(data), revisionsSection(), wallboardSection(data),
+    yearsSection(data), formulasSection(data), scaleSection(data), mapSection(data), pctMembershipSection(data), womenSection(data), checksSection(data), ratioCheckSection(data), revisionsSection(), dashboardSection(data), wallboardSection(data),
     disclaimerSection(),
   ].filter((section): section is Section => section !== null);
   el.replaceChildren(

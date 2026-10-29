@@ -869,7 +869,7 @@ test("the year in the origin note is read from overview.json", async ({ page }) 
 
 test("methods page documents each overview view", async ({ page }) => {
   await page.goto("/methods.html");
-  for (const name of ["Rank race", "Region share of world", "Size versus growth", "PCT monthly heat strip"]) {
+  for (const name of ["Rank race", "Region share of world", "Size versus growth", "PCT monthly heat strip", "Treemap", "Share shift"]) {
     const term = page.locator("#formulas dt", { hasText: name });
     await expect(term).toHaveCount(1);
     await expect(term.locator("xpath=following-sibling::dd[1]")).not.toBeEmpty();
