@@ -99,6 +99,8 @@
   --continent-oceania: #6b7785;
   /* treemap: solid plate under the label on the hatched not-attributable rectangle; label ink or surface >= 4.5:1 (wallboard 7:1) */
   --treemap-residual: #e3e7eb;
+  /* treemap continent outline: kept thin so it never hides a small rectangle's fill (a stroke covers half its width on each side) */
+  --treemap-band-width: 1.5px;
   --map-bin-1: #e3eef9;
   --map-bin-2: #bcd6f0;
   --map-bin-3: #8bbae5;

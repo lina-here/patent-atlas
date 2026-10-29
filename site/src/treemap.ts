@@ -26,7 +26,11 @@ const PAD_X_EM = 0.4;
 const PAD_Y_EM = 0.3;
 const TEXT_HEIGHT_EM = 1.25;
 const KEY_ROW_EM = 1.7;
-const KEY_SWATCH_EM = 0.9;
+const KEY_SWATCH_EM = 1.3;
+/** A continent's number in the key swatch and, set tight, in its largest rectangle (a digit needs only its cap height). */
+const KEY_NUMBER_EM = 0.85;
+const NUMBER_PAD_EM = 0.1;
+const NUMBER_CAP_EM = 0.72;
 /** Text widths are measured on a canvas: tabular digits and rounding in the page can differ a little. */
 const TEXT_SLACK = 1.04;
 /** Most lines a rectangle's label may wrap to. */
@@ -41,6 +45,8 @@ type Leaf = {
   title: string;
   value: number;
   share: number | null;
+  /** The rectangle is the whole continent, named for it. */
+  namesContinent?: boolean;
 };
 type TreeNode = { children?: TreeNode[]; leaf?: Leaf; value?: number; continent?: string };
 
@@ -121,11 +127,11 @@ function buildTree(block: Treemap, decimals: number): TreeNode {
     }]));
     const other = continent.other;
     if (other && other.value > 0) {
-      const alone = continent.countries.length === 0;
+      const alone = leaves.length === 0; // no country is drawn: the "Other" rectangle is the continent
       const name = alone ? continent.label : `Other ${continent.label}`;
       leaves.push({
         value: other.value, continent: continent.id,
-        leaf: { code: "", kind: "other", continent: continent.id, name, value: other.value, share: other.share,
+        leaf: { code: "", kind: "other", continent: continent.id, name, value: other.value, share: other.share, namesContinent: alone,
           title: `${name} (${other.codes.length} origins): ${formatCount(other.value)} applications, ${shareText(other.share, decimals) ?? "–"}` },
       });
     }
@@ -144,7 +150,7 @@ function buildTree(block: Treemap, decimals: number): TreeNode {
 
 /** A key row under the plot: swatch + name per continent with a rectangle (the order of the data) and the rest; wrapped to
  * `width`. Returns its group and height. */
-function keyGroup(items: { id: string; label: string; fill?: string; hatched?: boolean }[], theme: ChartTheme, width: number): { group: SVGGElement; height: number } {
+function keyGroup(items: { id: string; label: string; number?: number; fill?: string; hatched?: boolean }[], theme: ChartTheme, width: number): { group: SVGGElement; height: number } {
   const row = theme.fontSize * KEY_ROW_EM;
   const swatch = theme.fontSize * KEY_SWATCH_EM;
   const gap = theme.fontSize * 0.5;
@@ -161,32 +167,39 @@ function keyGroup(items: { id: string; label: string; fill?: string; hatched?: b
     group.append(el("g", { class: "treemap-key-item", "data-continent": item.id },
       el("rect", { class: `treemap-swatch${item.hatched ? " treemap-residual" : ""}`, x, y: middle - swatch / 2, width: swatch, height: swatch,
         ...(item.fill ? { fill: item.fill } : {}) }),
-      Object.assign(el("text", { x: x + swatch + gap, y: middle, "dominant-baseline": "central", fill: theme.ink }), { textContent: item.label })));
+      ...(item.number !== undefined && item.fill
+        ? [Object.assign(el("text", { class: "treemap-key-number", x: x + swatch / 2, y: middle, "text-anchor": "middle", "dominant-baseline": "central",
+          "font-size": theme.fontSize * KEY_NUMBER_EM, fill: textOn(item.fill, theme) }), { textContent: String(item.number) })]
+        : []),
+      Object.assign(el("text", { class: "treemap-key-name", x: x + swatch + gap, y: middle, "dominant-baseline": "central", fill: theme.ink }), { textContent: item.label })));
     x += itemWidth;
   }
   return { group, height: (line + 1) * row };
 }
 
 /** Squarified treemap of `block` in a `width` x `height` svg (height = plot and key together). */
-export function treemapChart(block: Treemap, opts: { width: number; height?: number; decimals?: number }): SVGElement {
+export function treemapChart(block: Treemap, opts: { width: number; height?: number; decimals: number }): SVGElement {
   const theme = readTheme();
   const width = opts.width > 0 ? opts.width : FALLBACK_WIDTH;
-  const decimals = opts.decimals ?? 2;
+  const decimals = opts.decimals;
   const natural = Math.max(theme.height * MIN_HEIGHT_FACTOR, width * HEIGHT_PER_WIDTH);
   const total = opts.height === undefined ? natural : Math.max(minChartHeight(), Math.min(opts.height, natural));
 
-  const present = block.continents.filter((continent) => continent.countries.length > 0 || (continent.other && continent.other.value > 0));
+  const tree = buildTree(block, decimals);
+  // continents with a rectangle, numbered 1..n in the order of the data (the key and each continent's largest rectangle carry the number)
+  const drawn = (tree.children ?? []).map((band) => band.continent ?? "").filter((id) => id !== "residual" && id !== "");
+  const numberOf = (id: string): number => drawn.indexOf(id) + 1;
   const residualShown = block.residual !== null && block.residual.value !== null && block.residual.value > 0;
   const labelFor = (id: string): string => block.continents.find((continent) => continent.id === id)?.label ?? id;
   const keyItems = [
-    ...present.map((continent) => ({ id: continent.id, label: continent.label, fill: theme.continent(continent.id, block.continents.indexOf(continent)) })),
+    ...drawn.map((id) => ({ id, label: labelFor(id), number: numberOf(id), fill: theme.continent(id, block.continents.findIndex((continent) => continent.id === id)) })),
     ...(residualShown && block.residual ? [{ id: "residual", label: block.residual.label, hatched: true }] : []),
   ];
   const key = keyGroup(keyItems, theme, width);
   const keyGap = theme.fontSize * 0.8;
   const plotHeight = Math.max(theme.fontSize * 4, total - key.height - keyGap);
 
-  const root = hierarchy<TreeNode>(buildTree(block, decimals), (node) => node.children)
+  const root = hierarchy<TreeNode>(tree, (node) => node.children)
     .sum((node) => node.value ?? 0)
     .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
   treemap<TreeNode>().size([width, plotHeight]).tile(treemapSquarify).paddingInner(0).paddingOuter(0).round(false)(root);
@@ -202,9 +215,9 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
   let index = 0;
   for (const band of laid.children ?? []) {
     const leaves = band.leaves();
-    // the continent's name sits at the top left of its largest rectangle when it fits (a band with one rectangle is named by
-    // that rectangle's label)
-    const largest = leaves.length > 1 ? leaves.reduce((best, node) => ((node.value ?? 0) > (best.value ?? 0) ? node : best)) : null;
+    // the continent's name sits at the top left of its largest rectangle when it fits, else its number when a digit fits (a
+    // rectangle that is the whole continent is named by its own label)
+    const largest = leaves.reduce((best, node) => ((node.value ?? 0) > (best.value ?? 0) ? node : best));
     for (const node of leaves) {
       const leaf = node.data.leaf as Leaf;
       const x = node.x0;
@@ -222,11 +235,19 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
       }, Object.assign(el("title"), { textContent: leaf.title })));
       const colour = textOn(fill, theme);
       let taken = 0;
-      if (largest === node) {
+      if (largest === node && !residual) {
         const name = labelFor(leaf.continent);
         const lines = labelLines(name, null, w, h, 0, theme);
-        if (lines && lines.length === 1) {
+        const digit = String(numberOf(leaf.continent));
+        const digitFits = w >= textWidth(digit, theme) * TEXT_SLACK + 2 * NUMBER_PAD_EM * theme.fontSize
+          && h >= (NUMBER_CAP_EM + 2 * NUMBER_PAD_EM) * theme.fontSize;
+        if (lines && lines.length === 1 && !leaf.namesContinent) {
           labels.append(textBlock([name], x, y, 0, colour, "treemap-continent-label", at, leaf.continent, theme));
+          taken = 1;
+        } else if (digitFits && !(leaf.namesContinent && lines)) {
+          const pad = NUMBER_PAD_EM * theme.fontSize;
+          labels.append(Object.assign(el("text", { class: "treemap-continent-number", x: x + pad, y: y + pad + NUMBER_CAP_EM * theme.fontSize, fill: colour,
+            "data-index": at, "data-continent": leaf.continent }), { textContent: digit }));
           taken = 1;
         }
       }
@@ -286,6 +307,9 @@ export function treemapCard(overview: Overview): CardBuilder {
   const title = block ? `Who files the world's patents? Applications by origin, ${block.year}` : "";
   const negative = Boolean(block?.residual && block.residual.value !== null && block.residual.value < 0);
   const message = block?.null_reason ? nullReasonText(block.null_reason, overview) : negative && block ? NEGATIVE_REST(block.year) : null;
+  // the share decimals come from the method; without them the card is left out, like any other absent data (no guessed rounding)
+  const decimals = overview.method.rounding.decimals.share;
+  if (typeof decimals !== "number") return { id: TREEMAP_CARD_ID, wide: true, build: () => null };
   return {
     id: TREEMAP_CARD_ID,
     wide: true, // area carries the figure: the plot takes the whole grid row, where small rectangles still hold a label
@@ -293,7 +317,6 @@ export function treemapCard(overview: Overview): CardBuilder {
     build: (): CardContent | null => {
       const source = overview.sources.origin_apps;
       if (!block || !source || message || !block.residual) return null;
-      const decimals = overview.method.rounding.decimals.share;
       const denominator = overview.share_denominator.origin_apps;
       const fold = overview.method.treemap?.fold_share_pct;
       const unattributed = block.unattributed.map((row) => row.label);

@@ -140,3 +140,13 @@ def test_treemap_residual_label_on_a_solid_plate(theme):
     assert re.search(r"\.treemap-plate \{[^}]*fill: var\(--treemap-residual\)", base)
     assert re.search(r"\.treemap-residual \{[^}]*fill: url\(#treemap-hatch\)", base)
     assert "treemap-residual" in tokens(theme)
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_treemap_band_outline_is_thin_enough_not_to_hide_small_rectangles(theme):
+    """The continent outline is a px token between the rectangle stroke's width and the chart line width: any wider hides
+    the fill of a small rectangle that touches it (treemap.spec.ts measures the fill that stays visible)."""
+    table = tokens(theme)
+    band = float(re.fullmatch(r"([0-9.]+)px", table["treemap-band-width"]).group(1))
+    assert float(re.fullmatch(r"([0-9.]+)px", table["map-edge-width"]).group(1)) <= band, theme
+    assert band <= float(re.fullmatch(r"([0-9.]+)px", table["chart-line-width"]).group(1)), theme
