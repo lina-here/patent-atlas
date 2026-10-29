@@ -1,19 +1,17 @@
 // Dashboard (`?view=dashboard`, spec 2a): a glanceable summary whose tiles link to the full charts. Row 1: four key-figure
-// tiles (world patents, world PCT, top origin, fastest grower among the top origins); row 2: the carousel stage (one wallboard
-// slide as a full card, fitted to the stage) and the world map; row 3: the treemap and the share-shift card. Every tile is a
-// full chart card (Show figures, Cite, Embed, a same-tab link to its overview chart). Every figure is a pipeline field of
-// overview.json, never computed here; a missing figure reads "–" with its reason.
+// tiles (world patents, world PCT, top origin, fastest grower among the top origins); row 2: the carousel (carousel.ts:
+// `dashboard.slides`, each a full card fitted to the stage) and the world map; row 3: the treemap and the share-shift card.
+// Every tile is a full chart card (Show figures, Cite, Embed, a same-tab link to its overview chart). Every figure is a
+// pipeline field of overview.json, never computed here; a missing figure reads "–" with its reason.
 import type { Atlas } from "./atlas";
-import { CAROUSEL_PREFIX } from "./carousel";
+import { startCarousel } from "./carousel";
 import type { CardContext } from "./chartCard";
 import type { Entities, Overview, SeriesId, SourceBlock, WorldId } from "./data";
 import { h, formatCount } from "./dom";
-import { renderSlide } from "./embed";
 import { percent } from "./entityPage";
 import { MAP_CARD_ID, type MapContext } from "./map";
 import { PCT_LATE_FILINGS, WORLD_TITLES, seriesBreaksIn, seriesBreakNotes } from "./methods";
 import { WORLD_SERIES, renderCards, worldCards, type CardBuilder, type CardContent } from "./overview";
-import { readParams } from "./params";
 import { SHARE_SHIFT_CARD_ID, shareShiftCard } from "./shareShift";
 import { themeLoaded } from "./theme";
 import { TREEMAP_CARD_ID, treemapCard } from "./treemap";
@@ -173,26 +171,7 @@ function tileBuilder(builder: CardBuilder): CardBuilder {
 
 type DashboardContext = MapContext & { atlas: Atlas | null; overview: Overview; entities: Entities };
 
-/** The carousel's slide (this task: the first of `dashboard.slides`, shown still) in `stage`, as a full card with prefixed ids.
- * Returns the slide's notices; a slide that cannot be drawn shows its reason in the stage. */
-async function renderCarousel(stage: HTMLElement, ctx: DashboardContext): Promise<string[]> {
-  const { cfg, manifest, params, entities, overview } = ctx;
-  const id = cfg.dashboard?.slides?.[0];
-  const slide = cfg.wallboard.slides.find((entry) => entry.id === id);
-  if (!slide) {
-    const text = "No carousel slide: config.json dashboard.slides names no wallboard slide.";
-    stage.replaceChildren(h("p", { class: "notice", role: "alert" }, text));
-    return [text];
-  }
-  const slideParams = { ...readParams(`?${slide.params}`, cfg).params, theme: params.theme };
-  const result = await renderSlide(stage, slideParams, { cfg, manifest, entities, overview }, { fitToStage: true, full: true, idPrefix: CAROUSEL_PREFIX });
-  if (result.problem.length > 0) {
-    stage.replaceChildren(h("div", { class: "notice", role: "alert" }, result.problem.map((line) => h("p", {}, line))));
-  }
-  return result.notices;
-}
-
-/** The dashboard in `app`; returns its notices (the slide's). */
+/** The dashboard in `app`; returns its notices (the carousel's). */
 export async function renderDashboard(app: HTMLElement, ctx: DashboardContext): Promise<string[]> {
   const { atlas, overview } = ctx;
   const cardCtx: CardContext = { cfg: ctx.cfg, manifest: ctx.manifest, params: ctx.params };
@@ -203,7 +182,7 @@ export async function renderDashboard(app: HTMLElement, ctx: DashboardContext): 
   const builders = [...keyFigureCards(overview), map, { ...treemapCard(overview), wide: false }, shareShiftCard(overview)];
   const holders = builders.map(() => h("div", { class: "dashboard-tile" }));
   const [patents, pct, origin, grower, mapTile, treemapTile, shiftTile] = holders;
-  const stage = h("section", { class: "dashboard-stage", "aria-label": "Featured chart" });
+  const stage = h("section", { class: "dashboard-stage" });
   document.title = `Dashboard – ${ctx.cfg.siteName}`;
   app.replaceChildren(
     h("header", { class: "page-intro" },
@@ -220,5 +199,7 @@ export async function renderDashboard(app: HTMLElement, ctx: DashboardContext): 
   );
   await themeLoaded();
   builders.forEach((builder, index) => renderCards(holders[index], [tileBuilder(builder)], tileCtx));
-  return renderCarousel(stage, ctx);
+  const notices: string[] = [];
+  startCarousel(stage, ctx.cfg, ctx.manifest, ctx.params, notices, { entities: ctx.entities, overview });
+  return notices;
 }

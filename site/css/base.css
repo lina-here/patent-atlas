@@ -620,15 +620,45 @@ input {
 .tiles.key-figures { grid-template-columns: minmax(0, 1fr); }
 .key-figures .tile-value { overflow-wrap: anywhere; }
 .tile-reason { margin: var(--space-1) 0 0; font-size: var(--size-small); color: var(--muted); }
-/* Carousel stage: its row's height (set by the map tile beside it), the token its floor; the slide's chart fitted to it
-   (overview.ts fitToRoom), spare room inside the card. Alone in its row (phone) a fixed height. While a tool panel or the
-   sources-and-notes details is open the stage grows to its content (the fit finds no overflow); closed, the height is back. */
-.dashboard-stage { height: auto; min-height: var(--dashboard-stage-height); overflow: hidden; min-width: 0; }
-.dashboard-stage > .chart-grid,
-.dashboard-stage .chart-card { height: 100%; }
+/* Carousel stage (carousel.ts): its row's height (set by the map tile beside it), the token its floor; controls on top, the
+   slide's chart fitted to the viewport below them (overview.ts fitToRoom), spare room inside the card. Alone in its row (phone)
+   a fixed height, its own token: the controls plus the tallest slide's text (narrow, wide fallback fonts) over a chart at its
+   least height. While a tool panel or the sources-and-notes details is open the stage grows to its content (the fit finds no
+   overflow); closed, the height is back. */
+.dashboard-stage {
+  height: auto;
+  min-height: var(--dashboard-stage-height);
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+/* room for the focus ring: the stage clips */
+.carousel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: calc(var(--focus-width) + var(--focus-offset));
+}
+.carousel-position { margin-left: auto; font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
+.carousel-viewport { position: relative; flex: 1 1 0; min-height: 0; }
+.carousel-slot { position: absolute; inset: 0; overflow: hidden; }
+.carousel-slot--pending { visibility: hidden; }
+.carousel-slot > .chart-grid,
+.carousel-slot .chart-card { height: 100%; }
+.carousel-slot[data-state="ready"] { animation: var(--rotate-animation); }
+.carousel-unavailable,
+.carousel-error { margin: 0; }
 .dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) { height: auto; overflow: visible; }
-.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) > .chart-grid,
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .carousel-viewport { flex: none; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .carousel-slot { position: static; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .carousel-slot > .chart-grid,
 .dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .chart-card { height: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slot[data-state="ready"] { animation: none; }
+}
 
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
@@ -641,7 +671,7 @@ input {
   .dashboard-row,
   .dashboard-row.dashboard-keys,
   .dashboard-pair { grid-template-columns: minmax(0, 1fr); }
-  .dashboard-stage { height: var(--dashboard-stage-height); }
+  .dashboard-stage { height: var(--dashboard-stage-phone-height); }
   .data-table th,
   .data-table td { padding-right: var(--space-2); overflow-wrap: anywhere; hyphens: auto; }
 }
