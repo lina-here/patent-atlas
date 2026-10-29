@@ -1016,7 +1016,7 @@ export const MEMBERSHIP_LABELS = {
 } as const;
 const MEMBERSHIP_NULL_TEXT: Record<MembershipNullReason, string> = {
   not_on_current_list: "not on WIPO's current list of PCT Contracting States (former entity)",
-  successor_state: "part of a former entity, or of a State it left, before its own date; not shown",
+  successor_state: "part of a former entity, or of a State it left, in that year; not shown",
 };
 const PCT_LIST_NAME = "WIPO, PCT Contracting States";
 
@@ -1051,7 +1051,7 @@ function membershipLegend(block: PctMembership): HTMLElement {
 
 type MemberRow = {
   entity: EntityRef; member: boolean | null; inForce?: string; reason?: MembershipNullReason; shown: Shown | null;
-  territory?: PctTerritoryLink; successorOf?: { code: string; name: string; own_date: string };
+  territory?: PctTerritoryLink; successorOf?: { code: string; name: string };
 };
 
 /** Tooltip / table text of a row (no label): a listed State, a territory (PCT through a Contracting State, never one
@@ -1059,11 +1059,12 @@ type MemberRow = {
 function memberText(row: MemberRow, year: string): string {
   const { member, territory, successorOf } = row;
   if (territory) {
-    const through = `through ${territory.state} since ${territory.from} (not a Contracting State)`;
-    return member ? `PCT applies ${through}` : `Not covered in ${year} on WIPO's current list; PCT applies ${through}`;
+    const span = (period: PctTerritoryLink[number]) => `through ${period.state} ${period.to ? `${period.from} to ${period.to}` : `since ${period.from}`}`;
+    const covering = territory.filter((period) => period.from.slice(0, 4) <= year && (!period.to || period.to.slice(0, 4) >= year));
+    return `${member ? `PCT applies ${covering.map(span).join("; ")}` : `Not covered in ${year}; PCT applies ${territory.map(span).join("; ")}`} (not a Contracting State)`;
   }
   if (member === null) {
-    return successorOf ? `Before ${successorOf.own_date}: part of ${successorOf.name}; not shown`
+    return successorOf ? `${year}: part of ${successorOf.name}; not shown`
       : `no data${row.reason ? `: ${membershipNullText(row.reason)}` : ""}`;
   }
   return member ? `Bound since ${row.inForce}` : `Not a PCT member in ${year}${row.inForce ? ` (bound from ${row.inForce})` : ""}`;
@@ -1086,11 +1087,11 @@ function membershipContent(atlas: Atlas, values: MembershipMapValues, block: Pct
       shown: shownOf(atlas, withShape, numeric, entity.code, { hasValue: member !== null, hatchedNull: reason !== undefined }) });
   }
   const tipOf = (entity: EntityRef, row: MemberRow | undefined): string => (!row ? `${entity.label}: no data (${year})`
-    : `${entity.label}: ${memberText(row, year)}${row.member === null ? ` (${year})` : ""}`);
+    : `${entity.label}: ${memberText(row, year)}${row.member === null && !row.successorOf ? ` (${year})` : ""}`);
   const sorted = [...rows.values()].sort((a, b) => Number(b.member) - Number(a.member) || a.entity.label.localeCompare(b.entity.label));
   const label = labelOf(atlas);
   const formers = Object.keys(values.null_reason).filter((code) => !(code in values.values));
-  const drawnText = (row: MemberRow): string => (row.territory ? (row.member ? `PCT applies through ${row.territory.state}` : "not covered")
+  const drawnText = (row: MemberRow): string => (row.territory ? (row.member ? "PCT applies through a Contracting State" : "not covered")
     : row.member === null ? "no data" : row.member ? "member" : "not a member");
   const notDrawn = notDrawnNote([...rows.values()].filter((row) => row.shown === "not drawn").map((row) => `${row.entity.label} (${drawnText(row)})`));
   const unmatched = values.unmatched.length === 0 ? null

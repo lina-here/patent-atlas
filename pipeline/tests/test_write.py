@@ -1696,13 +1696,19 @@ def test_pct_membership_overview():
     assert block["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
     # every territory and successor entry of the list (the methods page names them), not only the fixture's entities
     assert [territory["code"] for territory in block["territories"]] == sorted(states.territories)
-    assert block["territories"][[t["code"] for t in block["territories"]].index("HK")] == {
-        "code": "HK", "name": "Hong Kong, China", "via": "CN", "state": "China", "from": "1997-07-01"}
+    hong_kong = block["territories"][[t["code"] for t in block["territories"]].index("HK")]
+    assert (hong_kong["code"], hong_kong["name"]) == ("HK", "Hong Kong, China")
+    assert [{key: period[key] for key in ("via", "state", "from", "to")} for period in hong_kong["periods"]] == [
+        {"via": "GB", "state": "United Kingdom", "from": "1981-04-15", "to": "1997-06-30"},
+        {"via": "CN", "state": "China", "from": "1997-07-01", "to": None}]
+    assert [source["url"].rsplit("_", 1)[1] for source in hong_kong["periods"][0]["sources"]] == ["34", "122"]
     assert [entry["predecessor"] for entry in block["successors"]] == sorted(states.successors)
     assert block["successors"][0] == {"predecessor": "CS", "name": "Czechoslovakia", "source": "ISO 3166-3: CSHH",
-                                      "codes": ["CZ", "SK"], "own_dates": {}, "note": ""}
+                                      "codes": ["CZ", "SK"], "from": None, "to": "1992-12-31",
+                                      "end_source": states.successors["CS"].end_source, "own_dates": {}, "note": ""}
     sudan = block["successors"][[entry["predecessor"] for entry in block["successors"]].index("SD")]
     assert (sudan["codes"], sudan["own_dates"]) == (["SS"], {"SS": "2011-07-09"})
+    assert (sudan["from"], sudan["to"]) == ("1984-04-16", "2011-07-08")
     assert block["continuing"] == [
         {"code": "RS", "name": "Serbia", "in_force": "1997-02-01", "continues": "Serbia and Montenegro"},
         {"code": "RU", "name": "Russian Federation", "in_force": "1978-03-29", "continues": "Soviet Union"}]
@@ -1713,16 +1719,18 @@ def test_pct_member_map_file_territories_and_successors():
     years: their predecessor and own date, for the tooltip."""
     states = pct_states.load_pct_states()
     file = write._pct_member_map_file(states, ["CN", "HK", "MO", "NL", "CW", "UA", "RU", "SU", "SD", "SS"])
-    assert file["territories"] == {"CW": {"via": "NL", "state": "Netherlands", "from": "1979-07-10"},
-                                   "HK": {"via": "CN", "state": "China", "from": "1997-07-01"}}
+    assert file["territories"] == {
+        "CW": [{"via": "NL", "state": "Netherlands", "from": "1979-07-10", "to": None}],
+        "HK": [{"via": "GB", "state": "United Kingdom", "from": "1981-04-15", "to": "1997-06-30"},
+               {"via": "CN", "state": "China", "from": "1997-07-01", "to": None}]}
     assert file["successor_of"] == {  # RU: no year before its date
-        "SS": {"code": "SD", "name": "Sudan", "own_date": "2011-07-09"},
-        "UA": {"code": "SU", "name": "Soviet Union", "own_date": "1991-12-25"}}
+        "SS": {"code": "SD", "name": "Sudan", "from": "1984-04-16", "to": "2011-07-08"},
+        "UA": {"code": "SU", "name": "Soviet Union", "from": "1978-03-29", "to": "1991-12-25"}}
     assert file["null_reason"] == {"SS": "successor_state", "SU": "not_on_current_list", "UA": "successor_state"}
     assert (file["values"]["UA"]["1985"], file["values"]["UA"]["1991"]) == (None, True)
-    assert (file["values"]["SS"]["2010"], file["values"]["SS"]["2011"]) == (None, False)  # left Sudan; not listed
+    assert [file["values"]["SS"][year] for year in ("1983", "1984", "2011", "2012")] == [False, None, None, False]
     assert (file["values"]["SD"]["1983"], file["values"]["SD"]["1984"]) == (False, True)
-    assert (file["values"]["HK"]["1996"], file["values"]["HK"]["1997"]) == (False, True)
+    assert [file["values"]["HK"][year] for year in ("1980", "1981", "1996", "1997")] == [False, True, True, True]
     assert not any(file["values"]["MO"].values())
     assert "HK" not in file["in_force"]
 

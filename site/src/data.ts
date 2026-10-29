@@ -249,11 +249,15 @@ export type Overview = {
 export type PctContinuingState = { code: string; name: string; in_force: string; continues: string };
 /** A territory the PCT applies to through a listed State (`via`, named `state`) from `from`, as WIPO's footnote prints it;
  * `name` as the footnote names it. */
-export type PctTerritory = { code: string; name: string; via: string; state: string; from: string };
+export type PctTerritory = {
+  code: string; name: string;
+  periods: { via: string; state: string; from: string; to: string | null; sources: { document: string; url: string }[] }[];
+};
 /** A predecessor (a former entity, or a listed State that continues) and its successor States (ISO 3166 `source`);
  * `own_dates` = the day a successor left a continuing State; `note` = where the list departs from ISO 3166. */
 export type PctSuccession = {
-  predecessor: string; name: string; source: string; codes: string[]; own_dates: Record<string, string>; note: string;
+  predecessor: string; name: string; source: string; codes: string[]; from: string | null; to: string; end_source: string;
+  own_dates: Record<string, string>; note: string;
 };
 
 /** overview `pct_membership`: rows from WIPO's page (`source_url`), count and status date from WIPO's list

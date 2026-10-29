@@ -42,10 +42,10 @@ export type ShareMapValues = MapValues<GenderNullReason>;
  * successor State before its own date (part of a former entity, or of a State it left, then). */
 export type MembershipNullReason = "not_on_current_list" | "successor_state";
 /** A territory the PCT applies to through the listed State `via` (`state`, its name) from `from` (WIPO footnote). */
-export type PctTerritoryLink = { via: string; state: string; from: string };
+export type PctTerritoryLink = { via: string; state: string; from: string; to: string | null }[];
 /** map/pct_member.json: per country and year whether the PCT was in force for it (true / false; a territory: whether it
  * applied through a Contracting State); null with its reason (`null_reason` per code): a former entity every year, a
- * successor State before its own date (`successor_of` = its predecessor and own date); `in_force` = the date each
+ * successor State in its window (`successor_of` = its predecessor; window from (null = series start) to); `in_force` = the date each
  * listed State became bound; `unmatched` = listed codes with no WIPO entity. */
 export type MembershipMapValues = {
   values: Record<string, Record<string, boolean | null>>;
@@ -53,7 +53,7 @@ export type MembershipMapValues = {
   in_force: Record<string, string>;
   unmatched: string[];
   territories: Record<string, PctTerritoryLink>;
-  successor_of: Record<string, { code: string; name: string; own_date: string }>;
+  successor_of: Record<string, { code: string; name: string; from: string | null; to: string }>;
   sources: { pct_member: { source_url: string; count_check_url: string; status_on: string; retrieved: string } };
 };
 

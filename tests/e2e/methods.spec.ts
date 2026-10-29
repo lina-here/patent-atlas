@@ -577,14 +577,17 @@ async function expectPctSection(page: Page, pct: any): Promise<void> {
   // territories: WIPO's page footnotes, each with its State and date, from the overview
   await expect(section).toContainText("Where a footnote on WIPO's page says the PCT applies to a territory through a Contracting State");
   for (const territory of pct.territories) {
-    await expect(section).toContainText(`${territory.name} (${territory.code}) through ${territory.state} since ${territory.from}`);
+    for (const p of territory.periods) {
+      await expect(section).toContainText(`through ${p.state} ${p.to ? `${p.from} to ${p.to}` : `since ${p.from}`}`);
+      for (const cited of p.sources) if (cited.url !== pct.source_url) await expect(section.locator(`a[href="${cited.url}"]`)).toHaveCount(1);
+    }
   }
   // successor States: ISO 3166-3 (ISO 3166-1 for a State that left a continuing one); each predecessor, its States, note
   await expect(section).toContainText("Successor States follow ISO 3166-3 (former country codes)");
   const items = section.locator("ul.pct-successors li");
   await expect(items).toHaveCount(pct.successors.length);
-  for (const [index, entry] of (pct.successors as { name: string; source: string; codes: string[]; own_dates: Record<string, string>; note: string }[]).entries()) {
-    await expect(items.nth(index)).toContainText(`${entry.name} (${entry.source}): `);
+  for (const [index, entry] of (pct.successors as { name: string; source: string; from: string | null; to: string; end_source: string; codes: string[]; own_dates: Record<string, string>; note: string }[]).entries()) {
+    await expect(items.nth(index)).toContainText(`${entry.name} (${entry.source}), ${entry.from ?? pct.first_year} to ${entry.to} (end: ${entry.end_source}): `);
     for (const code of entry.codes) {
       await expect(items.nth(index)).toContainText(`${entityLabels.get(code)?.label ?? code} (${code})${entry.own_dates[code] ? `, own date ${entry.own_dates[code]}` : ""}`);
     }

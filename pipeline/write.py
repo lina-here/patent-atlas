@@ -33,11 +33,12 @@ Files (paths relative to the data root; JSON year keys are strings):
 - PCT membership (pct_states.py, hand-transcribed `pct_states.json`): map/pct_member.json {values: {code: {year:
   bool | null}} (country entities; not listed = false; territory = PCT applies; successor State null before its date),
   null_reason {code: "not_on_current_list" (former entities, never false) | "successor_state"}, in_force {code: date}
-  (every listed State), unmatched [listed codes with no entity], territories {code: {via, state, from}} (entities),
-  successor_of {code: {code, name, own_date}} (successor States with null years: predecessor, own date), sources
+  (every listed State), unmatched [listed codes with no entity], territories {code: [{via, state, from, to}]}
+  (entities), successor_of {code: {code, name, from, to}} (null-year successors: predecessor, window), sources
   {pct_member}}; overview `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year
   (status_on year), count {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}],
-  territories [{code, name, via, state, from}], successors [{predecessor, name, source, codes, own_dates, note}]}.
+  territories [{code, name, periods [{via, state, from, to, sources}]}], successors [{predecessor, name, source,
+  codes, from, to, end_source, own_dates, note}]}.
 - manifest.json: releases, retrieval date, pipeline sha, last years, absent rows, `wdi_denominators` (WDI indicator,
   name, last updated, GDP base), `ratio_labels` (WIPO API label per ratio); run.py adds checks and, when the data
   changed, `version` (newest releases.json entry, releases.py). releases.json: run.py, never in `changed`/`_existing`.
@@ -733,6 +734,19 @@ def _pct_source(states: pct_states.PctStates) -> dict:
             "status_on": states.status_on.isoformat(), "retrieved": states.retrieved.isoformat()}
 
 
+def _periods(states: pct_states.PctStates, territory: pct_states.Territory, sources: bool = False) -> list[dict]:
+    return [{"via": period.via, "state": states.names[period.via], "from": period.since.isoformat(),
+             "to": period.until and period.until.isoformat(),
+             **({"sources": [{"document": cited.document, "url": cited.url} for cited in period.sources]}
+                if sources else {})} for period in territory.periods]
+
+
+def _window(states: pct_states.PctStates, predecessor: pct_states.Predecessor) -> dict:
+    """from: the predecessor's printed date (null = the series' start); to: its end."""
+    start = pct_states.window_start(states, predecessor)
+    return {"from": start and start.isoformat(), "to": predecessor.end.isoformat()}
+
+
 def _pct_member_map_file(states: pct_states.PctStates, codes: list[str]) -> dict:
     null_reason = pct_states.null_reasons(states, codes)
     successors = pct_states.successor_of(states)
@@ -741,11 +755,10 @@ def _pct_member_map_file(states: pct_states.PctStates, codes: list[str]) -> dict
             "null_reason": null_reason,
             "in_force": {code: day.isoformat() for code, day in states.in_force.items()},
             "unmatched": pct_states.unmatched(states, codes),
-            "territories": {code: {"via": territory.via, "state": states.names[territory.via],
-                                   "from": territory.since.isoformat()}
+            "territories": {code: _periods(states, territory)
                             for code, territory in sorted(states.territories.items()) if code in codes},
             "successor_of": {code: {"code": successors[code].code, "name": successors[code].name,
-                                    "own_date": pct_states.own_date(states, code).isoformat()}
+                                    **_window(states, successors[code])}
                              for code, reason in null_reason.items() if reason == pct_states.SUCCESSOR_STATE},
             "sources": {pct_states.PCT_MEMBER_ID: _pct_source(states)}}
 
@@ -758,11 +771,11 @@ def _pct_membership(states: pct_states.PctStates, codes: list[str]) -> dict:
             "unmatched": pct_states.unmatched(states, codes),
             "continuing": [{"code": code, "name": states.names[code], "in_force": states.in_force[code].isoformat(),
                             "continues": continues} for code, continues in sorted(states.continuing.items())],
-            "territories": [{"code": code, "name": territory.name, "via": territory.via,
-                             "state": states.names[territory.via], "from": territory.since.isoformat()}
+            "territories": [{"code": code, "name": territory.name, "periods": _periods(states, territory, True)}
                             for code, territory in sorted(states.territories.items())],
             "successors": [{"predecessor": code, "name": predecessor.name, "source": predecessor.source,
-                            "codes": list(predecessor.codes),
+                            "codes": list(predecessor.codes), **_window(states, predecessor),
+                            "end_source": predecessor.end_source,
                             "own_dates": {successor: day.isoformat()
                                           for successor, day in sorted(predecessor.own_dates.items())},
                             "note": predecessor.note}

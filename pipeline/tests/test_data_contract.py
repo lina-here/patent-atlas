@@ -243,14 +243,16 @@ def test_pct_member_when_published():
     hidden = {code for code, reason in file["null_reason"].items() if reason == pct_states.SUCCESSOR_STATE}
     assert hidden and set(file["successor_of"]) == hidden
     for code in hidden:
-        own_year = file["successor_of"][code]["own_date"][:4]
-        assert all(member is None for year, member in file["values"][code].items() if year < own_year), code
-        assert file["values"][code][own_year] is not None, code
+        window = file["successor_of"][code]
+        start, end = (window["from"] or str(pct_states.PCT_FIRST_YEAR))[:4], window["to"][:4]
+        for year, member in file["values"][code].items():
+            assert (member is None) == (start <= year <= end and member is not True), (code, year)
         assert file["successor_of"][code]["code"] in states.successors
     # territories: member fill from their footnoted date, never counted
     assert set(file["territories"]) == set(states.territories) & set(codes)
     for code, territory in file["territories"].items():
-        assert territory["from"] == states.territories[code].since.isoformat() and code not in file["in_force"]
+        assert [period["from"] for period in territory] == [
+            period.since.isoformat() for period in states.territories[code].periods] and code not in file["in_force"]
     assert file["in_force"] == {code: day.isoformat() for code, day in states.in_force.items()}
     assert file["unmatched"] == pct_states.unmatched(states, codes)
     assert file["sources"]["pct_member"]["status_on"] == states.status_on.isoformat()
