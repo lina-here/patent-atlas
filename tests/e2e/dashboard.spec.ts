@@ -401,6 +401,11 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, 
         return { bottom: box.bottom + scrollY, page: document.documentElement.scrollHeight };
       });
       expect(reach.bottom, `${name}: panel reachable`).toBeLessThanOrEqual(reach.page + 1);
+      const panelInStage = await panel.evaluate((element, stageSelector) => {
+        const stage = document.querySelector(stageSelector) as HTMLElement;
+        return element.getBoundingClientRect().bottom <= stage.getBoundingClientRect().bottom + 1;
+      }, STAGE);
+      expect(panelInStage, `${name}: open panel inside the stage`).toBe(true);
       expect(await layoutProblems(page), name).toEqual([]);
       await opener.click(); // closes it
       await page.waitForTimeout(400);
