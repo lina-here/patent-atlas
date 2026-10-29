@@ -61,7 +61,8 @@ test("definitions: origin figures are absolute counts, a regional filing counts 
   const origin = page.locator("#definitions dt", { hasText: /^Origin$/ }).locator("xpath=following-sibling::dd[1]");
   await expect(origin).toContainText("absolute count");
   await expect(origin).toContainText("counts once");
-  await expect(origin).toContainText("Origin figures are absolute counts (WIPO 'total count'): an application at a regional office counts once.");
+  await expect(origin).toContainText("Origin figures are absolute counts (WIPO 'total count'): an application at a regional office counts once, " +
+    "as a resident filing for applicants from that office's member states.");
 });
 
 // --- v0.2b scale measures: #scale, #ratio-check, regression lines of the checks section --------------------------------
