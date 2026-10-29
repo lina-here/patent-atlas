@@ -59,7 +59,7 @@ function placeRunLabels<T extends { label: string; year: number; rank: number }>
 }
 
 /** The "no data" hatch pattern, drawn from the map's classes and tokens (`--map-hatch*`). */
-function hatchDefs(id: string): SVGDefsElement {
+export function hatchDefs(id: string): SVGDefsElement {
   const gap = cssLength("--map-hatch-gap", UNTHEMED_HATCH_GAP);
   const make = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>): SVGElementTagNameMap[K] => {
     const element = document.createElementNS(SVG_NS, tag);

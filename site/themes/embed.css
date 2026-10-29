@@ -91,12 +91,14 @@
   --chart-y-ticks: 5;
   --chart-x-tick-gap: 5rem;
   /* continent colours (overview share chart, size vs growth); shape also tells continents apart */
-  --continent-africa: #b26a00;
+  --continent-africa: #aa6500;
   --continent-asia: #0b6bcb;
   --continent-europe: #6a4fb3;
   --continent-latin-america-caribbean: #2e7d32;
   --continent-northern-america: #c62828;
   --continent-oceania: #6b7785;
+  /* treemap: solid plate under the label on the hatched not-attributable rectangle; label ink or surface >= 4.5:1 (wallboard 7:1) */
+  --treemap-residual: #e3e7eb;
   --map-bin-1: #e3eef9;
   --map-bin-2: #bcd6f0;
   --map-bin-3: #8bbae5;

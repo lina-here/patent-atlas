@@ -641,6 +641,16 @@ input {
 .heat-cell rect,
 .heat-legend-swatch,
 .hatch-pct-monthly { vector-effect: non-scaling-stroke; }
+/* Treemap (treemap.ts): rectangles are separated by strokes only (area = applications); the not-attributable rest is hatched
+   (own pattern, the `--map-hatch*` tokens) with a solid plate under its label; each continent is outlined. */
+.treemap-rect { stroke: var(--surface); stroke-width: var(--map-edge-width); vector-effect: non-scaling-stroke; }
+.treemap-residual { fill: url(#treemap-hatch); stroke: var(--map-edge); }
+.treemap-plate { fill: var(--treemap-residual); pointer-events: none; }
+.treemap-band { fill: none; stroke: var(--ink); stroke-width: var(--chart-line-width); vector-effect: non-scaling-stroke; pointer-events: none; }
+.treemap-label, .treemap-continent-label { pointer-events: none; }
+.treemap-continent-label { text-decoration: underline; }
+.treemap-swatch { stroke: var(--ink); stroke-width: var(--map-edge-width); vector-effect: non-scaling-stroke; }
+.treemap-swatch.treemap-residual { stroke: var(--ink); }
 .chart-footnote {
   margin: var(--space-2) 0 0;
   font-family: var(--font-ui);

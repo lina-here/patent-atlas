@@ -112,3 +112,31 @@ def test_membership_bins_use_their_tokens():
     assert re.search(r'\.map-shape\[data-bin="nonmember"\] \{ fill: url\(#world-map-nonmember\); \}', base)
     assert re.search(r"\.map-nonmember-bg \{ fill: var\(--map-nonmember\); \}", base)
     assert re.search(r"\.map-nonmember-mark \{ fill: var\(--map-nonmember-mark\); \}", base)
+
+
+CONTINENT_TOKENS = ["continent-africa", "continent-asia", "continent-europe", "continent-latin-america-caribbean",
+                    "continent-northern-america", "continent-oceania", "treemap-residual"]
+TREEMAP_TEXT_MIN = 4.5
+TREEMAP_TEXT_MIN_WALLBOARD = 7  # conference wallboard readability
+
+
+@pytest.mark.parametrize("theme", THEMES)
+@pytest.mark.parametrize("fill", CONTINENT_TOKENS)
+def test_treemap_label_contrast(theme, fill):
+    """Treemap labels are --ink or --surface, whichever contrasts more with the rectangle (treemap.ts); that best
+    contrast must reach 4.5:1 (wallboard 7:1) for every continent fill and for the solid plate behind the label on
+    the hatched rest."""
+    table = tokens(theme)
+    need = TREEMAP_TEXT_MIN_WALLBOARD if theme == "wallboard" else TREEMAP_TEXT_MIN
+    ground = colour(table[fill], table)[0]
+    best = max(ratio(colour(table[label], table)[0], ground) for label in ("ink", "surface"))
+    assert best >= need, f"{theme}: label on --{fill} = {best:.2f} < {need}"
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_treemap_residual_label_on_a_solid_plate(theme):
+    """The rest's label sits on a solid --treemap-residual plate, so the hatch tokens never lie under text."""
+    base = (ROOT / "site" / "css" / "base.css").read_text()
+    assert re.search(r"\.treemap-plate \{[^}]*fill: var\(--treemap-residual\)", base)
+    assert re.search(r"\.treemap-residual \{[^}]*fill: url\(#treemap-hatch\)", base)
+    assert "treemap-residual" in tokens(theme)
