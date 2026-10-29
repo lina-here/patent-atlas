@@ -70,7 +70,7 @@ test("footer links to the data versions on index, methods and about", async ({ p
   }
   await page.goto("/?theme=paper");
   await expect(page.locator("footer").getByRole("link", { name: "Data versions" })).toHaveAttribute("href", /theme=paper/);
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#sources");
   await expect(page.locator("#sources").getByRole("link", { name: "all data versions" })).toHaveAttribute("href", /view=releases/);
   await expect(page.locator("#sources")).toContainText(manifest.version);
 });

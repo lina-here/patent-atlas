@@ -1055,12 +1055,61 @@ function disclaimerSection(): Section {
   };
 }
 
+/** A themed box of sections: native <details>, closed by default; `line` says in a few words what is inside. */
+type Box = { id: string; title: string; line: string; sections: (Section | null)[] };
+
+function methodsBoxes(data: MethodsData): Box[] {
+  return [
+    { id: "box-data", title: "Data sources and releases", line: "Where the figures come from, which years are final, series breaks and revisions.",
+      sections: [sourcesSection(data), yearsSection(data), seriesBreaksSection(data), revisionsSection()] },
+    { id: "box-definitions", title: "Definitions and groupings", line: "Origin and office, world totals, regions, continents and PCT membership.",
+      sections: [definitionsSection(data), worldSection(data), groupingsSection(data), pctMembershipSection(data)] },
+    { id: "box-computation", title: "How each figure is computed", line: "Formulas, per capita and per GDP measures, and the world map.",
+      sections: [formulasSection(data), scaleSection(data), mapSection(data)] },
+    { id: "box-checks", title: "Checks against WIPO's published figures", line: "What is compared with WIPO's own figures, and the tolerances.",
+      sections: [checksSection(data), ratioCheckSection(data)] },
+    { id: "box-women", title: "Women inventors", line: "The two measures, their basis, omissions and checks.",
+      sections: [womenSection(data)] },
+    { id: "box-views", title: "Dashboard and wallboard", line: "How the dashboard and the conference wallboard pick and show figures.",
+      sections: [dashboardSection(data), wallboardSection(data)] },
+  ];
+}
+
+/** Opens every box holding the element with this id (a link into a closed box); scrolls to it when asked. */
+function openTo(id: string, scroll: boolean): void {
+  const target = document.getElementById(id);
+  if (!target) return;
+  for (let node: Element | null = target; node; node = node.parentElement) {
+    if (node instanceof HTMLDetailsElement) node.open = true;
+  }
+  if (scroll) target.scrollIntoView();
+}
+
+function hashId(hash: string): string {
+  try { return decodeURIComponent(hash.slice(1)); } catch { return hash.slice(1); }
+}
+
+let hashListening = false;
+
+// print shows every box: open the closed ones for the print, close them again after (the stylesheet does the same where
+// the browser supports ::details-content)
+const boxesOpenedForPrint = new Set<HTMLDetailsElement>();
+window.addEventListener("beforeprint", () => {
+  for (const details of document.querySelectorAll<HTMLDetailsElement>("details.prose-box:not([open])")) {
+    details.open = true;
+    boxesOpenedForPrint.add(details);
+  }
+});
+window.addEventListener("afterprint", () => {
+  for (const details of boxesOpenedForPrint) details.open = false;
+  boxesOpenedForPrint.clear();
+});
+
 export function renderMethods(el: HTMLElement, data: MethodsData): void {
-  const sections = [
-    sourcesSection(data), definitionsSection(data), groupingsSection(data), worldSection(data), seriesBreaksSection(data),
-    yearsSection(data), formulasSection(data), scaleSection(data), mapSection(data), pctMembershipSection(data), womenSection(data), checksSection(data), ratioCheckSection(data), revisionsSection(), dashboardSection(data), wallboardSection(data),
-    disclaimerSection(),
-  ].filter((section): section is Section => section !== null);
+  const boxes = methodsBoxes(data).map((box) => ({ ...box, sections: box.sections.filter((section): section is Section => section !== null) }));
+  const disclaimer = disclaimerSection();
+  const sections = [...boxes.flatMap((box) => box.sections), disclaimer];
+  const sectionElement = (section: Section) => h("section", { id: section.id }, h("h2", {}, section.title), section.body);
   el.replaceChildren(
     h("header", { class: "page-intro" },
       h("h1", {}, "Methods and sources"),
@@ -1071,7 +1120,21 @@ export function renderMethods(el: HTMLElement, data: MethodsData): void {
       h("nav", { class: "toc", "aria-label": "On this page" },
         h("ul", {}, sections.map((section) => h("li", {}, h("a", { href: `#${section.id}` }, section.title))))),
       h("div", { class: "prose" },
-        sections.map((section) => h("section", { id: section.id }, h("h2", {}, section.title), section.body))),
+        boxes.map((box) => h("details", { class: "prose-box", id: box.id },
+          h("summary", {}, h("span", { class: "box-title" }, box.title), h("span", { class: "box-line" }, box.line)),
+          box.sections.map(sectionElement))),
+        sectionElement(disclaimer)),
     ),
   );
+  // a link into a closed box opens it first; the browser's own fragment scroll then finds the target drawn
+  el.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
+    if (link) openTo(hashId(link.getAttribute("href") ?? "#"), false);
+  });
+  if (!hashListening) {
+    hashListening = true;
+    window.addEventListener("hashchange", () => openTo(hashId(location.hash), true));
+  }
+  // the page draws after its data loads, past the browser's own scroll to the #hash
+  if (location.hash.length > 1) openTo(hashId(location.hash), true);
 }

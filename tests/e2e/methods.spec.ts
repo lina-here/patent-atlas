@@ -38,7 +38,7 @@ test("series breaks section lists each break with its note, publication link and
 test("no series_breaks in the data (before the refresh that adds it): no series breaks section, no error", async ({ page }) => {
   const errors = trackErrors(page);
   await routeSeriesBreaks(page, null);
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#world-totals");
   await expect(page.locator("#world-totals")).toBeVisible();
   await expect(page.locator("#series-breaks")).toHaveCount(0);
   await expect(page.locator('.toc a[href="#series-breaks"]')).toHaveCount(0);
@@ -241,7 +241,8 @@ test("regression lines from the committed manifest; none recorded in an older ma
   await expect(page.locator("#cross-checks")).toContainText(`more than ${regression.warn_pct}% `);
   await expect(page.locator("#cross-checks")).toContainText(`${regression.revision_count} revisions`);
   await patchData(page, ({ manifest: m }) => { delete m.checks.regression; });
-  await page.goto("/methods.html");
+  await page.goto("about:blank"); // a hash-only change would keep the page drawn from the unpatched manifest
+  await page.goto("/methods.html#check-regression");
   await expect(page.locator("#check-regression")).toBeVisible();
   await expect(page.locator("#cross-checks")).toContainText("Not recorded in this release.");
   expect(errors).toEqual([]);
@@ -255,7 +256,7 @@ test("data written before v0.2b (no ratio method, no ratio checks): no scale or 
     delete m.ratio_labels;
     delete m.wdi_denominators;
   });
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#cross-checks");
   await expect(page.locator("#cross-checks")).toBeVisible();
   await expect(page.locator("#scale")).toHaveCount(0);
   await expect(page.locator("#ratio-check")).toHaveCount(0);
@@ -465,7 +466,7 @@ async function expectWomenSection(page: Page, files: WomenFiles): Promise<void> 
 test("women inventors: every figure of the section equals the committed data files", async ({ page }) => {
   const errors = trackErrors(page);
   const files = await routeWomenFiles(page, () => undefined);
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#women-inventors");
   await expectWomenSection(page, files);
   expect(errors).toEqual([]);
 });
@@ -494,7 +495,7 @@ test("women inventors: patched data files change every figure of the section", a
     ov.gender.groups.europe.printed_refs.women_any = { "2025": { figure: "A24", page: "patched page 9" } };
     ov.gender.printed_source = { citation: "Patched Printed Citation (2030)", url: "https://example.org/printed.pdf" };
   });
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#women-inventors");
   await expectWomenSection(page, files);
   await expect(page.locator("#women-groups .women-left-out")).toContainText("Switzerland (CH)");
   await expect(page.locator("#women-crosscheck")).toContainText("(1 figure in this release)");
@@ -510,7 +511,7 @@ test("women inventors: the methods page requests no group file and no PCT origin
   const errors = trackErrors(page);
   const requested: string[] = [];
   page.on("request", (request) => requested.push(request.url()));
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#women-inventors");
   await expect(page.locator("#women-inventors")).toBeVisible();
   await expect(page.locator("#women-groups .women-left-out li").first()).toBeVisible();
   expect(requested.filter((url) => url.includes("/data/group/") || url.includes("map/pct_origin.json"))).toEqual([]);
@@ -522,7 +523,7 @@ test("women inventors: the methods page requests no group file and no PCT origin
     delete ov.method.gender;
     await route.fulfill({ json: ov });
   });
-  await bare.goto("/methods.html");
+  await bare.goto("/methods.html#world-totals");
   await expect(bare.locator("#world-totals")).toBeVisible();
   await expect(bare.locator("#women-inventors")).toHaveCount(0);
   await expect(bare.locator('.toc a[href="#women-inventors"]')).toHaveCount(0);
@@ -633,7 +634,7 @@ test("PCT membership section follows patched data; without pct_membership no sec
     delete ov.pct_membership;
     await route.fulfill({ json: ov });
   });
-  await bare.goto("/methods.html");
+  await bare.goto("/methods.html#map");
   await expect(bare.locator("#map")).toBeVisible();
   await expect(bare.locator("#pct-membership")).toHaveCount(0);
   await expect(bare.locator('.toc a[href="#pct-membership"]')).toHaveCount(0);
@@ -718,7 +719,7 @@ test("methods: the treemap, share shift and growth tolerance are left out of dat
     delete ov.share_shift;
     await route.fulfill({ json: ov });
   });
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#formulas");
   await expect(page.locator("#formulas")).toBeVisible();
   await expect(page.locator("#formulas dt", { hasText: /^Treemap$/ })).toHaveCount(0);
   await expect(page.locator("#formulas dt", { hasText: /^Share shift$/ })).toHaveCount(0);

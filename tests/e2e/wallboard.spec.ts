@@ -990,7 +990,7 @@ test("overlays open and close in full screen (stubbed): by key, button and Esc",
 });
 
 test("methods page: the Wallboard section lists the key table and describes both modes and the picker", async ({ page }) => {
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#wallboard");
   const section = page.locator("#wallboard");
   await expect(section.locator("ul.board-keys-list li").first()).toBeVisible(); // drawn by script
   const items = await section.locator("ul.board-keys-list li").allTextContents();

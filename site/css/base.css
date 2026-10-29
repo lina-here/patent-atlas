@@ -530,6 +530,35 @@ input {
 .prose h3 { margin: var(--space-4) 0 var(--space-2); }
 .prose ul { padding-left: var(--space-4); margin: 0 0 var(--space-3); }
 .prose li { margin-bottom: var(--space-1); }
+/* a long URL in a link or a WIPO method note wraps at phone width */
+.prose { overflow-wrap: break-word; }
+/* Methods: sections grouped in themed boxes, native <details> closed by default; a #hash inside opens its box (methods.ts
+   openTo). Title + one line in the summary; the marker stays native. */
+.prose-box {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: var(--rule-width) solid var(--rule);
+  border-radius: var(--radius);
+}
+.prose-box > summary { cursor: pointer; color: var(--ink); }
+.prose-box > summary .box-title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--size-h3);
+  line-height: var(--leading-tight);
+}
+.prose-box > summary .box-line {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-ui);
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+.prose-box[open] > summary { margin-bottom: var(--space-4); }
+.prose-box > summary + section { border-top: 0; padding-top: 0; }
+.prose-box > section:last-child { margin-bottom: var(--space-2); }
+.prose-box + section { margin-top: var(--space-5); }
 
 .facts {
   display: grid;
@@ -684,8 +713,9 @@ input {
   .chart-tools,
   button { display: none; }
   /* sources and notes print open: a closed <details> hides its content in the ::details-content slot (the beforeprint
-     handler in chartCard.ts covers engines without it) */
-  details.card-details::details-content { content-visibility: visible; display: block; }
+     handlers in chartCard.ts and methods.ts cover engines without it) */
+  details.card-details::details-content,
+  details.prose-box::details-content { content-visibility: visible; display: block; }
   .prose-layout { display: block; }
   a { color: inherit; }
 }
