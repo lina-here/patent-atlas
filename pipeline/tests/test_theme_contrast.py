@@ -150,3 +150,11 @@ def test_treemap_band_outline_is_thin_enough_not_to_hide_small_rectangles(theme)
     band = float(re.fullmatch(r"([0-9.]+)px", table["treemap-band-width"]).group(1))
     assert float(re.fullmatch(r"([0-9.]+)px", table["map-edge-width"]).group(1)) <= band, theme
     assert band <= float(re.fullmatch(r"([0-9.]+)px", table["chart-line-width"]).group(1)), theme
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_treemap_key_number_size_is_a_theme_token(theme):
+    """The digit in each key swatch is sized by a theme token (an em ratio of the key text), not by the script."""
+    assert re.fullmatch(r"[0-9.]+em", tokens(theme)["treemap-key-number-size"]), theme
+    base = (ROOT / "site" / "css" / "base.css").read_text()
+    assert re.search(r"\.treemap-key-number \{[^}]*font-size: var\(--treemap-key-number-size\)", base)

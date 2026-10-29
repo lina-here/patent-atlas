@@ -649,6 +649,7 @@ input {
 .treemap-band { fill: none; stroke: var(--ink); stroke-width: var(--treemap-band-width); vector-effect: non-scaling-stroke; pointer-events: none; }
 .treemap-label, .treemap-continent-label, .treemap-continent-number { pointer-events: none; }
 .treemap-continent-label { text-decoration: underline; }
+.treemap-key-number { font-size: var(--treemap-key-number-size); }
 .treemap-swatch { stroke: var(--ink); stroke-width: var(--map-edge-width); vector-effect: non-scaling-stroke; }
 .treemap-swatch.treemap-residual { stroke: var(--ink); }
 .chart-footnote {

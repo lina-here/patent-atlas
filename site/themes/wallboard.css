@@ -101,6 +101,7 @@
   --treemap-residual: #2c4a5f;
   /* treemap continent outline: kept thin so it never hides a small rectangle's fill (a stroke covers half its width on each side) */
   --treemap-band-width: 2px;
+  --treemap-key-number-size: 0.85em;
   --map-bin-1: #2b5166;
   --map-bin-2: #2d6474;
   --map-bin-3: #2f7a86;

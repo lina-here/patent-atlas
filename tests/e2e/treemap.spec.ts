@@ -114,7 +114,8 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of SIZES) {
         const [x, y, width, height] = ["x", "y", "width", "height"].map((name) => Number(rect.getAttribute(name)));
         const box = number.getBBox();
         const baseline = Number(number.getAttribute("y"));
-        const cap = parseFloat(getComputedStyle(number).fontSize) * 0.72;
+        const cap = Number(svg.getAttribute("data-font-size")) * Number(svg.getAttribute("data-number-cap-em"));
+        if (!(cap > 0)) throw new Error("fit numbers missing on the svg");
         if (box.x < x - 0.5 || box.x + box.width > x + width + 0.5 || baseline - cap < y - 0.5 || baseline > y + height + 0.5) {
           problems.push(`number ${number.textContent} (${box.width.toFixed(1)} wide, baseline ${(baseline - y).toFixed(1)}) outside ${width.toFixed(1)}x${height.toFixed(1)}`);
         }
@@ -170,8 +171,10 @@ test("treemap: a continent folded into one rectangle is named for the continent 
   }
   // the table names it too
   await page.locator(CARD).getByRole("button", { name: "Show figures", exact: true }).click();
+  const rows = await page.locator(`${CARD} tbody tr`).evaluateAll((trs) => trs.map((tr) => [...tr.querySelectorAll("td")].map((td) => td.textContent ?? "")));
   for (const continent of folded) {
-    await expect(page.locator(`${CARD} tbody tr`).filter({ hasText: `Other ${continent.label}` })).toHaveCount(1);
+    expect(rows.filter((cells) => cells[0] === continent.label && cells[1] === continent.label), continent.id).toHaveLength(1);
+    expect(rows.filter((cells) => cells[1] === `Other ${continent.label}`), continent.id).toHaveLength(0);
   }
 });
 
@@ -196,16 +199,16 @@ test("treemap: a folded continent whose rectangle holds its full name is labelle
   await expect(chart.locator('rect.treemap-rect[data-continent="africa"] > title')).toHaveText(/^Africa \(/);
 });
 
-/** Whether the continent's largest rectangle holds a digit: its width and height against the font size. */
-const DIGIT_FITS = { width: 1, height: 1 };
-
+/** The code's own rule for "a digit fits" (treemap.ts `digitFits`), read from the data attributes it puts on the svg and on each
+ * key item: width >= digit width x slack + 2 pad, height >= cap height + 2 pad. */
 for (const { wide, suffix } of FONT_VARIANTS) {
   for (const size of [{ width: 390, height: 900 }, { width: 1440, height: 900 }, WALLBOARD]) {
     const wallboard = size.width === WALLBOARD.width;
     test(`treemap at ${size.width}x${size.height}${wallboard ? " (wallboard)" : ""}: each continent's largest rectangle shows its number or its name when a digit fits${suffix}`, async ({ page }) => {
       const chart = await openTreemap(page, { wide, size, theme: wallboard ? "wallboard" : undefined });
-      const seen = await chart.evaluate((svg, fits) => {
-        const fontSize = parseFloat(getComputedStyle(svg.querySelector("text.treemap-key-name") as Element).fontSize);
+      const seen = await chart.evaluate((svg) => {
+        const [fontSize, capEm, padEm, slack] = ["data-font-size", "data-number-cap-em", "data-number-pad-em", "data-text-slack"].map((name) => Number(svg.getAttribute(name)));
+        if (![fontSize, capEm, padEm, slack].every((value) => value > 0)) throw new Error("fit numbers missing on the svg");
         const items = [...svg.querySelectorAll<SVGGElement>("g.treemap-key-item")].filter((item) => item.dataset.continent !== "residual");
         return items.map((item, at) => {
           const id = item.dataset.continent ?? "";
@@ -217,10 +220,12 @@ for (const { wide, suffix } of FONT_VARIANTS) {
             .filter((mark) => mark.dataset.index === largest.dataset.index && !mark.classList.contains("treemap-label"));
           const own = svg.querySelector<SVGTextElement>(`text.treemap-label[data-continent="${id}"][data-index="${largest.dataset.index}"]`);
           if (marks.length === 0 && own && largest.dataset.kind === "other" && rects.length === 1) marks.push(own);
-          return { id, number: String(at + 1), fits: width >= fits.width * fontSize && height >= fits.height * fontSize,
+          const digitWidth = Number(item.dataset.digitWidth);
+          if (!(digitWidth > 0)) throw new Error(`no digit width on the key item of ${id}`);
+          return { id, number: String(at + 1), fits: width >= digitWidth * slack + 2 * padEm * fontSize && height >= (capEm + 2 * padEm) * fontSize,
             marks: marks.map((mark) => ({ kind: mark.getAttribute("class"), text: mark.textContent })) };
         });
-      }, DIGIT_FITS);
+      });
       for (const entry of seen.filter((item) => item.fits)) {
         expect(entry.marks.length, `${entry.id} has a mark`).toBe(1);
         const [mark] = entry.marks;
@@ -260,9 +265,9 @@ test("treemap: the rest is hatched with its own pattern, defined once in the tre
 /** Runs in the page: contrast of each text matching `selector` with the solid plate or rectangle under it. Throws on a colour
  * that is not a plain rgb (a pattern fill, a gradient), so a label on a hatched ground fails instead of passing on NaN. */
 function measureContrast(svg: Element, selector: string): { text: string; ratio: number }[] {
-  const luminance = (colour: string): number => {
+  const luminance = (colour: string, what: string): number => {
     const match = /^rgba?\(([^)]+)\)$/.exec(colour);
-    if (!match) throw new Error(`not a plain colour: ${colour}`);
+    if (!match) throw new Error(`${what} is not a plain colour: ${colour}`);
     const [r, g, b] = match[1].split(",").slice(0, 3).map((part) => {
       const channel = Number(part) / 255;
       return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
@@ -270,10 +275,12 @@ function measureContrast(svg: Element, selector: string): { text: string; ratio:
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
   return [...svg.querySelectorAll<SVGTextElement>(selector)].map((label) => {
-    // a label on the hatched rest sits on its solid plate
-    const ground = svg.querySelector(`rect.treemap-plate[data-index="${label.dataset.index}"]`)
-      ?? svg.querySelector(`rect.treemap-rect[data-index="${label.dataset.index}"]`);
-    const [a, b] = [luminance(getComputedStyle(label).fill), luminance(getComputedStyle(ground as Element).fill)];
+    // a label on the hatched rest sits on its solid plate; a key digit sits on its swatch
+    const ground = label.classList.contains("treemap-key-number")
+      ? label.parentElement?.querySelector("rect.treemap-swatch")
+      : svg.querySelector(`rect.treemap-plate[data-index="${label.dataset.index}"]`) ?? svg.querySelector(`rect.treemap-rect[data-index="${label.dataset.index}"]`);
+    if (!ground) throw new Error(`no ground under ${label.textContent}`);
+    const [a, b] = [luminance(getComputedStyle(label).fill, "label colour"), luminance(getComputedStyle(ground).fill, "ground")];
     return { text: label.textContent ?? "", ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) };
   });
 }
@@ -285,6 +292,10 @@ for (const theme of config.themes as string[]) {
     const ratios = await chart.evaluate(measureContrast, "text.treemap-label, text.treemap-continent-label, text.treemap-continent-number");
     expect(ratios.length).toBeGreaterThan(2);
     expect(ratios.filter((entry) => entry.ratio < need)).toEqual([]);
+    // the digit in each key swatch, on that swatch
+    const digits = await chart.evaluate(measureContrast, "text.treemap-key-number");
+    expect(digits.length).toBe(treemap.continents.filter((entry: any) => entry.countries.length > 0 || entry.other).length);
+    expect(digits.filter((entry) => entry.ratio < need)).toEqual([]);
   });
 }
 
@@ -302,7 +313,8 @@ test("treemap figures table equals overview.treemap: country, \"Other\", rest an
       expected.push([continent.label, country.label, country.value.toLocaleString("en-US"), percentText(country.share)]);
     }
     if (continent.other) {
-      expected.push([continent.label, `Other ${continent.label}`, continent.other.value.toLocaleString("en-US"), percentText(continent.other.share)]);
+      // a continent with no country of its own is one row named for the continent
+      expected.push([continent.label, continent.countries.length === 0 ? continent.label : `Other ${continent.label}`, continent.other.value.toLocaleString("en-US"), percentText(continent.other.share)]);
     }
   }
   expected.push(["–", treemap.residual.label, treemap.residual.value.toLocaleString("en-US"), percentText(treemap.residual.share)]);
@@ -405,20 +417,22 @@ for (const theme of ["atlas", "wallboard"]) {
   });
 }
 
-test("treemap contrast check fails on a hatched ground instead of passing on NaN", async ({ page }) => {
-  await openTreemap(page);
-  const outcome = await page.evaluate(() => {
-    const svg = document.querySelector(".treemap-chart") as SVGElement;
+test("treemap contrast check fails on a hatched ground (named as the ground) instead of passing on NaN", async ({ page }) => {
+  // a rest too small for a label: no plate, so a label placed on it has only the hatched rectangle under it
+  await editOverview(page, (data) => { data.treemap.residual.value = 1; data.treemap.residual.share = 0; });
+  const chart = await openTreemap(page);
+  await expect(chart.locator("rect.treemap-plate")).toHaveCount(0);
+  const fill = await chart.evaluate((svg) => {
     const rect = svg.querySelector("rect.treemap-rect[data-kind=\"residual\"]") as SVGRectElement;
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("class", "treemap-label");
     text.setAttribute("data-index", rect.dataset.index ?? "");
+    text.setAttribute("fill", "#000");
     svg.append(text);
-    return { fill: getComputedStyle(rect).fill };
+    return getComputedStyle(rect).fill;
   });
-  expect(outcome.fill).toMatch(/url\(/);
-  const chart = page.locator(`${CARD} svg.treemap-chart`);
-  await expect(chart.evaluate(measureContrast, "text.treemap-label")).rejects.toThrow(/not a plain colour/);
+  expect(fill).toMatch(/url\(/);
+  await expect(chart.evaluate(measureContrast, "text.treemap-label")).rejects.toThrow(/^.*ground is not a plain colour: url\(/);
 });
 
 /** Runs in the page: for each rectangle of at least MIN_FILL_SIZE, the share of its area that no stroke covers. A stroke is

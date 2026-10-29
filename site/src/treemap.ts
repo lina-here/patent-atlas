@@ -27,8 +27,9 @@ const PAD_Y_EM = 0.3;
 const TEXT_HEIGHT_EM = 1.25;
 const KEY_ROW_EM = 1.7;
 const KEY_SWATCH_EM = 1.3;
-/** A continent's number in the key swatch and, set tight, in its largest rectangle (a digit needs only its cap height). */
-const KEY_NUMBER_EM = 0.85;
+/** A continent's number in its key swatch and, set tight, in its largest rectangle (a digit needs only its cap height); the
+ * fit ratios are exposed as data attributes on the svg (`data-number-*`) for the tests. The digit's size in the key is CSS
+ * (`.treemap-key-number`). */
 const NUMBER_PAD_EM = 0.1;
 const NUMBER_CAP_EM = 0.72;
 /** Text widths are measured on a canvas: tabular digits and rounding in the page can differ a little. */
@@ -164,12 +165,13 @@ function keyGroup(items: { id: string; label: string; number?: number; fill?: st
       line += 1;
     }
     const middle = (line + 0.5) * row;
-    group.append(el("g", { class: "treemap-key-item", "data-continent": item.id },
+    group.append(el("g", { class: "treemap-key-item", "data-continent": item.id,
+      ...(item.number !== undefined ? { "data-digit-width": textWidth(String(item.number), theme) } : {}) },
       el("rect", { class: `treemap-swatch${item.hatched ? " treemap-residual" : ""}`, x, y: middle - swatch / 2, width: swatch, height: swatch,
         ...(item.fill ? { fill: item.fill } : {}) }),
       ...(item.number !== undefined && item.fill
         ? [Object.assign(el("text", { class: "treemap-key-number", x: x + swatch / 2, y: middle, "text-anchor": "middle", "dominant-baseline": "central",
-          "font-size": theme.fontSize * KEY_NUMBER_EM, fill: textOn(item.fill, theme) }), { textContent: String(item.number) })]
+          fill: textOn(item.fill, theme) }), { textContent: String(item.number) })]
         : []),
       Object.assign(el("text", { class: "treemap-key-name", x: x + swatch + gap, y: middle, "dominant-baseline": "central", fill: theme.ink }), { textContent: item.label })));
     x += itemWidth;
@@ -207,6 +209,10 @@ export function treemapChart(block: Treemap, opts: { width: number; height?: num
 
   const svg = el("svg", { class: "treemap-chart", width, height: plotHeight + keyGap + key.height, viewBox: `0 0 ${width} ${plotHeight + keyGap + key.height}` });
   svg.style.maxWidth = "100%";
+  svg.dataset.fontSize = String(theme.fontSize);
+  svg.dataset.numberCapEm = String(NUMBER_CAP_EM);
+  svg.dataset.numberPadEm = String(NUMBER_PAD_EM);
+  svg.dataset.textSlack = String(TEXT_SLACK);
   svg.append(hatchDefs(TREEMAP_HATCH_ID));
   const plateColour = getComputedStyle(document.documentElement).getPropertyValue("--treemap-residual").trim() || theme.surface;
 
@@ -284,7 +290,8 @@ function figuresRows(block: Treemap, decimals: number): (string | number | null)
   const rows: (string | number | null)[][] = [];
   for (const continent of block.continents) {
     for (const country of continent.countries) rows.push([continent.label, country.label, country.value, share(country.share)]);
-    if (continent.other) rows.push([continent.label, `Other ${continent.label}`, continent.other.value, share(continent.other.share)]);
+    // a continent with no country of its own is one rectangle: its row is named for the continent
+    if (continent.other) rows.push([continent.label, continent.countries.length === 0 ? continent.label : `Other ${continent.label}`, continent.other.value, share(continent.other.share)]);
   }
   if (block.residual) rows.push(["–", block.residual.label, block.residual.value, share(block.residual.share)]);
   for (const row of block.unattributed) {
