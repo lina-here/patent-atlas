@@ -133,6 +133,34 @@ test("print opens every box; afterprint closes only the ones it opened", async (
   await expect(reader).toHaveAttribute("open", "");
 });
 
+/** Window print listeners per event, counted from before the page's scripts run. */
+async function countPrintListeners(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const counts: Record<string, number> = { beforeprint: 0, afterprint: 0 };
+    (window as any).__printListeners = counts;
+    const add = window.addEventListener.bind(window);
+    window.addEventListener = ((type: string, ...rest: unknown[]) => {
+      if (type in counts) counts[type] += 1;
+      return (add as any)(type, ...rest);
+    }) as typeof window.addEventListener;
+  });
+}
+
+// every page loads the one bundle; chart cards keep print listeners of their own on all of them, so the boxes' pair shows
+// as the methods page's count above the other pages' (all equal)
+test("print listeners for the boxes: the methods page adds one of each; the other pages of the bundle add none", async ({ page }) => {
+  await countPrintListeners(page);
+  const counts: Record<string, Record<string, number>> = {};
+  for (const path of ["/methods.html", "/", "/?view=dashboard", "/?view=wallboard", "/embed.html?chart=world-trend"]) {
+    await page.goto(path);
+    await expect(page.locator("html.view-ready")).toBeAttached();
+    counts[path] = await page.evaluate(() => (window as any).__printListeners);
+  }
+  const base = counts["/"];
+  expect(counts["/methods.html"]).toEqual({ beforeprint: base.beforeprint + 1, afterprint: base.afterprint + 1 });
+  for (const path of ["/?view=dashboard", "/?view=wallboard", "/embed.html?chart=world-trend"]) expect(counts[path], path).toEqual(base);
+});
+
 for (const variant of FONT_VARIANTS) {
   for (const width of [390, 1440]) {
     test(`methods boxes fit at ${width} px, closed and open, no horizontal scroll${variant.suffix}`, async ({ page }) => {

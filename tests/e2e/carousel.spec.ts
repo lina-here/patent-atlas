@@ -1,7 +1,7 @@
 import { test, expect, type Locator, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 import { build } from "esbuild";
-import { RESIZE_SETTLE_MS } from "./siteConstants";
+import { DASHBOARD_TILE_IDS, RESIZE_SETTLE_MS } from "./siteConstants";
 import { FONT_VARIANTS, expectWideFonts, useWideFonts } from "./wideFonts";
 
 // Dashboard carousel (`?view=dashboard`, spec 2a Carousel, WCAG 2.2.2): Play/Pause, Previous, Next, position; default paused;
@@ -49,6 +49,17 @@ function trackErrors(page: Page): string[] {
 /** config.json with `dashboard` fields replaced. */
 async function routeDashboard(page: Page, changes: Record<string, unknown>): Promise<void> {
   await page.route("**/config.json", (route) => route.fulfill({ json: { ...config, dashboard: { ...config.dashboard, ...changes } } }));
+}
+
+/** A test slide no dashboard tile shows, on a data file the dashboard loads for nothing else (an entity file): a route can
+ * fail or hold it. Added to `wallboard.slides` by `routeSlides`. */
+const ENTITY_SLIDE: WallSlide = { id: "test-entity-slide", label: "Switzerland, applications by origin", params: "chart=origin-apps&country=CH" };
+const ENTITY_FILE = "**/data/entity/CH.json";
+
+/** config.json with ENTITY_SLIDE among the wallboard slides and `dashboard.slides` = `ids`. */
+async function routeSlides(page: Page, ids: string[]): Promise<void> {
+  await page.route("**/config.json", (route) => route.fulfill({ json: {
+    ...config, wallboard: { ...config.wallboard, slides: [...wallSlides, ENTITY_SLIDE] }, dashboard: { ...config.dashboard, slides: ids } } }));
 }
 
 /** The dashboard on the page clock, its first slide drawn. */
@@ -286,9 +297,9 @@ test("playing: a move with no hold (a tap, assistive technology) is announced; t
 });
 
 test("a manual move to a slide whose file 404s announces the slide and that its data is unavailable", async ({ page }) => {
-  const failing = wallSlides.find((slide) => slide.id === "map-per-million")!;
-  await routeDashboard(page, { slides: [slides[0].id, failing.id] });
-  await page.route("**/data/map/per_million.json", (route) => route.fulfill({ status: 404, body: "not found" }));
+  const failing = ENTITY_SLIDE;
+  await routeSlides(page, [slides[0].id, failing.id]);
+  await page.route(ENTITY_FILE, (route) => route.fulfill({ status: 404, body: "not found" }));
   await openCarousel(page);
   await control(page, "Next").dispatchEvent("click");
   await expect(page.locator(`${STAGE} .carousel-unavailable`)).toHaveText(UNAVAILABLE);
@@ -327,27 +338,27 @@ test("motion allowed: a slide fades in with the theme's animation", async ({ pag
 
 test("quick double Next: the later slide only, its own chart", async ({ page }) => {
   const errors = trackErrors(page);
-  const ids = [slides[0].id, "map-per-million", slides[1].id];
-  await routeDashboard(page, { slides: ids });
+  const ids = [slides[0].id, ENTITY_SLIDE.id, slides[1].id];
+  await routeSlides(page, ids);
   let release: () => void = () => {};
   const held = new Promise<void>((resolve) => { release = resolve; });
-  await page.route("**/data/map/per_million.json", async (route) => { await held; await route.continue(); });
+  await page.route(ENTITY_FILE, async (route) => { await held; await route.continue(); });
   await openCarousel(page);
   await control(page, "Next").dispatchEvent("click");
   await control(page, "Next").dispatchEvent("click");
   await ready(page, ids[2]);
-  release(); // the map's data arrives after: its stale render is dropped
+  release(); // the entity file arrives after: its stale render is dropped
   await page.waitForTimeout(RESIZE_SETTLE_MS * 4);
   await expect(page.locator(`${STAGE} .carousel-slot`)).toHaveCount(1);
   await expect(page.locator(`${STAGE} .chart-card`)).toHaveAttribute("data-chart", chartOf(slides[1]));
-  await expect(page.locator(`${STAGE} .map-svg`)).toHaveCount(0);
+  await expect(page.locator(`${STAGE} .chart-card[data-chart="${chartOf(ENTITY_SLIDE)}"]`)).toHaveCount(0);
   await at(page, 3, 3);
   expect(errors).toEqual([]);
 });
 
 test("a slide whose file 404s: its unavailable message (a rule, not colour alone), then the next slide shows", async ({ page }) => {
-  await routeDashboard(page, { slides: ["map-per-million", slides[0].id] });
-  await page.route("**/data/map/per_million.json", (route) => route.fulfill({ status: 404, body: "not found" }));
+  await routeSlides(page, [ENTITY_SLIDE.id, slides[0].id]);
+  await page.route(ENTITY_FILE, (route) => route.fulfill({ status: 404, body: "not found" }));
   await page.setViewportSize(BEHAVIOUR_SIZE);
   await page.clock.install();
   await page.goto(`${DASHBOARD}&rotate=${minSeconds}`);
@@ -571,6 +582,19 @@ test("config: an unknown slide id and an invalid dashboard.seconds: a notice eac
   await page.clock.runFor(2 * STEP_MS);
   await at(page, 2, 2);
   await ready(page, slides[1].id);
+});
+
+test("config: a slide whose chart a dashboard tile already shows (map, treemap, share-shift): a notice each, left out", async ({ page }) => {
+  const tileSlides = wallSlides.filter((slide) => DASHBOARD_TILE_IDS.includes(chartOf(slide)));
+  expect(tileSlides.map(chartOf)).toEqual(expect.arrayContaining(["world-map", "treemap", "share-shift"]));
+  await routeDashboard(page, { slides: [...tileSlides.map((slide) => slide.id), slides[0].id] });
+  await openCarousel(page);
+  const notices = page.locator("#notices");
+  for (const slide of tileSlides) {
+    await expect(notices).toContainText(`Dashboard slide ${slide.id} shows a chart a dashboard tile already shows: left out`);
+  }
+  await at(page, 1, 1);
+  expect(await idProblems(page)).toEqual([]);
 });
 
 test("config: a wallboard slide with a label or params that is not text: a malformed-slide notice, left out", async ({ page }) => {

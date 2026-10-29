@@ -149,6 +149,15 @@ test("share-shift: a window with no world break carries no break or denominator 
   await expect(card.locator(".chart-note")).not.toContainText("series break");
 });
 
+test("share-shift: a break in the origin series only keeps its footnote but no denominator note (the denominator is the office world total)", async ({ page }) => {
+  const entry = { ...fixtureBreak(), series: ["origin_apps"] };
+  await routeSeriesBreaks(page, [entry]);
+  const card = await openCard(page);
+  await openNotes(card);
+  await expect(card.locator(".chart-footnote", { hasText: /^Includes .*Series break \d{4}/ })).toHaveText(includesBreakNote(entry));
+  await expect(card.locator(".chart-note")).not.toContainText("series break");
+});
+
 test("share-shift: an origin with no share in the base year is listed under the chart, not plotted", async ({ page }) => {
   const missing = shift.rows.find((row: Row) => row.code === "DE");
   await editOverview(page, (data) => {

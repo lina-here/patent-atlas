@@ -1,7 +1,7 @@
 // Share-shift card "Who gained and lost ground?": each top origin's change in its share of the world's applications
 // between two years, as a diverging bar chart (gains right of zero, losses left). Every figure is a pipeline field
 // (overview.json `share_shift`): `change_pp` is the difference of the published shares and is displayed, never recomputed.
-import type { CardBuilder, CardContent } from "./overview";
+import { WORLD_SERIES, type CardBuilder, type CardContent } from "./overview";
 import type { Overview, ShareShiftRow } from "./data";
 import { barChart, barLabelRoom, barValueWidth, readTheme, textWidth, type ChartTheme } from "./charts";
 import { fixedHalfAway } from "./format";
@@ -59,8 +59,8 @@ export function shareShiftCard(overview: Overview): CardBuilder {
       const unplotted = block.rows.filter((row) => row.change_pp === null).map((row) => row.label);
       const scope = { world: true, series: "origin_apps" as const, first: block.base_year, last: block.year };
       const breakNotes = seriesBreakNotes(overview, scope);
-      // every share's denominator is the world total, which a world-level break runs through
-      const worldBreaks = seriesBreaksIn(overview, scope);
+      // every share divides by WD, the office world total: only a break in that series runs through the denominator
+      const worldBreaks = seriesBreaksIn(overview, { ...scope, series: WORLD_SERIES.world_office });
       return {
         title,
         note: `Percentage points (pp): the origin's share of the ${denominator} in ${block.year} minus its share in ${block.base_year}; ` +

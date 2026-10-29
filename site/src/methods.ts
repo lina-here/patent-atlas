@@ -572,7 +572,7 @@ function pctMembershipSection({ overview, entities }: MethodsData): Section | nu
       h("p", {}, "A territory is not a Contracting State. Where a footnote on WIPO's page says the PCT applies to a territory through a ",
         "Contracting State, or WIPO's PCT Notifications say it applied, the map gives the territory the member fill in those years (the ",
         "source's dates; where a footnote gives none, the date the State became bound): ",
-        block.territories.map((t) => [`${t.name} (${t.code}) `, t.periods.map((period) => [`through ${stateInProse(period.state)} `,
+        block.territories.map((t) => [`${t.name} (${t.code}) `, t.periods.map((period) => [`through ${stateInProse(period)} `,
           period.to ? `${period.from} to ${period.to}` : `since ${period.from}`, " (",
           period.sources.map((cited) => cited.url === block.source_url ? "footnote" : h("a", { href: cited.url, rel: "noopener" }, cited.document.split(" (")[0]))
             .map((cited, index) => (index ? [", ", cited] : cited)),
@@ -1092,21 +1092,22 @@ function hashId(hash: string): string {
   try { return decodeURIComponent(hash.slice(1)); } catch { return hash.slice(1); }
 }
 
-let hashListening = false;
+/** Window listeners (hash, print) are added on the first render only, never at import: every page loads this module. */
+let windowListening = false;
 
 // print shows every box: open the closed ones for the print, close them again after (the stylesheet does the same where
 // the browser supports ::details-content)
 const boxesOpenedForPrint = new Set<HTMLDetailsElement>();
-window.addEventListener("beforeprint", () => {
+function openBoxesForPrint(): void {
   for (const details of document.querySelectorAll<HTMLDetailsElement>("details.prose-box:not([open])")) {
     details.open = true;
     boxesOpenedForPrint.add(details);
   }
-});
-window.addEventListener("afterprint", () => {
+}
+function closeBoxesAfterPrint(): void {
   for (const details of boxesOpenedForPrint) details.open = false;
   boxesOpenedForPrint.clear();
-});
+}
 
 export function renderMethods(el: HTMLElement, data: MethodsData): void {
   const boxes = methodsBoxes(data).map((box) => ({ ...box, sections: box.sections.filter((section): section is Section => section !== null) }));
@@ -1136,9 +1137,11 @@ export function renderMethods(el: HTMLElement, data: MethodsData): void {
     const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
     if (link) openTo(hashId(link.getAttribute("href") ?? "#"), false);
   });
-  if (!hashListening) {
-    hashListening = true;
+  if (!windowListening) {
+    windowListening = true;
     window.addEventListener("hashchange", () => openTo(hashId(location.hash), true));
+    window.addEventListener("beforeprint", openBoxesForPrint);
+    window.addEventListener("afterprint", closeBoxesAfterPrint);
   }
   // the page draws after its data loads, past the browser's own scroll to the #hash
   if (location.hash.length > 1) openTo(hashId(location.hash), true);

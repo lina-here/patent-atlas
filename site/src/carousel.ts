@@ -5,6 +5,7 @@
 // (rotation.ts travel rule, released on leave or after `rotation.resumeAfterSeconds` still), keyboard focus inside (never the
 // Play/Pause button), a hidden tab, an open tool panel or sources-and-notes details. Live region off while playing, polite
 // otherwise; a visitor's move announces the slide (polite for it, also while playing). Computes no figure.
+import { DASHBOARD_TILE_IDS } from "./dashboard";
 import type { Config, Entities, Manifest, Overview } from "./data";
 import { h } from "./dom";
 import { renderSlide } from "./embed";
@@ -19,7 +20,8 @@ const UNAVAILABLE = "Data unavailable for this chart";
 const OPEN_PANEL = ".chart-panel:not([hidden]), details.card-details[open]";
 const SLOT = { slotClass: "carousel-slot", pendingClass: "carousel-slot--pending", slideAttribute: "data-slide", stateAttribute: "data-state" };
 
-/** `dashboard.slides` resolved against `wallboard.slides`: an unknown id or a slide naming no chart left out with a notice. */
+/** `dashboard.slides` resolved against `wallboard.slides`: an unknown id, a slide naming no chart or a chart a dashboard tile
+ * already shows (its ids would repeat the tile's) left out with a notice. */
 function carouselSlides(cfg: Config, notices: string[]): DeckSlide[] {
   const ids: unknown[] = Array.isArray(cfg.dashboard?.slides) ? cfg.dashboard.slides : [];
   const available = Array.isArray(cfg.wallboard?.slides) ? cfg.wallboard.slides : [];
@@ -37,6 +39,10 @@ function carouselSlides(cfg: Config, notices: string[]): DeckSlide[] {
     const read = readParams(`?${slide.params}`, cfg);
     if (!read.params.chart) {
       notices.push(`Dashboard slide ${slide.id} names no chart: left out`);
+      continue;
+    }
+    if ((DASHBOARD_TILE_IDS as readonly string[]).includes(read.params.chart)) {
+      notices.push(`Dashboard slide ${slide.id} shows a chart a dashboard tile already shows: left out`);
       continue;
     }
     notices.push(...read.notices.map((line) => `Dashboard slide ${slide.id}: ${line}`));

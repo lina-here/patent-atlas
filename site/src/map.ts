@@ -1018,25 +1018,26 @@ const MEMBERSHIP_NULL_TEXT: Record<MembershipNullReason, string> = {
   not_on_current_list: "not on WIPO's current list of PCT Contracting States (former entity)",
   successor_state: "treaty status depended on a former State, or on a State it left, in that year; not shown",
 };
-/** Contracting States whose English name takes "the" in a sentence ("through the United Kingdom"); WIPO's list prints
- * the bare name. */
-const NAME_WITH_ARTICLE = /^(Netherlands|United |Russian Federation|Republic of |Philippines|Dominican Republic)/;
+/** The Contracting States a territory applies through (the `via` codes of the data's territories), each with whether
+ * English puts "the" before its name ("through the United Kingdom"); WIPO's list prints the bare name. A code not
+ * listed reads bare: map.spec checks every `via` in the data is listed. */
+export const VIA_TAKES_ARTICLE: Record<string, boolean> = { NL: true, GB: true, CN: false };
 const PCT_LIST_NAME = "WIPO, PCT Contracting States";
 
 export function membershipNullText(reason: MembershipNullReason): string {
   return MEMBERSHIP_NULL_TEXT[reason] ?? reason;
 }
 
-/** A State's name as a sentence reads it: "the Netherlands", "China". */
-export function stateInProse(name: string): string {
-  return NAME_WITH_ARTICLE.test(name) ? `the ${name}` : name;
+/** The State a territory applies through, as a sentence reads it: "the Netherlands", "China". */
+export function stateInProse(period: { state: string; via: string }): string {
+  return VIA_TAKES_ARTICLE[period.via] ? `the ${period.state}` : period.state;
 }
 
 /** One period of a territory: "applied through the United Kingdom 1981-04-15 to 1997-06-30" (closed) or "applies
  * through China since 1997-07-01". */
 function territorySpan(period: PctTerritoryLink[number]): string {
-  return period.to ? `applied through ${stateInProse(period.state)} ${period.from} to ${period.to}`
-    : `applies through ${stateInProse(period.state)} since ${period.from}`;
+  return period.to ? `applied through ${stateInProse(period)} ${period.from} to ${period.to}`
+    : `applies through ${stateInProse(period)} since ${period.from}`;
 }
 
 /** "58 of today's PCT Contracting States bound by 31 December 1990"; the latest year "as of" the status date. Today's

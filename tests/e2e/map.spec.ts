@@ -1361,6 +1361,21 @@ const drawnBins = (page: Page) => map(page).locator("path[data-code], circle[dat
   .evaluateAll((els) => els.map((el) => ({ code: el.getAttribute("data-code") ?? "", bin: el.getAttribute("data-bin") ?? "",
     tip: el.querySelector("title")?.textContent ?? "" })));
 
+test("PCT membership: every territory's `via` State is listed in map.ts with its article, as the tests' own prose names it", () => {
+  const listed = /^export const VIA_TAKES_ARTICLE: Record<string, boolean> = \{([^}]*)\};/m.exec(readFileSync("site/src/map.ts", "utf8"))?.[1];
+  expect(listed, "VIA_TAKES_ARTICLE in site/src/map.ts").toBeDefined();
+  const takesArticle = new Map([...listed!.matchAll(/([A-Z]{2}): (true|false)/g)].map(([, code, value]) => [code, value === "true"]));
+  const periods = [
+    ...Object.values(memberFile().territories).flat(),
+    ...pct.territories.flatMap((territory: { periods: { via: string; state: string }[] }) => territory.periods),
+  ];
+  expect(periods.length).toBeGreaterThan(0);
+  for (const period of periods) {
+    expect(takesArticle.has(period.via), period.via).toBe(true);
+    expect(takesArticle.get(period.via), period.via).toBe(stateInProse(period.state).startsWith("the "));
+  }
+});
+
 test("PCT membership: metric select lists it; title and year slider first_year..last_year from the data", async ({ page }) => {
   const errors = trackErrors(page);
   expect(pct.first_year).toBe(PCT_FIRST_YEAR);
