@@ -4,6 +4,7 @@
 // full chart card (Show figures, Cite, Embed, a same-tab link to its overview chart). Every figure is a pipeline field of
 // overview.json, never computed here; a missing figure reads "–" with its reason.
 import type { Atlas } from "./atlas";
+import { CAROUSEL_PREFIX } from "./carousel";
 import type { CardContext } from "./chartCard";
 import type { Entities, Overview, SeriesId, SourceBlock, WorldId } from "./data";
 import { h, formatCount } from "./dom";
@@ -21,8 +22,6 @@ import { TREEMAP_CARD_ID, treemapCard } from "./treemap";
 export const DASHBOARD_VIEW = "dashboard";
 /** The tiles' card ids, in page order (the key figures, then MAP_CARD_ID, TREEMAP_CARD_ID, SHARE_SHIFT_CARD_ID). */
 export const DASHBOARD_TILE_IDS = ["key-world-patents", "key-world-pct", "key-top-origin", "key-top-grower", "world-map", "treemap", "share-shift"];
-/** Put before every id of the carousel's slide: a chart the overview family shows elsewhere keeps unique ids here. */
-export const CAROUSEL_PREFIX = "carousel-";
 
 const [KEY_WORLD_PATENTS, KEY_WORLD_PCT, KEY_TOP_ORIGIN, KEY_TOP_GROWER] = DASHBOARD_TILE_IDS;
 const NO_DATA = "There is no data to draw this chart.";

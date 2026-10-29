@@ -7,7 +7,9 @@ import {
 } from "./charts";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-/** Pattern ids for "no data" fills; base.css `.hatch-<chart>` rules reference them (colour is never the only cue). */
+/** Pattern ids for "no data" fills (colour is never the only cue), after the card's id prefix: each chart's marks reference
+ * the pattern in its own SVG, so a chart shown twice on a page (overview family, dashboard carousel) never borrows another's
+ * (a pattern in a hidden or removed slide does not paint). */
 export const SHARE_HATCH_ID = "continent-share-hatch";
 export const HEAT_HATCH_ID = "pct-monthly-hatch";
 /** Fallback hatch spacing (px) when the theme sets no `--map-hatch-gap`. */
@@ -207,8 +209,10 @@ export type ShareLayer = { key: string; label: string; hatched?: boolean; shares
  * the areas are drawn in separate segments (one per run of kept years), never bridged across it. A `hatched` layer is
  * hatched, not coloured; every layer is also named in text at the right edge of its band. */
 export function shareAreaChart(layers: ShareLayer[], opts: {
-  years: number[]; width?: number; height?: number; format: (share: number) => string }): SVGElement {
+  years: number[]; width?: number; height?: number; format: (share: number) => string; idPrefix?: string }): SVGElement {
   const theme = readTheme();
+  const hatchId = `${opts.idPrefix ?? ""}${SHARE_HATCH_ID}`;
+  const hatchFill = `url(#${hatchId})`;
   const width = opts.width ?? FALLBACK_WIDTH;
   const gap = theme.fontSize * 0.6;
   type Slice = { key: string; label: string; year: number; segment: number; low: number | null; high: number | null; share: number | null };
@@ -237,7 +241,7 @@ export function shareAreaChart(layers: ShareLayer[], opts: {
   const marginLeft = widest(["100%"], theme) + gap;
   const topPad = theme.fontSize * 0.6;
   const legend = legendMarks(layers.map((layer) => layer.hatched
-    ? { label: layer.label, symbol: "square", className: "hatch-continent-share" }
+    ? { label: layer.label, symbol: "square", fill: hatchFill, className: "hatch-continent-share" }
     : { label: layer.label, symbol: "square", fill: colourOf.get(layer.key) }), theme, width, marginLeft, topPad);
   const height = fitHeight(opts.height, theme);
   const marginTop = legend.height + topPad;
@@ -263,7 +267,7 @@ export function shareAreaChart(layers: ShareLayer[], opts: {
         x: "year", y1: "low", y2: "high", z: "segment", fill: colourOf.get(layer.key), stroke: theme.surface, className: "share-area",
       })),
       ...hatched.map((layer) => areaY(defined.filter((slice) => slice.key === layer.key), {
-        x: "year", y1: "low", y2: "high", z: "segment", stroke: theme.surface, className: "hatch-continent-share share-area share-band",
+        x: "year", y1: "low", y2: "high", z: "segment", fill: hatchFill, stroke: theme.surface, className: "hatch-continent-share share-area share-band",
       })),
       text(names, { x: lastYear, y: "y", text: "label", dx: gap * 1.6, textAnchor: "start", fill: theme.ink, className: "share-label",
         ...(widest(layers.map((layer) => layer.label), theme) > nameWidth ? { textOverflow: "ellipsis", lineWidth: nameWidth / theme.fontSize } : {}) }),
@@ -272,7 +276,7 @@ export function shareAreaChart(layers: ShareLayer[], opts: {
         // clamped to the x domain: Plot does not clip, a bar at the first or last year would spill over the axis or names
         x1: (slice: { year: number }) => Math.max(opts.years[0], slice.year - SINGLE_YEAR_HALF_WIDTH),
         x2: (slice: { year: number }) => Math.min(opts.years[opts.years.length - 1], slice.year + SINGLE_YEAR_HALF_WIDTH),
-        y1: "low", y2: "high", fill: index === 0 ? ((slice: { key: string }) => colourOf.get(slice.key)) : undefined,
+        y1: "low", y2: "high", fill: index === 0 ? ((slice: { key: string }) => colourOf.get(slice.key)) : hatchFill,
         stroke: theme.surface, className: index === 0 ? "share-single" : "hatch-continent-share share-single",
       })),
       ...legend.marks as never[],
@@ -281,7 +285,7 @@ export function shareAreaChart(layers: ShareLayer[], opts: {
         title: (slice: Slice & { share: number }) => `${slice.label}\n${slice.year}: ${opts.format(slice.share)}` })),
     ],
   }) as SVGElement;
-  svg.prepend(hatchDefs(SHARE_HATCH_ID));
+  svg.prepend(hatchDefs(hatchId));
   return svg;
 }
 
@@ -387,8 +391,10 @@ export const MONTH_LABELS = Array.from({ length: 12 }, (_, index) => new Date(20
  * own colour scale (`--map-bin-*`); the legend names the lowest and highest value at the ends of the scale. A null month is
  * hatched (never the lowest colour). */
 export function heatStripChart(cells: HeatCell[], opts: {
-  years: number[]; width?: number; height?: number; noDataLabel: string; valueLabel: string }): SVGElement {
+  years: number[]; width?: number; height?: number; noDataLabel: string; valueLabel: string; idPrefix?: string }): SVGElement {
   const theme = readTheme();
+  const hatchId = `${opts.idPrefix ?? ""}${HEAT_HATCH_ID}`;
+  const hatchFill = `url(#${hatchId})`;
   const width = opts.width ?? FALLBACK_WIDTH;
   const gap = theme.fontSize * 0.6;
   const values = cells.flatMap((entry) => (entry.value === null ? [] : [entry.value]));
@@ -404,7 +410,7 @@ export function heatStripChart(cells: HeatCell[], opts: {
     className: "heat-legend-swatch" }));
   const topPad = theme.fontSize * 0.6;
   const legend = legendMarks([...ramp,
-    ...(missing.length > 0 ? [{ label: opts.noDataLabel, symbol: "square", className: "hatch-pct-monthly" }] : [])],
+    ...(missing.length > 0 ? [{ label: opts.noDataLabel, symbol: "square", fill: hatchFill, className: "hatch-pct-monthly" }] : [])],
   theme, width, marginLeft, topPad);
   const height = fitHeight(opts.height, theme);
   const labelEvery = Math.max(1, Math.ceil(opts.years.length / Math.max(2, Math.floor(width / theme.xTickGap))));
@@ -422,12 +428,12 @@ export function heatStripChart(cells: HeatCell[], opts: {
       axisX({ tickSize: 0, color: theme.muted, label: null, tickFormat: (year: number) => (opts.years.indexOf(year) % labelEvery === 0 ? String(year) : "") }),
       axisY({ tickSize: 0, color: theme.muted, label: null, tickFormat: (month: number) => MONTH_LABELS[month - 1] }),
       cell(defined, { x: "year", y: "month", fill: "value", inset: 0.5, className: "heat-cell" }),
-      cell(missing, { x: "year", y: "month", inset: 0.5, className: "hatch-pct-monthly heat-cell heat-null" }),
+      cell(missing, { x: "year", y: "month", inset: 0.5, fill: hatchFill, className: "hatch-pct-monthly heat-cell heat-null" }),
       ...legend.marks as never[],
       tip(cells, pointer({ x: "year", y: "month", fill: theme.surface, stroke: theme.grid,
         title: (entry: HeatCell) => `${MONTH_LABELS[entry.month - 1]} ${entry.year}\n${entry.value === null ? opts.noDataLabel : `${formatCount(entry.value)} ${opts.valueLabel}`}` })),
     ],
   }) as SVGElement;
-  svg.prepend(hatchDefs(HEAT_HATCH_ID));
+  svg.prepend(hatchDefs(hatchId));
   return svg;
 }

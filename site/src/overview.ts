@@ -215,7 +215,7 @@ function omissionReason(overview: Overview, series: SeriesId, year: number): str
   return reason ? `no data reported: ${nullReasonText(reason, overview)}` : "no data reported";
 }
 
-function continentShare(overview: Overview, groups: GroupItem[] | null): CardBuilder["build"] {
+function continentShare(overview: Overview, groups: GroupItem[] | null, idPrefix?: string): CardBuilder["build"] {
   return () => {
     const series: SeriesId = "origin_apps";
     const source = overview.sources[series];
@@ -251,7 +251,7 @@ function continentShare(overview: Overview, groups: GroupItem[] | null): CardBui
       title: `Continents' share of world patent applications by origin, ${shown[0]}–${years[years.length - 1]}`,
       note: `Each continent's applications as a share of the world total; the hatched band (“${block.unallocated_label}”) is the part of the ` +
         "world total no continent accounts for. Years left out are named under the chart.",
-      draw: (width, height) => shareAreaChart(layers, { years: chartYears, width, height, format: (share) => `${fixedPercent(share, decimals)}%` }),
+      draw: (width, height) => shareAreaChart(layers, { years: chartYears, width, height, format: (share) => `${fixedPercent(share, decimals)}%`, idPrefix }),
       table: {
         headers: ["Year", ...ids.map((id) => labels[id]), bandLabel, "In the chart"],
         rows: [...years].reverse().map((year) => [String(year), ...ids.map((id) => valueOf(id, year)), bandOf(year),
@@ -302,7 +302,7 @@ function sizeGrowth(overview: Overview, groups: GroupItem[] | null): CardBuilder
   };
 }
 
-function pctMonthly(overview: Overview): CardBuilder["build"] {
+function pctMonthly(overview: Overview, idPrefix?: string): CardBuilder["build"] {
   return () => {
     const source = overview.pct_monthly_source;
     const years = sortedYears(Object.keys(overview.pct_monthly ?? {}));
@@ -312,7 +312,7 @@ function pctMonthly(overview: Overview): CardBuilder["build"] {
     return {
       title: `PCT applications by month, ${years[0]}–${years[years.length - 1]}`,
       note: `WIPO's PCT total (all receiving offices) by filing month; colour runs from the lowest to the highest month, see legend. ${PCT_LATE_FILINGS}`,
-      draw: (width, height) => heatStripChart(cells, { years, width, height, noDataLabel: "no data reported", valueLabel: "PCT applications" }),
+      draw: (width, height) => heatStripChart(cells, { years, width, height, noDataLabel: "no data reported", valueLabel: "PCT applications", idPrefix }),
       table: {
         headers: ["Year", ...MONTH_LABELS],
         rows: [...years].reverse().map((year) => [String(year), ...overview.pct_monthly[String(year)]]),
@@ -454,9 +454,9 @@ export function worldCards(overview: Overview, atlas: Atlas | null, ctx: MapCont
     { id: "top-origins", build: topOrigins(overview) },
     { id: "fastest-growers", build: fastestGrowers(overview) },
     { id: "rank-race", build: rankRace(overview) },
-    { id: "continent-share", build: continentShare(overview, groups), problem: continentNamesProblem(overview, groups, "continent-share") },
+    { id: "continent-share", build: continentShare(overview, groups, ctx.idPrefix), problem: continentNamesProblem(overview, groups, "continent-share") },
     { id: "size-growth", build: sizeGrowth(overview, groups), problem: continentNamesProblem(overview, groups, "size-growth") },
-    { id: "pct-monthly", build: pctMonthly(overview) },
+    { id: "pct-monthly", build: pctMonthly(overview, ctx.idPrefix) },
     treemapCard(overview, ctx.idPrefix),
     shareShiftCard(overview),
   ];

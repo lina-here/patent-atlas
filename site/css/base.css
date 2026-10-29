@@ -661,9 +661,7 @@ input {
 }
 
 /* Overview views (charts.ts): "no data" and "not attributable" fills are hatched, never only a colour (WCAG 1.4.1); the
-   patterns (`--map-hatch*` tokens) are defined in each chart's SVG. */
-.hatch-continent-share { fill: url(#continent-share-hatch); }
-.hatch-pct-monthly { fill: url(#pct-monthly-hatch); }
+   patterns (`--map-hatch*` tokens) are defined in each chart's SVG and its marks fill from that one (overviewCharts.ts). */
 /* heat cells and their legend swatches: edge >= 3:1 vs the card (--map-edge), >= 1px and non-scaling (a thinner
    anti-aliased line blends below 3:1), as map shapes */
 .heat-cell,

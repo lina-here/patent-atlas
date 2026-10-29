@@ -10,7 +10,7 @@ const config = JSON.parse(readFileSync("site/config.json", "utf8"));
 const overview = JSON.parse(readFileSync("site/data/overview.json", "utf8"));
 const dashboardSource = readFileSync("site/src/dashboard.ts", "utf8");
 const TILE_IDS: string[] = JSON.parse(/^export const DASHBOARD_TILE_IDS = (\[[^\]]+\]);/m.exec(dashboardSource)![1]);
-const CAROUSEL_PREFIX = /^export const CAROUSEL_PREFIX = "([^"]+)";/m.exec(dashboardSource)![1];
+const CAROUSEL_PREFIX = /^export const CAROUSEL_PREFIX = "([^"]+)";/m.exec(readFileSync("site/src/carousel.ts", "utf8"))![1];
 const PCT_LATE_FILINGS = /^export const PCT_LATE_FILINGS = "([^"]+)";/m.exec(readFileSync("site/src/methods.ts", "utf8"))![1];
 const MIN_CHART_HEIGHT_EM = Number(/^const MIN_CHART_HEIGHT_EM = (\d+);/m.exec(readFileSync("site/src/charts.ts", "utf8"))![1]);
 const methodsSource = readFileSync("site/src/methods.ts", "utf8");
