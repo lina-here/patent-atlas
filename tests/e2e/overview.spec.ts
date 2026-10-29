@@ -915,7 +915,8 @@ test("overview without series_breaks (data before the refresh that adds it): no 
   await page.goto("/");
   await expect(page.locator('.chart-card[data-chart="world-trend"] svg').first()).toBeVisible();
   await expect(page.locator('.chart-card[data-chart="continent-share"] svg').first()).toBeVisible();
-  // the share-shift card's dagger line says "series break" in lower case: only the notes ("Series break <year>:") are meant
+  // the share-shift card's dagger line says "series break" in lower case: only the notes are meant. Every break note starts
+  // "Series break <year>:" (methods.ts seriesBreakNotes), also after "Includes <label>: "; a note without that form would slip through.
   await expect(page.getByText(/Series break \d{4}:/)).toHaveCount(0);
   expect(errors).toEqual([]);
 });

@@ -509,7 +509,9 @@ test("treemap: a continent whose listed countries have no value is one rectangle
 test("treemap card: no share decimals in the method leaves the card out, no guess", async ({ page }) => {
   await editOverview(page, (data) => { delete data.method.rounding.decimals.share; });
   await page.goto("/embed.html?chart=treemap");
-  await expect(page.locator("main, body").first()).toBeVisible();
+  // positive wait first: the message shows only once the edited overview.json has arrived and been processed; absence alone
+  // passes at once and ends the test while the routed fetch is still being read
+  await expect(page.locator(".embed-problem-title")).toHaveText("No data to draw “treemap”.");
   await expect(page.locator(CARD)).toHaveCount(0);
   await expect(page.locator("svg.treemap-chart")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText("could not be loaded");

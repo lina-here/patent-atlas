@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fixtureBreak, includesBreakNote, routeSeriesBreaks } from "./seriesBreaks";
 import { FONT_VARIANTS, useWideFonts } from "./wideFonts";
 import { openNotes } from "./notes";
+import { fixedHalfAway } from "../../site/src/format";
 
 // Share-shift card, "Who gained and lost ground?": each top origin's change in share of world applications, base year to
 // year, as a diverging bar chart. Expected rows, order and figures are read from overview.json; change_pp is displayed as
@@ -47,11 +48,10 @@ function plotted(rows: Row[] = shift.rows): Row[] {
 
 const labelOf = (row: Row): string => (row.breaks.length > 0 ? `${row.label} †` : row.label);
 
-/** `+x.xx pp` / `-x.xx pp` / `0.00 pp` of a change, rounded as the method says. */
+/** `+x.xx pp` / `-x.xx pp` / `0.00 pp` of a change, rounded as the method says (the code's own rounding, so a half-way value agrees). */
 function valueText(change: number): string {
-  const text = (Math.round(Math.abs(change) * 10 ** decimals) / 10 ** decimals).toFixed(decimals);
-  const sign = /[1-9]/.test(text) ? (change > 0 ? "+" : "-") : "";
-  return `${sign}${text} pp`;
+  const text = fixedHalfAway(change, decimals);
+  return `${change > 0 && /[1-9]/.test(text) ? "+" : ""}${text} pp`;
 }
 
 test("share-shift: one bar per origin with a change in share", async ({ page }) => {
@@ -120,7 +120,7 @@ test("share-shift: the table lists every share_shift row of overview.json as pub
   await card.getByRole("button", { name: "Show figures", exact: true }).click();
   await expect(card.locator("thead th")).toHaveText(["Origin", `Rank ${shift.year}`, `Share ${shift.base_year}`, `Share ${shift.year}`, "Change (pp)"]);
   const cells = await card.locator("tbody tr").evaluateAll((trs) => trs.map((tr) => [...tr.querySelectorAll("td")].map((td) => td.textContent ?? "")));
-  const share = (value: number | null): string => (value === null ? "–" : `${value.toFixed(decimals)}%`);
+  const share = (value: number | null): string => (value === null ? "–" : `${fixedHalfAway(value, decimals)}%`);
   expect(cells).toEqual(shift.rows.map((row: Row) => [
     labelOf(row), String(row.rank), share(row.share_base), share(row.share),
     row.change_pp === null ? "–" : valueText(row.change_pp).replace(" pp", ""),
@@ -181,16 +181,17 @@ test("share-shift: a null_reason shows its message in the card, no chart", async
   await expect(card.locator("svg")).toHaveCount(0);
 });
 
-for (const { wide, suffix } of FONT_VARIANTS) for (const width of [390, 1440]) {
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [320, 360, 390, 1440]) {
   test(`share-shift at ${width}px: no label is clipped, outside the chart or overlapping another${suffix}`, async ({ page }) => {
     const card = await openCard(page, { wide, width });
     const measured = await card.locator("svg").first().evaluate((svg) => {
       const box = (element: Element) => { const r = element.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
       const labels = [...svg.querySelectorAll('g[aria-label="y-axis tick label"] text, g[aria-label="text"] text')]
         .map((element) => ({ text: element.textContent ?? "", ...box(element) }));
-      return { frame: box(svg), labels, page: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+      return { frame: box(svg), labels, card: svg.closest(".chart-card")!.getBoundingClientRect().right - document.documentElement.clientWidth };
     });
-    expect(measured.page).toBeLessThanOrEqual(0);
+    // the card stays inside the window (the page footer, not this card, may be wider than a 320 px window)
+    expect(measured.card).toBeLessThanOrEqual(0);
     expect(measured.labels.length).toBe(plotted().length * 2);
     for (const label of measured.labels) {
       expect(label.left, label.text).toBeGreaterThanOrEqual(measured.frame.left - 0.5);
@@ -201,13 +202,34 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const width of [390, 1440]) {
       if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) overlaps.push(`${a.text} / ${b.text}`);
     }));
     expect(overlaps).toEqual([]);
-    // a name cut to fit still reads as the start of the full name (the table holds it whole)
+    // a name cut to fit still reads as the start of the full name, or is the origin's code on a very narrow phone
     const names = await card.locator('svg g[aria-label="y-axis tick label"] text').allTextContents();
     expect(names).toHaveLength(plotted().length);
     names.forEach((name, index) => {
-      const full = labelOf(plotted()[index]);
-      if (name !== full) expect(full.startsWith(name.replace(/…( †)?$/, "")), name).toBe(true);
-      if (full.endsWith(" †")) expect(name.endsWith(" †"), name).toBe(true);
+      const row = plotted()[index];
+      const full = labelOf(row);
+      const dagger = full.endsWith(" †") ? " †" : "";
+      expect(name.endsWith(" †"), name).toBe(dagger !== "");
+      const bare = name.slice(0, name.length - dagger.length).replace(/…$/, "");
+      if (name !== full) expect(row.label.startsWith(bare) || bare === row.code, name).toBe(true);
     });
   });
 }
+
+test("share-shift: each bar's tooltip names the origin whole, never the cut label", async ({ page }) => {
+  const card = await openCard(page, { width: 360 });
+  const titles = await card.locator('svg g[aria-label="bar"] rect > title').allTextContents();
+  expect(titles).toEqual(plotted().map((row) => `${labelOf(row)}: ${valueText(row.change_pp!)}`));
+});
+
+test("share-shift: origins whose names cut to the same text stay separate bars", async ({ page }) => {
+  const prefix = "Federation of the Very Long Named Territories and Dependencies of ";
+  await editOverview(page, (data) => {
+    data.share_shift.rows.find((row: Row) => row.code === "IT").label = `${prefix}Alpha`;
+    data.share_shift.rows.find((row: Row) => row.code === "CA").label = `${prefix}Beta`;
+  });
+  const card = await openCard(page, { width: 390 });
+  const bars = await card.locator('svg g[aria-label="bar"] rect').evaluateAll((rects) => rects.map((rect) => Number(rect.getAttribute("y"))));
+  expect(bars).toHaveLength(plotted().length);
+  expect(new Set(bars).size).toBe(bars.length);
+});

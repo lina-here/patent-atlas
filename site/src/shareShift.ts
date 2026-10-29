@@ -3,10 +3,10 @@
 // (overview.json `share_shift`): `change_pp` is the difference of the published shares and is displayed, never recomputed.
 import type { CardBuilder, CardContent } from "./overview";
 import type { Overview, ShareShiftRow } from "./data";
-import { MAX_LABEL_SHARE, barChart, readTheme, textWidth, type ChartTheme } from "./charts";
+import { barChart, barLabelRoom, barValueWidth, readTheme, textWidth, type ChartTheme } from "./charts";
 import { fixedHalfAway } from "./format";
 import { nullReasonText } from "./groupText";
-import { originAbroadNote, seriesBreakNotes } from "./methods";
+import { originAbroadNote, seriesBreakNotes, seriesBreaksIn } from "./methods";
 
 export const SHARE_SHIFT_CARD_ID = "share-shift";
 
@@ -23,14 +23,19 @@ function changeText(change: number, decimals: number): string {
 const daggerOf = (row: ShareShiftRow): string => (row.breaks.length > 0 ? ` ${DAGGER}` : "");
 const labelOf = (row: ShareShiftRow): string => `${row.label}${daggerOf(row)}`;
 
-/** `name` cut to fit `room` px with an ellipsis, `suffix` (the dagger) kept. The cut is measured with the page font: the chart's
- * own cut uses an estimate that, in a wide fallback font, leaves the label past the plot's left edge. */
-function fitLabel(name: string, suffix: string, room: number, theme: ChartTheme): string {
+/** A cut name keeps at least this many letters, else the origin's code stands for it (a phone narrower than ~360 px). */
+const MIN_NAME_LETTERS = 4;
+
+/** The axis label of `row` in `room` px: the name, cut with an ellipsis if it must be, `suffix` (the dagger) kept; the code when
+ * the cut would leave too few letters. The cut is measured with the page font: the chart's own cut uses an estimate that, in a wide
+ * fallback font, leaves the label past the plot's left edge. The full name stays in the bar's tooltip and the table. */
+function fitLabel(row: ShareShiftRow, room: number, theme: ChartTheme): string {
+  const suffix = daggerOf(row);
   const fits = (text: string): boolean => textWidth(text, theme) * TEXT_SLACK <= room;
-  if (fits(name + suffix)) return name + suffix;
-  let end = name.length;
-  while (end > 1 && !fits(`${name.slice(0, end).trimEnd()}…${suffix}`)) end -= 1;
-  return `${name.slice(0, end).trimEnd()}…${suffix}`;
+  if (fits(row.label + suffix)) return row.label + suffix;
+  let end = row.label.length;
+  while (end > 0 && !fits(`${row.label.slice(0, end).trimEnd()}…${suffix}`)) end -= 1;
+  return end >= MIN_NAME_LETTERS ? `${row.label.slice(0, end).trimEnd()}…${suffix}` : row.code + suffix;
 }
 
 /** The share-shift card; left out when the data has no `share_shift` (older data), a message in its place for a null reason. */
@@ -55,8 +60,7 @@ export function shareShiftCard(overview: Overview): CardBuilder {
       const scope = { world: true, series: "origin_apps" as const, first: block.base_year, last: block.year };
       const breakNotes = seriesBreakNotes(overview, scope);
       // every share's denominator is the world total, which a world-level break runs through
-      const worldBreaks = (overview.series_breaks ?? []).filter((entry) => block.base_year <= entry.year - 1 && block.year >= entry.year
-        && entry.series.includes(scope.series));
+      const worldBreaks = seriesBreaksIn(overview, scope);
       return {
         title,
         note: `Percentage points (pp): the origin's share of the ${denominator} in ${block.year} minus its share in ${block.base_year}; ` +
@@ -68,9 +72,13 @@ export function shareShiftCard(overview: Overview): CardBuilder {
         draw: (width, height) => {
           const theme = readTheme();
           const [gain, loss] = theme.series;
-          const room = width * MAX_LABEL_SHARE;
-          return barChart(plotted.map((row) => ({ label: fitLabel(row.label, daggerOf(row), room, theme), value: row.change_pp })), {
-            width, height, format: (value) => changeText(value, decimals), fill: (row) => (row.value < 0 ? loss : gain),
+          // at least the widest code: a label never goes below that, the plot gives way (the values and labels stay whole)
+          const codeRoom = Math.max(...plotted.map((row) => textWidth(row.code + daggerOf(row), theme))) * TEXT_SLACK;
+          const room = Math.max(codeRoom, barLabelRoom(width, barValueWidth(plotted.map((row) => changeText(row.change_pp, decimals)), theme),
+            plotted.some((row) => row.change_pp < 0), theme));
+          // keyed by code (cut names may coincide); the tooltip names the origin whole
+          return barChart(plotted.map((row) => ({ label: fitLabel(row, room, theme), value: row.change_pp, key: row.code, title: labelOf(row) })), {
+            width, height, labelRoom: room, format: (value) => changeText(value, decimals), fill: (row) => (row.value < 0 ? loss : gain),
           });
         },
         table: {

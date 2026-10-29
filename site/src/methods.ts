@@ -1,7 +1,7 @@
 // Methods page: static explanations + every number read from manifest.json, overview.json and
 // entity/CH.json (no figure typed into the page). Formulas restate pipeline/derive.py in words.
 import type { GroupNullReason, GroupsFile } from "./atlas";
-import type { Config, Entities, EntityFile, EntityKind, GenderMeasure, Manifest, Overview, RatioCheck, RatioDenominator, RatioMethod, SeriesId, SourceBlock, WipoRatioId, WorldId } from "./data";
+import type { Config, Entities, EntityFile, EntityKind, GenderMeasure, Manifest, Overview, RatioCheck, RatioDenominator, RatioMethod, SeriesBreak, SeriesId, SourceBlock, WipoRatioId, WorldId } from "./data";
 import { h, formatCount, type Child } from "./dom";
 import { fixedHalfAway, fixedPercent } from "./format";
 import { GENDER_BASIS_LABEL, GENDER_TITLES, coverageFloorText, formatShare, genderCaveat, genderDecimals, genderNullText, unlistedMembersText } from "./genderText";
@@ -207,14 +207,19 @@ function citationShort(citation: string): string {
   return end < 0 ? citation : citation.slice(0, end);
 }
 
-/** Footnotes for the breaks (overview `series_breaks`, pipeline/breaks.py) a chart spans: year - 1 and year both charted,
- * its series affected, and the break's country is the chart's country, in its group, or the chart is the world. Only the
- * country's own growth exists to withhold (yoy null); world and groups publish none. No `series_breaks` = no notes. */
-export function seriesBreakNotes(overview: Overview, scope: BreakScope): string[] {
+/** The breaks (overview `series_breaks`, pipeline/breaks.py) a chart spans: year - 1 and year both charted, its series
+ * affected, and the break's country is the chart's country, in its group, or the chart is the world. No `series_breaks` = none. */
+export function seriesBreaksIn(overview: Overview, scope: BreakScope): SeriesBreak[] {
   return (overview.series_breaks ?? [])
     .filter((entry) => scope.first <= entry.year - 1 && scope.last >= entry.year && entry.series.includes(scope.series)
       && (scope.code !== undefined ? scope.code === entry.code
-        : scope.group !== undefined ? entry.groups.includes(scope.group) : scope.world === true))
+        : scope.group !== undefined ? entry.groups.includes(scope.group) : scope.world === true));
+}
+
+/** Footnotes for the breaks `seriesBreaksIn` finds. Only the country's own growth exists to withhold (yoy null); world and
+ * groups publish none. */
+export function seriesBreakNotes(overview: Overview, scope: BreakScope): string[] {
+  return seriesBreaksIn(overview, scope)
     .map((entry) => {
       const text = `Series break ${entry.year}: ${entry.note} (summarised from WIPO, ${citationShort(entry.citation)}, ${entry.page}).`;
       if (scope.code !== undefined && scope.growth === false) return text;
