@@ -139,6 +139,54 @@ test("pause keys toggle with the Paused badge; paused, the board stays", async (
   expect(errors).toEqual([]);
 });
 
+const boardLive = (page: Page) => page.locator(".board > div.visually-hidden[aria-live='polite']");
+
+test("live text: a key move announces the slide, pause and resume keys say Paused and Resumed; an automatic move adds nothing", async ({ page }) => {
+  const errors = trackErrors(page);
+  await openBoard(page);
+  const live = boardLive(page);
+  await page.clock.runFor(SLIDE_MS + STEP_MS);
+  await at(page, 2, slides.length);
+  await expect(live).toHaveText("");
+  await page.keyboard.press(pressName(keysFor("next")[0].key));
+  await at(page, 3, slides.length);
+  await expect(live).toHaveText(`Slide 3 of ${slides.length}: ${slides[2].label}`);
+  const pause = pressName(keysFor("pause")[0].key);
+  await page.keyboard.press(pause);
+  await expect(live).toHaveText("Paused");
+  await page.keyboard.press(pause);
+  await expect(live).toHaveText("Resumed");
+  await ready(page, slides[2].id);
+  await page.clock.runFor(SLIDE_MS + STEP_MS);
+  await at(page, 4, slides.length);
+  await expect(live).toHaveText("Resumed");
+  expect(errors).toEqual([]);
+});
+
+test("a pause mid-slide keeps the time left: the progress bar stands still while paused; resumed, the slide ends after the time left", async ({ page }) => {
+  const errors = trackErrors(page);
+  await openBoard(page);
+  const width = () => page.locator(".board-progress-fill").evaluate((element) => parseFloat((element as HTMLElement).style.width));
+  const pause = pressName(keysFor("pause")[0].key);
+  await page.clock.runFor(SLIDE_MS / 2);
+  await page.keyboard.press(pause);
+  await expect(page.locator(".board-paused")).toBeVisible();
+  const frozen = await width();
+  expect(frozen).toBeGreaterThan(40);
+  expect(frozen).toBeLessThan(60);
+  for (let interval = 0; interval < 3; interval += 1) {
+    await page.clock.runFor(SLIDE_MS);
+    expect(await width()).toBe(frozen);
+    await at(page, 1, slides.length);
+  }
+  await page.keyboard.press(pause);
+  await page.clock.runFor(SLIDE_MS / 2 - STEP_MS);
+  await at(page, 1, slides.length);
+  await page.clock.runFor(2 * STEP_MS);
+  await at(page, 2, slides.length);
+  expect(errors).toEqual([]);
+});
+
 test("Space on a focused button acts once; modifier keys are not the board's", async ({ page }) => {
   const errors = trackErrors(page);
   await stubPlatform(page);

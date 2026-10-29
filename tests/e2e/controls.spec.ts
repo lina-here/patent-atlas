@@ -552,6 +552,18 @@ test("pauseMovePixels: movement under it does not pause; an invalid value is rep
   await expect(page.locator(".rotation-resume")).toBeVisible();
 });
 
+test("paused rotation: a pointermove without travel (layout shifted under a still pointer) does not restart the auto-resume wait", async ({ page }) => {
+  await page.clock.install();
+  await page.goto(`/?rotate=${minSeconds}`);
+  await expect(page.locator(".rotation-status")).toBeVisible();
+  await syntheticMove(page, pauseMovePixels, 0);
+  await expect(page.locator(".rotation-resume")).toBeVisible();
+  await page.clock.runFor(IDLE_MS - 1000);
+  await syntheticMove(page, 0, 0);
+  await page.clock.runFor(1000);
+  await expect(page.locator(".rotation-resume")).toBeHidden();
+});
+
 for (const bad of [-1, "x", null]) {
   test(`an invalid pauseMovePixels in config (${JSON.stringify(bad)}): notice, any movement pauses`, async ({ page }) => {
     await page.clock.install();

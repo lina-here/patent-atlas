@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
+import { build } from "esbuild";
 import { RESIZE_SETTLE_MS } from "./siteConstants";
 import { FONT_VARIANTS, expectWideFonts, useWideFonts } from "./wideFonts";
 
@@ -11,7 +12,9 @@ import { FONT_VARIANTS, expectWideFonts, useWideFonts } from "./wideFonts";
 const readJson = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 const config = readJson("site/config.json");
 const manifest = readJson("site/data/manifest.json");
-const CAROUSEL_PREFIX = /^export const CAROUSEL_PREFIX = "([^"]+)";/m.exec(readFileSync("site/src/carousel.ts", "utf8"))![1];
+const carouselSource = readFileSync("site/src/carousel.ts", "utf8");
+const CAROUSEL_PREFIX = /^export const CAROUSEL_PREFIX = "([^"]+)";/m.exec(carouselSource)![1];
+const UNAVAILABLE = /^const UNAVAILABLE = "([^"]+)";/m.exec(carouselSource)![1];
 const THEME_ANIMATION = /--rotate-animation:\s*([a-z-]+)/.exec(readFileSync(`site/themes/${config.defaultTheme}.css`, "utf8"))![1];
 const { minSeconds, resumeAfterSeconds, pauseMovePixels } = config.rotation;
 type WallSlide = { id: string; label: string; params: string };
@@ -179,13 +182,14 @@ test("playing: a hidden tab holds; visible again, it runs", async ({ page }) => 
   await at(page, 2);
 });
 
-test("playing: open Show figures holds until closed; the Cite panel and open details hold too", async ({ page }) => {
+test("playing: open Show figures holds until closed; the Cite and Embed panels and open details hold too", async ({ page }) => {
   await openCarousel(page);
   await control(page, "Play").dispatchEvent("click");
   const card = page.locator(`${STAGE} .chart-card`);
   const openers: [string, Locator, Locator][] = [
     ["Show figures", card.getByRole("button", { name: "Show figures", exact: true }), card.locator(".chart-figures")],
     ["Cite this", card.getByRole("button", { name: "Cite this", exact: true }), card.locator(".chart-cite")],
+    ["Embed", card.getByRole("button", { name: "Embed", exact: true }), card.locator(".chart-embed")],
     ["details", card.locator("details.card-details > summary"), card.locator("details.card-details[open]")],
   ];
   for (const [name, opener, panel] of openers) {
@@ -216,6 +220,17 @@ test("parked pointer: the hover hold ends after resumeAfterSeconds without movem
   await running(page, true);
   await page.clock.runFor(SLIDE_MS + STEP_MS);
   await at(page, 2);
+});
+
+test("playing: a pointermove without travel (layout shifted under a still pointer) does not restart the hover hold's wait", async ({ page }) => {
+  await openCarousel(page);
+  await control(page, "Play").dispatchEvent("click");
+  await hover(page);
+  await running(page, false);
+  await page.clock.runFor(IDLE_MS - STEP_MS);
+  await page.locator(`${STAGE} .carousel-viewport`).dispatchEvent("pointermove", { movementX: 0, movementY: 0 });
+  await page.clock.runFor(2 * STEP_MS);
+  await running(page, true);
 });
 
 test("Previous and Next move one slide, wrap, update the position and announce politely; a move resets the timer", async ({ page }) => {
@@ -252,6 +267,32 @@ test("aria-live is off while playing (automatic moves not announced), polite whe
   await at(page, 2);
   await expect(status(page)).toHaveText("");
   await control(page, "Pause").dispatchEvent("click");
+  await expect(status(page)).toHaveAttribute("aria-live", "polite");
+});
+
+test("playing: a move with no hold (a tap, assistive technology) is announced; the next automatic move is not", async ({ page }) => {
+  await openCarousel(page);
+  await control(page, "Play").dispatchEvent("click");
+  await running(page, true);
+  await control(page, "Next").dispatchEvent("click"); // no pointer travel, no keyboard focus: nothing holds
+  await at(page, 2);
+  await expect(status(page)).toHaveAttribute("aria-live", "polite");
+  await expect(status(page)).toHaveText(`Slide 2 of ${slides.length}: ${slides[1].label}`);
+  await ready(page, slides[1].id);
+  await page.clock.runFor(SLIDE_MS + STEP_MS); // never held: it ran on
+  await at(page, 3);
+  await expect(status(page)).toHaveText("");
+  await expect(status(page)).toHaveAttribute("aria-live", "off");
+});
+
+test("a manual move to a slide whose file 404s announces the slide and that its data is unavailable", async ({ page }) => {
+  const failing = wallSlides.find((slide) => slide.id === "map-per-million")!;
+  await routeDashboard(page, { slides: [slides[0].id, failing.id] });
+  await page.route("**/data/map/per_million.json", (route) => route.fulfill({ status: 404, body: "not found" }));
+  await openCarousel(page);
+  await control(page, "Next").dispatchEvent("click");
+  await expect(page.locator(`${STAGE} .carousel-unavailable`)).toHaveText(UNAVAILABLE);
+  await expect(status(page)).toHaveText(`Slide 2 of 2: ${failing.label}. ${UNAVAILABLE}`);
   await expect(status(page)).toHaveAttribute("aria-live", "polite");
 });
 
@@ -348,8 +389,9 @@ test("each full cycle re-reads manifest.json: a new data version reloads the das
   expect(url.searchParams.get("rotate")).toBe(String(minSeconds));
 });
 
-test("30 slide changes leave the ResizeObserver and listener counts where they were", async ({ page }) => {
-  const errors = trackErrors(page);
+/** Counters on the page (`__counts()`): live ResizeObservers and MutationObservers, and listeners on window and document
+ * (`__track(name, target)` adds a target, such as the stage). */
+async function installCounters(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const w = window as any;
     const live = new Set<unknown>();
@@ -357,6 +399,12 @@ test("30 slide changes leave the ResizeObserver and listener counts where they w
     w.ResizeObserver = class extends Native {
       constructor(callback: ResizeObserverCallback) { super(callback); live.add(this); }
       disconnect() { live.delete(this); super.disconnect(); }
+    };
+    const observing = new Set<unknown>();
+    const NativeMutation = window.MutationObserver;
+    w.MutationObserver = class extends NativeMutation {
+      observe(target: Node, options?: MutationObserverInit) { observing.add(this); super.observe(target, options); }
+      disconnect() { observing.delete(this); super.disconnect(); }
     };
     const listeners = new Map<string, number>();
     const track = (name: string, target: EventTarget & { addEventListener: any; removeEventListener: any }) => {
@@ -383,22 +431,90 @@ test("30 slide changes leave the ResizeObserver and listener counts where they w
     };
     track("window", window);
     track("document", document);
+    w.__track = track;
     w.__counts = () => ({
       observers: live.size,
+      mutationObservers: observing.size,
       listeners: Object.fromEntries([...listeners].filter(([, n]) => n > 0).sort()),
     });
   });
+}
+const counts = (page: Page) => page.evaluate(() => (window as any).__counts());
+
+test("30 slide changes leave the ResizeObserver and listener counts where they were", async ({ page }) => {
+  const errors = trackErrors(page);
+  await installCounters(page);
   await openCarousel(page);
   // one move first: the test driver's own window listeners (added on its first action) are then counted in both
   await control(page, "Next").dispatchEvent("click");
   await ready(page, slides[1].id);
-  const before = await page.evaluate(() => (window as any).__counts());
+  const before = await counts(page);
   for (let step = 2; step <= 31; step += 1) {
     await control(page, "Next").dispatchEvent("click");
     await ready(page, slides[step % slides.length].id);
   }
-  expect(await page.evaluate(() => (window as any).__counts())).toEqual(before);
+  expect(await counts(page)).toEqual(before);
   await expect(page.locator(`${STAGE} .carousel-slot`)).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
+/** The site bundle with `startCarousel` wrapped, for this test only (the page never tears the carousel down, so the
+ * production code has no handle to reach): `__carousel` = the last start's handle, `__restartCarousel()` starts it again
+ * with the same arguments (same stage). */
+async function bundleWithCarouselHandle(): Promise<string> {
+  const declaration = "export function startCarousel(";
+  expect(carouselSource).toContain(declaration);
+  const wrapped = `${carouselSource.replace(declaration, "function startCarouselOnce(")}
+export function startCarousel(...args: Parameters<typeof startCarouselOnce>): ReturnType<typeof startCarouselOnce> {
+  const w = window as any;
+  w.__restartCarousel = () => { w.__carousel = startCarouselOnce(...args); };
+  w.__carousel = startCarouselOnce(...args);
+  return w.__carousel;
+}
+`;
+  const result = await build({
+    entryPoints: ["site/src/main.ts"], bundle: true, format: "esm", platform: "browser", write: false,
+    plugins: [{ name: "carousel-handle", setup(bundler) {
+      bundler.onLoad({ filter: /[\\/]site[\\/]src[\\/]carousel\.ts$/ }, () => ({ contents: wrapped, loader: "ts" }));
+    } }],
+  });
+  return result.outputFiles[0].text;
+}
+
+test("dispose: listeners, observers and timers go; the counts are back where they were before the carousel started", async ({ page }) => {
+  const errors = trackErrors(page);
+  const bundle = await bundleWithCarouselHandle();
+  await page.route("**/js/main.js", (route) => route.fulfill({ body: bundle, contentType: "text/javascript" }));
+  await installCounters(page);
+  await openCarousel(page);
+  // warm-up: the test driver's own listeners (first click, pointer) counted in the baseline too
+  await control(page, "Next").dispatchEvent("click");
+  await ready(page, slides[1].id);
+  await hover(page);
+  await leave(page);
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__carousel.dispose();
+    w.__track("stage", document.querySelector(".dashboard-stage"));
+  });
+  const baseline = await counts(page);
+  await page.evaluate(() => (window as any).__restartCarousel());
+  await ready(page, slides[0].id);
+  await control(page, "Play").dispatchEvent("click");
+  await control(page, "Next").dispatchEvent("click");
+  await ready(page, slides[1].id);
+  await hover(page); // a hover hold: its idle timer armed
+  await running(page, false);
+  const started = await counts(page);
+  expect(started.observers).toBeGreaterThan(baseline.observers);
+  expect(started.mutationObservers).toBeGreaterThan(baseline.mutationObservers);
+  expect(Object.keys(started.listeners).filter((name) => name.startsWith("stage:")).length).toBeGreaterThan(0);
+  await page.evaluate(() => (window as any).__carousel.dispose());
+  expect(await counts(page)).toEqual(baseline);
+  // no timer left: neither the slide's nor the hover hold's
+  await leave(page);
+  await page.clock.runFor(IDLE_MS + 2 * SLIDE_MS);
+  await at(page, 2);
   expect(errors).toEqual([]);
 });
 
@@ -457,6 +573,17 @@ test("config: an unknown slide id and an invalid dashboard.seconds: a notice eac
   await ready(page, slides[1].id);
 });
 
+test("config: a wallboard slide with a label or params that is not text: a malformed-slide notice, left out", async ({ page }) => {
+  const malformed = { ...slides[0], label: 7 };
+  await page.route("**/config.json", (route) => route.fulfill({ json: {
+    ...config, wallboard: { ...config.wallboard, slides: wallSlides.map((slide) => (slide.id === malformed.id ? malformed : slide)) } } }));
+  await openCarousel(page, "", slides[1].id);
+  const notices = page.locator("#notices");
+  await expect(notices).toContainText(`Malformed wallboard slide in config.json left out of the carousel: ${malformed.id} (its label and params must be text)`);
+  await expect(notices).not.toContainText("Unknown dashboard slide");
+  await at(page, 1, slides.length - 1);
+});
+
 /** The shown slide's fit: no overflow of the stage or slot, the card inside the stage, no part sideways out of the card, no
  * page sideways scroll. */
 async function fitProblems(page: Page): Promise<string[]> {
@@ -480,18 +607,65 @@ async function fitProblems(page: Page): Promise<string[]> {
   });
 }
 
+/** Next through every dashboard slide from the first, `check` on each once its fit has settled. */
+async function eachSlide(page: Page, check: (id: string) => Promise<void>): Promise<void> {
+  for (let step = 0; step < slides.length; step += 1) {
+    if (step > 0) await control(page, "Next").dispatchEvent("click");
+    await ready(page, slides[step].id);
+    await page.waitForTimeout(RESIZE_SETTLE_MS * 3); // the fit redraws after the resize settles
+    await check(slides[step].id);
+  }
+}
+
+async function expectEverySlideFits(page: Page): Promise<void> {
+  await eachSlide(page, async (id) => {
+    expect.soft(await fitProblems(page), id).toEqual([]);
+    await expect.soft(page.locator(`${STAGE} .chart-card--problem`), id).toHaveCount(0);
+  });
+}
+
 for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
   test(`every dashboard slide fits the stage at ${size.width}x${size.height}${suffix}`, async ({ page }) => {
     if (wide) await useWideFonts(page);
     await page.setViewportSize(size);
     await page.goto(DASHBOARD);
     if (wide) await expectWideFonts(page);
-    for (let step = 0; step < slides.length; step += 1) {
-      if (step > 0) await control(page, "Next").dispatchEvent("click");
-      await ready(page, slides[step].id);
-      await page.waitForTimeout(RESIZE_SETTLE_MS * 3); // the fit redraws after the resize settles
-      expect.soft(await fitProblems(page), slides[step].id).toEqual([]);
-      await expect.soft(page.locator(`${STAGE} .chart-card--problem`), slides[step].id).toHaveCount(0);
-    }
+    await expectEverySlideFits(page);
+  });
+}
+
+// each theme's own phone stage token (`--dashboard-stage-phone-height`); the default theme is the loop above
+for (const theme of (config.themes as string[]).filter((name) => name !== config.defaultTheme)) for (const { wide, suffix } of FONT_VARIANTS) {
+  test(`?theme=${theme}: every dashboard slide fits the phone stage at 390x844${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${DASHBOARD}&theme=${theme}`);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    if (wide) await expectWideFonts(page);
+    await expectEverySlideFits(page);
+  });
+}
+
+/** The blank band in the shown card (the room its foot, `.chart-tools`, is pushed down by, above it) and the card's text line. */
+function spareBand(page: Page): Promise<{ band: number; line: number }> {
+  return page.locator(`${STAGE} .carousel-slot .chart-card`).evaluate((card) => {
+    const tools = card.querySelector(":scope > .chart-tools")!;
+    const above = tools.previousElementSibling!;
+    const band = tools.getBoundingClientRect().top - above.getBoundingClientRect().bottom - parseFloat(getComputedStyle(above).marginBottom);
+    return { band, line: parseFloat(getComputedStyle(card).lineHeight) };
+  });
+}
+
+for (const { wide, suffix } of FONT_VARIANTS) {
+  test(`1440: every slide's chart fills its card, no blank band over one text line above the toolbar, nothing overflows${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(DASHBOARD);
+    if (wide) await expectWideFonts(page);
+    await eachSlide(page, async (id) => {
+      const { band, line } = await spareBand(page);
+      expect.soft(band, `${id}: blank band (px) under one line of ${line}px`).toBeLessThanOrEqual(line);
+      expect.soft(await fitProblems(page), id).toEqual([]);
+    });
   });
 }

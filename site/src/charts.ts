@@ -155,9 +155,10 @@ export function minMapHeight(): number {
   return cssLength("--chart-font-size", UNTHEMED.fontSize) * MIN_MAP_HEIGHT_EM;
 }
 
-/** The drawing height: the theme's, or `wanted` (wallboard fit) when given, never below MIN_CHART_HEIGHT_EM. */
+/** The drawing height: the theme's, or `wanted` (a fit: shrunk to its room, or grown to fill a carousel card) when given,
+ * never below MIN_CHART_HEIGHT_EM. */
 export function fitHeight(wanted: number | undefined, theme: ChartTheme): number {
-  return wanted === undefined ? theme.height : Math.max(theme.fontSize * MIN_CHART_HEIGHT_EM, Math.min(wanted, theme.height));
+  return wanted === undefined ? theme.height : Math.max(theme.fontSize * MIN_CHART_HEIGHT_EM, wanted);
 }
 
 /** Layout ratio: least distance between two end labels, in font sizes. */
@@ -287,9 +288,9 @@ export function barChart(rows: BarRow[], opts: { width?: number; height?: number
   const keyOf = (row: BarRow): string => row.key ?? row.label;
   const labelOfKey = new Map(rows.map((row) => [keyOf(row), row.label]));
   const y = keyed ? keyOf : "label";
-  // `opts.height` (wallboard fit) squeezes the bar step, never below the text's own height
+  // `opts.height` (a fit) sets the bar step: squeezed, never below the text's own height, or grown to fill a carousel card
   const barStep = opts.height === undefined ? theme.barStep
-    : Math.min(theme.barStep, Math.max(theme.fontSize * MIN_BAR_STEP_EM, opts.height / Math.max(1, rows.length)));
+    : Math.max(theme.fontSize * MIN_BAR_STEP_EM, opts.height / Math.max(1, rows.length));
 
   return plot({
     width,

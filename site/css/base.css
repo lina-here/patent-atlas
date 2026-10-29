@@ -621,7 +621,7 @@ input {
 .key-figures .tile-value { overflow-wrap: anywhere; }
 .tile-reason { margin: var(--space-1) 0 0; font-size: var(--size-small); color: var(--muted); }
 /* Carousel stage (carousel.ts): its row's height (set by the map tile beside it), the token its floor; controls on top, the
-   slide's chart fitted to the viewport below them (overview.ts fitToRoom), spare room inside the card. Alone in its row (phone)
+   slide's chart fitted to the viewport below them and grown into the card's spare room (overview.ts fitToRoom, fill). Alone in its row (phone)
    a fixed height, its own token: the controls plus the tallest slide's text (narrow, wide fallback fonts) over a chart at its
    least height. While a tool panel or the sources-and-notes details is open the stage grows to its content (the fit finds no
    overflow); closed, the height is back. */

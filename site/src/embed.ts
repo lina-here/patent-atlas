@@ -138,16 +138,17 @@ export type SlideResult = {
 };
 
 /** How `renderSlide` draws: `fitToStage` = fitted to the stage's height (wallboard, dashboard carousel), else to the viewport's
- * (the embed's iframe); `full` = a full card (Show figures, Cite, Embed, sources and notes) with a same-tab link to the chart on
+ * (the embed's iframe); `fillStage` = with `fitToStage`, the chart also grows into the card's spare height (dashboard
+ * carousel: the card is as high as its stage); `full` = a full card (Show figures, Cite, Embed, sources and notes) with a same-tab link to the chart on
  * the overview (dashboard), else compact; `idPrefix` = put before every id the slide makes (CardContext.idPrefix). */
-export type SlideOptions = { fitToStage?: boolean; full?: boolean; idPrefix?: string };
+export type SlideOptions = { fitToStage?: boolean; fillStage?: boolean; full?: boolean; idPrefix?: string };
 
 /** One chart card in `stage` (spec §Rendering): the chart named by `params.chart`
  * (with country/office for entity charts, region/continent for group charts). The atlas is loaded only for the charts
  * that need it. Fitted and redrawn on any resize (`opts.fitToStage`). Embed page, wallboard and dashboard carousel. */
 export async function renderSlide(stage: HTMLElement, params: Params, ctx: Omit<EntityPageContext, "params">,
   opts: SlideOptions = {}): Promise<SlideResult> {
-  const { fitToStage = false, full = false, idPrefix } = opts;
+  const { fitToStage = false, fillStage = false, full = false, idPrefix } = opts;
   const failed = (...problem: string[]): SlideResult => ({ ok: false, title: "", sources: [], dataCredits: [], notices: [], problem, dispose: () => {} });
   const slideCtx: EntityPageContext = { ...ctx, params, idPrefix };
   const id = params.chart;
@@ -170,7 +171,7 @@ export async function renderSlide(stage: HTMLElement, params: Params, ctx: Omit<
   // card with state (`params`) keeps its builder: each redraw builds from the card's state, never the first build.
   const build = full && builder.params ? builder.build : () => content;
   const dispose = renderCards(grid, [{ ...builder, build, wide: true }], { cfg: ctx.cfg, manifest: ctx.manifest, params, compact: !full, linkOverview: full, idPrefix },
-    fitToStage ? { fitTo: stage } : { fit: true });
+    fitToStage ? { fitTo: stage, fill: fillStage } : { fit: true });
   const title = grid.querySelector("h2")?.textContent ?? "";
   if (!content) return { ...failed(), title, dispose };
   return { ok: true, title, sources: [content.source].flat(), dataCredits: content.dataCredits ?? [], notices, problem: [], dispose };

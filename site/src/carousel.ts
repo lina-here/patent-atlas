@@ -4,7 +4,7 @@
 // A user pause is sticky: only Play ends it. Holds are transient, each ended by its own end: the pointer moving over it
 // (rotation.ts travel rule, released on leave or after `rotation.resumeAfterSeconds` still), keyboard focus inside (never the
 // Play/Pause button), a hidden tab, an open tool panel or sources-and-notes details. Live region off while playing, polite
-// otherwise; a visitor's move announces the slide. Computes no figure.
+// otherwise; a visitor's move announces the slide (polite for it, also while playing). Computes no figure.
 import type { Config, Entities, Manifest, Overview } from "./data";
 import { h } from "./dom";
 import { renderSlide } from "./embed";
@@ -26,8 +26,12 @@ function carouselSlides(cfg: Config, notices: string[]): DeckSlide[] {
   const slides: DeckSlide[] = [];
   for (const id of ids) {
     const slide = available.find((entry) => entry && entry.id === id);
-    if (!slide || typeof slide.label !== "string" || typeof slide.params !== "string") {
+    if (!slide) {
       notices.push(`Unknown dashboard slide in config.json left out: ${String(id)}`);
+      continue;
+    }
+    if (typeof slide.label !== "string" || typeof slide.params !== "string") {
+      notices.push(`Malformed wallboard slide in config.json left out of the carousel: ${String(id)} (its label and params must be text)`);
       continue;
     }
     const read = readParams(`?${slide.params}`, cfg);
@@ -88,15 +92,21 @@ export function startCarousel(root: HTMLElement, cfg: Config, manifest: Manifest
   root.replaceChildren(h("div", { class: "carousel-controls" }, play, previous, next, position), viewport, live);
 
   const slideParams = (slide: DeckSlide): Params => ({ ...slide.params, theme: params.theme });
+  let lastMoveManual = false; // the shown slide came by a visitor's move
   const deck = createSlideDeck(viewport, slides, slideMs, manifest, {
     draw: (slot, slide) => {
       slot.setAttribute("role", "group");
       slot.setAttribute("aria-roledescription", "slide");
       slot.setAttribute("aria-label", slide.label);
-      return renderSlide(slot, slideParams(slide), { cfg, manifest, ...data }, { fitToStage: true, full: true, idPrefix: CAROUSEL_PREFIX });
+      return renderSlide(slot, slideParams(slide), { cfg, manifest, ...data },
+        { fitToStage: true, fillStage: true, full: true, idPrefix: CAROUSEL_PREFIX });
     },
     onShow(slide, index, total, manual) {
       position.textContent = `${index + 1} of ${total}`;
+      lastMoveManual = manual;
+      // a visitor's move is announced even while running (a tap or assistive technology holds nothing): polite before the
+      // text; an automatic move writes nothing and the region follows the pause state again
+      live.setAttribute("aria-live", manual || deck.paused ? "polite" : "off");
       live.textContent = manual ? `Slide ${index + 1} of ${total}: ${slide.label}` : "";
       // the slide focused in was replaced: focus is gone from the carousel without a focusout
       syncFocus(document.activeElement);
@@ -110,7 +120,11 @@ export function startCarousel(root: HTMLElement, cfg: Config, manifest: Manifest
     errorScreen: () => h("div", { class: "notice notice-error carousel-error" },
       h("p", {}, "The charts could not be loaded."),
       h("p", {}, "Next, or Play, tries again.")),
-    unavailable: () => h("p", { class: "notice notice-error carousel-unavailable" }, UNAVAILABLE),
+    unavailable: () => {
+      // no role on the message (it would speak while running): a visitor's move announces it with the slide
+      if (lastMoveManual) live.textContent = `${live.textContent}. ${UNAVAILABLE}`;
+      return h("p", { class: "notice notice-error carousel-unavailable" }, UNAVAILABLE);
+    },
   }, { userPaused: !params.rotate }, SLOT);
 
   // keyboard focus inside holds; a mouse click (no focus ring) or the Play/Pause button never does
@@ -132,10 +146,12 @@ export function startCarousel(root: HTMLElement, cfg: Config, manifest: Manifest
     deck.hold("hover", false);
   };
   const onPointerMove = (event: PointerEvent): void => {
-    // movementX/Y can be missing or NaN (synthetic events): counted as 0
+    // movementX/Y can be missing or NaN (synthetic events): counted as 0; no travel never holds nor restarts the wait
     const { movementX, movementY } = event;
-    travel += Math.hypot(Number.isFinite(movementX) ? movementX : 0, Number.isFinite(movementY) ? movementY : 0);
-    if (travel === 0 || travel < pauseThreshold) return;
+    const step = Math.hypot(Number.isFinite(movementX) ? movementX : 0, Number.isFinite(movementY) ? movementY : 0);
+    if (step === 0) return;
+    travel += step;
+    if (travel < pauseThreshold) return;
     deck.hold("hover", true);
     clearTimeout(idleTimer);
     // a parked pointer never holds an office screen for good

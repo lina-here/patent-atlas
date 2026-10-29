@@ -325,21 +325,39 @@ function pctMonthly(overview: Overview, idPrefix?: string): CardBuilder["build"]
 
 type DrawnCard = { shell: HTMLElement; content: CardContent; width: number };
 
-/** Fit (wallboard, rotation focus, embed): the chart takes only the height its room has left once the text around it is laid
- * out (`room` = the slide's stage, else the viewport), so nothing scrolls. Measured, never a text budget: text wraps
- * differently in each fallback font. A chart shrinks to `draw`'s own height (never below `minChartHeight`); the map, drawn
- * by CSS, gets a maximum height instead (never below `minMapHeight`). */
-function fitToRoom(card: DrawnCard, room?: HTMLElement): void {
-  // a redrawn chart may not lose exactly the height asked (margins, rounding): measured again, a few tries at most
+/** Spare height in a card of fixed height (a slide's): the room its foot (`.chart-tools`, pushed down by an auto margin)
+ * leaves above it. 0 when the card's height follows its content (an open panel grows the stage) or it has no tools. */
+function spareHeight(shell: HTMLElement): number {
+  const tools = shell.querySelector<HTMLElement>(":scope > .chart-tools");
+  const above = tools?.previousElementSibling;
+  if (!tools || !above) return 0;
+  return Math.floor(tools.getBoundingClientRect().top - above.getBoundingClientRect().bottom - parseFloat(getComputedStyle(above).marginBottom));
+}
+
+/** Fit (wallboard, rotation focus, embed, dashboard carousel): the chart takes only the height its room has left once the
+ * text around it is laid out (`room` = the slide's stage, else the viewport), so nothing scrolls. Measured, never a text
+ * budget: text wraps differently in each fallback font. A chart shrinks to `draw`'s own height (never below
+ * `minChartHeight`); the map, drawn by CSS, gets a maximum height instead (never below `minMapHeight`). `fill` (carousel,
+ * a card as high as its stage): a chart also grows into the card's spare height, so no blank band sits above the tools. */
+function fitToRoom(card: DrawnCard, room?: HTMLElement, fill = false): void {
+  // a redrawn chart may not take exactly the height asked (margins, rounding): measured again, a few tries at most
   for (let attempt = 0; attempt < FIT_ATTEMPTS; attempt += 1) {
     const overflow = room
       ? Math.ceil(Math.max(room.scrollHeight - room.clientHeight, card.shell.getBoundingClientRect().bottom - room.getBoundingClientRect().bottom))
       : document.documentElement.scrollHeight - window.innerHeight;
-    if (overflow <= 0) return;
     const visual = card.shell.querySelector<HTMLElement | SVGElement>(".chart-figure > svg, .chart-figure .map-svg");
     if (!visual) return;
     const map = visual instanceof SVGElement && visual.classList.contains("map-svg");
     const current = visual.getBoundingClientRect().height;
+    if (overflow <= 0) {
+      // the last try is left for a shrink, should the grown chart overshoot
+      const spare = fill && !map && attempt < FIT_ATTEMPTS - 1 ? spareHeight(card.shell) : 0;
+      if (spare < 1) return;
+      const grown = card.content.draw(card.width, current + spare) as SVGElement;
+      replaceChart(card.shell, grown);
+      if (grown.getBoundingClientRect().height <= current) return; // drawn at its largest
+      continue;
+    }
     const height = Math.max(map ? minMapHeight() : minChartHeight(), current - overflow);
     if (height >= current) return; // at its smallest
     if (map) visual.style.maxHeight = `${height}px`;
@@ -351,7 +369,7 @@ function fitToRoom(card: DrawnCard, room?: HTMLElement): void {
  * settles; open panels and theme choices stay as they are. `fit`: redraws on any resize and fits the room's height again
  * (`room` observed too; none = the viewport, and the body observed: text laid out after the fit, such as notices, grows
  * it). Returns the function that stops it. */
-function redrawOnResize(cards: DrawnCard[], fit: boolean, room?: HTMLElement): () => void {
+function redrawOnResize(cards: DrawnCard[], fit: boolean, room?: HTMLElement, fill = false): () => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const redraw = (): void => {
     clearTimeout(timer);
@@ -365,7 +383,7 @@ function redrawOnResize(cards: DrawnCard[], fit: boolean, room?: HTMLElement): (
         const several = card.shell.querySelector(`.chart-figure > [${REDRAW_ATTRIBUTE}]`);
         if (several) several.replaceWith(card.content.draw(width));
         else if (card.shell.querySelector(".chart-figure > svg")) replaceChart(card.shell, card.content.draw(width) as SVGElement);
-        if (fit) fitToRoom(card, room);
+        if (fit) fitToRoom(card, room, fill);
       }
     }, RESIZE_SETTLE_MS);
   };
@@ -406,11 +424,12 @@ function redrawOnState(shell: HTMLElement, builder: CardBuilder, ctx: CardContex
 }
 
 /** Fills `grid` with one card per builder, in order (overview, country and office pages); `opts.fit` = fitted to the
- * viewport height (rotation focus, embed), `opts.fitTo` = fitted to that element's height (a slide's stage). Cards
+ * viewport height (rotation focus, embed), `opts.fitTo` = fitted to that element's height (a slide's stage), `opts.fill` = with
+ * `fitTo`, the chart also grows into its card's spare height (fitToRoom). Cards
  * are placed first, so each chart is drawn at its card's real width; `?chart=<id>` scrolls to that card (full page). Returns the
  * function that removes the resize observers and listeners. */
 export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: CardContext,
-  opts: { fit?: boolean; fitTo?: HTMLElement } = {}): () => void {
+  opts: { fit?: boolean; fitTo?: HTMLElement; fill?: boolean } = {}): () => void {
   const fit = Boolean(opts.fit || opts.fitTo);
   // classes set before placing, so each chart is measured at its final width
   const shells = builders.map((builder) => h("section", { class: `card chart-card${builder.wide ? " chart-card--wide" : ""}` }));
@@ -430,10 +449,10 @@ export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: Car
     renderChartCard(shell, { id: builder.id, ...rest, visual }, cardContext(builder, ctx));
     // charts only (fit: all): tiles, map scale by CSS; REDRAW_ATTRIBUTE = an HTML figure of several charts (women trend)
     if (visual instanceof SVGElement || visual.hasAttribute(REDRAW_ATTRIBUTE) || fit) cards.push({ shell, content, width });
-    if (fit) fitToRoom({ shell, content, width }, opts.fitTo);
+    if (fit) fitToRoom({ shell, content, width }, opts.fitTo, opts.fill);
     if (builder.params) redrawOnState(shell, builder, ctx);
   });
-  const stop = redrawOnResize(cards, fit, opts.fitTo);
+  const stop = redrawOnResize(cards, fit, opts.fitTo, opts.fill);
   // not in compact mode: scrollIntoView inside an iframe would scroll the host page; not in a slide's stage (`fitTo`):
   // its `chart` names the slide, and the page (dashboard) opens at its top
   const wanted = ctx.compact || opts.fitTo ? undefined : ctx.params.chart;

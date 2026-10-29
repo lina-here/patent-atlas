@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { FONT_VARIANTS, expectWideFonts, useWideFonts } from "./wideFonts";
 import { fixedHalfAway } from "../../site/src/format";
 
-// Dashboard (`?view=dashboard`): four key-figure tiles, a carousel stage (one wallboard slide, full card), the world map,
+// Dashboard (`?view=dashboard`): four key-figure tiles, the carousel (carousel.ts), the world map,
 // the treemap and the share-shift card. Every expected figure is read from overview.json, every id and setting from
 // config.json or the site source.
 const config = JSON.parse(readFileSync("site/config.json", "utf8"));

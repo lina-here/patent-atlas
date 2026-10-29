@@ -200,6 +200,8 @@ export async function renderDashboard(app: HTMLElement, ctx: DashboardContext): 
   await themeLoaded();
   builders.forEach((builder, index) => renderCards(holders[index], [tileBuilder(builder)], tileCtx));
   const notices: string[] = [];
+  // its `dispose` handle unused: the page never tears the carousel down (a theme or view change loads a new page);
+  // carousel.spec tests dispose through a test-only build
   startCarousel(stage, ctx.cfg, ctx.manifest, ctx.params, notices, { entities: ctx.entities, overview });
   return notices;
 }
