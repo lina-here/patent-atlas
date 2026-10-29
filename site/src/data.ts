@@ -26,6 +26,9 @@ export type Config = {
     minTextPx: number; minTitlePx: number; minFinePrintPx: number;
     slides: { id: string; label: string; params: string }[];
   };
+  /** Dashboard (`?view=dashboard`, dashboard.ts): the carousel's seconds per slide and its slides, ids of `wallboard.slides`
+   * (a chart a dashboard tile already shows is left out with a notice, carousel.ts). */
+  dashboard: { seconds: number; slides: string[] };
   /** World map colour scale: bins of powers of `logBase` (bin 1 = 1 to base-1), the last open-ended; `bins`
    * = their count, one theme colour each (`--map-bin-1`..). A reported 0 and no data have their own swatches.
    * `ratio` = the scale of the per-million and per-GDP metrics: bin 1 = above 0 and below `lowest` × `logBase`, each next
@@ -181,6 +184,37 @@ export type ContinentShare = {
   null_reason: Record<string, GroupNullReason>;
 };
 
+/** A country rectangle of the treemap (and an unattributed row): `share` = percent of the WIPO world total, as published. */
+export type TreemapCountry = { code: string; label: string; value: number | null; share: number | null };
+/** Origins of a continent under `method.treemap.fold_share_pct` of the world total, folded into one rectangle. */
+export type TreemapOther = { value: number; share: number | null; codes: string[] };
+export type TreemapContinent = {
+  id: string; label: string; value: number; share: number | null; countries: TreemapCountry[]; other: TreemapOther | null;
+};
+/** Applications by origin at `year`, nested by continent (pipeline/write.py `_treemap`). `null_reason` set = no rows and
+ * no `residual`; `residual` = the part of the world total no continent accounts for (`unattributed` origins lie inside it);
+ * `no_value` = continent members WIPO lists without a value that year. */
+export type Treemap = {
+  series: SeriesId; year: number; world: number | null; null_reason: GroupNullReason | null;
+  continents: TreemapContinent[];
+  residual: { value: number | null; share: number | null; label: string } | null;
+  unattributed: TreemapCountry[];
+  no_value: { code: string; label: string }[];
+};
+
+/** One top origin's share of the world total at `base_year` and `year`; `change_pp` = difference of the published shares
+ * (null when `share_base` is: listed, not plotted); `breaks` = series-break years between the two. */
+export type ShareShiftRow = {
+  code: string; label: string; rank: number; share_base: number | null; share: number | null; change_pp: number | null; breaks: number[];
+};
+export type ShareShift = {
+  series: SeriesId; base_year: number; year: number; null_reason: GroupNullReason | null; rows: ShareShiftRow[];
+};
+/** Year-on-year change of a published world series (percent); a break year is null with its reason. */
+export type WorldYoy = Record<"world_office" | "pct_world", { yoy: YearMap; yoy_null_reason: Record<string, string> }>;
+/** Fastest grower among the top origins (pipeline/write.py `_top_grower`). */
+export type TopGrower = { code: string; label: string; rank: number; value: number; cagr10: number; breaks: number[] };
+
 export type Overview = {
   /** WIPO's own world totals (WD, ZZ), cut at `world_last_year`. */
   world_office: YearMap;
@@ -221,6 +255,12 @@ export type Overview = {
     rounding: { mode: string; decimals: { yoy: number; cagr: number; share: number; resident_share: number } };
     /** Scale constants (pipeline/scale.py `method_constants`); absent in data written before v0.2b. */
     ratios?: RatioMethod;
+    /** Treemap fold rule: an origin under this percent of the world total joins "Other <continent>". Absent before v2a. */
+    treemap?: { fold_share_pct: number };
+    /** Largest gap (percentage points) between the growth tile and WIPO's golden figure. Absent before v2a. */
+    golden_growth_tolerance_pp?: number;
+    /** How the share-shift card's change is computed, and its decimals. Absent before v2a. */
+    share_shift?: { change: string; decimals: number };
     /** Women-inventor constants and WIPO's method note; absent in data written before v0.2w. */
     gender?: GenderMethod;
   };
@@ -241,7 +281,48 @@ export type Overview = {
   world_sources: Record<WorldId, SourceBlock>;
   /** Absent in data written before v0.2b: no break notes, no methods section. */
   series_breaks?: SeriesBreak[];
+  /** PCT Contracting States (pipeline/pct_states.py); absent in data written before v2a: no map layer, no methods section. */
+  pct_membership?: PctMembership;
+  /** Key figures and the treemap / share-shift cards (v2a); each absent in older data: the figure or card is left out. */
+  world_yoy?: WorldYoy;
+  top_grower?: TopGrower | null;
+  treemap?: Treemap;
+  share_shift?: ShareShift;
 };
+
+/** A State WIPO's footnote names the continuing State of another (`continues`); its date as printed. */
+export type PctContinuingState = { code: string; name: string; in_force: string; continues: string };
+/** A territory the PCT applies or applied to through a listed State (`via`, named `state`), period by period (`to` null
+ * = still applies), each with its cited WIPO documents; `name` as the source names it. */
+export type PctTerritory = {
+  code: string; name: string;
+  periods: { via: string; state: string; from: string; to: string | null; sources: { document: string; url: string }[] }[];
+};
+/** A predecessor (a former entity, or a listed State that continues) and its successor States (ISO 3166 `source`);
+ * `own_dates` = the day a successor left a continuing State; `note` = where the list departs from ISO 3166. */
+export type PctSuccession = {
+  predecessor: string; name: string; source: string; codes: string[]; from: string | null; to: string; end_source: string;
+  own_dates: Record<string, string>; note: string;
+};
+
+/** overview `pct_membership`: rows from WIPO's page (`source_url`), count and status date from WIPO's list
+ * (`count_check_url`); `count` = members per year, `count[last_year]` = the list's count; `unmatched` = listed codes with
+ * no WIPO entity. */
+export type PctMembership = {
+  status_on: string; retrieved: string; source_url: string; count_check_url: string;
+  first_year: number; last_year: number; count: Record<string, number>;
+  unmatched: string[]; continuing: PctContinuingState[]; territories: PctTerritory[]; successors: PctSuccession[];
+};
+
+/** A published list a card cites by its link only (WIPO's PCT Contracting States): no Data Center release, tab or query.
+ * `status` = what the list states and when ("159 States on 2026-10-01"). */
+export type ListSource = { kind: "list"; name: string; url: string; status: string; retrieved: string };
+/** What a card cites: a WIPO statistics table or a published list. */
+export type CardSource = SourceBlock | ListSource;
+
+export function isListSource(source: CardSource): source is ListSource {
+  return "kind" in source && source.kind === "list";
+}
 
 export type RatioDenominator = "population" | "gdp_ppp";
 

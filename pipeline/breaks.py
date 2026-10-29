@@ -1,7 +1,9 @@
 """Series breaks WIPO publishes: years a country's data are not comparable with the year before (audit F1).
 
 Entity yoy of a break year = null, reason `SERIES_BREAK` (write._derived); overview `series_breaks` = `listing()`,
-so world, region and continent charts spanning year - 1 to year carry a footnote (they publish no growth rate).
+so world, region and continent charts spanning year - 1 to year carry a footnote. Overview `world_yoy` (key-figure
+tiles): world change of a year in `world_break_years` of its series = null, same reason (the world total includes the
+code, so it is not comparable across the break either).
 `note` = our summary of WIPO's note, never shown as a quote (spec M4). Citation = WIPI 2025 as in golden.json
 (test_write checks they agree). write.py adds each code's `label` to the overview entries (Includes <label>: ...).
 """
@@ -30,6 +32,11 @@ SERIES_BREAKS: list[dict] = [
 def break_years(code: str, series_id: str) -> set[int]:
     """Break years of a code in a series (yoy of each = null)."""
     return {entry["year"] for entry in SERIES_BREAKS if entry["code"] == code and series_id in entry["series"]}
+
+
+def world_break_years(series_id: str) -> set[int]:
+    """Break years of any code in a series: the world total's yoy of each = null (write._world_yoy)."""
+    return {entry["year"] for entry in SERIES_BREAKS if series_id in entry["series"]}
 
 
 def listing() -> list[dict]:

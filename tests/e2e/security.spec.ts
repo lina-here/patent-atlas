@@ -61,6 +61,13 @@ test("embed: markup in ?chart= is neither drawn nor repeated", async ({ page }) 
   await expectNotEchoed(page);
 });
 
+test("dashboard: a sentence in rotate is not repeated; the notice still says it was ignored", async ({ page }) => {
+  await page.goto(`/?view=dashboard&rotate=${said}`);
+  await expect(page.locator("#notices")).toContainText(`Invalid rotate: ${NOT_SHOWN}`);
+  await expect(page.locator(".dashboard .chart-card").first()).toBeVisible();
+  await expectNotEchoed(page);
+});
+
 test("wallboard: a sentence in slides, theme, chart or rotate is not repeated", async ({ page }) => {
   await page.goto(`/?view=wallboard&slides=${said}&theme=${said}&chart=${said}&rotate=${said}`);
   const notices = page.locator(".board-notices");

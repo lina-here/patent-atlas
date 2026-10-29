@@ -16,7 +16,7 @@ import re
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
-from pipeline import scale, write
+from pipeline import pct_states, scale, write
 from pipeline.series import SERIES
 from pipeline.worlds import WORLD_SOURCES
 
@@ -33,12 +33,15 @@ MANIFEST_MEASURES = "absent_rows"  # {measure id: count}: the differing measure 
 TOP_KEY_IDS = {
     "pct_monthly": "pct_monthly", "pct_monthly_source": "pct_monthly",
     "method": "method", "coverage_rule": "method", "top_n": "method", "grower_min": "method",
-    **{key: "origin_apps" for key in ("top_origins", "fastest_growers", "size_growth", "rank_race", "top_year")},
+    **{key: "origin_apps" for key in ("top_origins", "top_grower", "fastest_growers", "size_growth", "rank_race",
+                                      "top_year", "treemap", "share_shift")},
+    "pct_membership": pct_states.PCT_MEMBER_ID,
 }
 # keys naming an id by another word: world totals -> their series; overview gender.by_field
 KEY_ALIASES = {**{world: series_id for world, (series_id, _) in WORLD_SOURCES.items()},
                "by_field": "women_any_by_field"}
-KNOWN_IDS = frozenset({*(series.id for series in SERIES), *scale.RATIO_IDS, *write.GENDER_IDS, "pct_publications"})
+KNOWN_IDS = frozenset({*(series.id for series in SERIES), *scale.RATIO_IDS, *write.GENDER_IDS, "pct_publications",
+                       pct_states.PCT_MEMBER_ID})
 _MISSING = object()
 
 

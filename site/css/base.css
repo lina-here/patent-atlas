@@ -371,6 +371,8 @@ code { font-family: var(--font-data); font-size: var(--size-small); }
 .map-shape[data-bin="zero"] { fill: url(#world-map-zero); }
 .map-shape[data-bin="null"] { fill: url(#world-map-hatch); }
 .map-shape[data-bin="former"] { fill: url(#world-map-former); }
+.map-shape[data-bin="member"] { fill: var(--map-member); }
+.map-shape[data-bin="nonmember"] { fill: url(#world-map-nonmember); }
 .map-neutral { fill: url(#world-map-neutral); }
 .map-hatch-bg { fill: var(--map-hatch-bg); }
 .map-neutral-bg { fill: var(--map-neutral); }
@@ -380,6 +382,9 @@ code { font-family: var(--font-data); font-size: var(--size-small); }
 .map-neutral-line { stroke: var(--map-neutral-line); stroke-width: var(--map-hatch-width); }
 .map-former-bg { fill: var(--map-former); }
 .map-former-line { stroke: var(--map-former-line); stroke-width: var(--map-hatch-width); }
+.map-nonmember-bg { fill: var(--map-nonmember); }
+.map-nonmember-mark { fill: var(--map-nonmember-mark); }
+.map-below { display: grid; gap: var(--space-1); }
 .map-dot { stroke: var(--map-dot-border); } /* radius: --map-dot-radius, read by map.ts */
 .map-svg a:hover .map-shape { stroke: var(--map-hover); stroke-width: var(--map-hover-width); }
 .map-legend { font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
@@ -390,6 +395,7 @@ code { font-family: var(--font-data); font-size: var(--size-small); }
 .chart-figures .table-scroll + .table-scroll { margin-top: var(--space-3); }
 .chart-figures caption { text-align: left; font-family: var(--font-ui); font-weight: 600; padding-bottom: var(--space-1); }
 .map-not-drawn,
+.map-unmatched,
 .map-disclaimer { margin: 0; font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
 .chart-credit { margin: var(--space-1) 0 0; font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
 
@@ -524,6 +530,35 @@ input {
 .prose h3 { margin: var(--space-4) 0 var(--space-2); }
 .prose ul { padding-left: var(--space-4); margin: 0 0 var(--space-3); }
 .prose li { margin-bottom: var(--space-1); }
+/* a long URL in a link or a WIPO method note wraps at phone width */
+.prose { overflow-wrap: break-word; }
+/* Methods: sections grouped in themed boxes, native <details> closed by default; a #hash inside opens its box (methods.ts
+   openTo). Title + one line in the summary; the marker stays native. */
+.prose-box {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: var(--rule-width) solid var(--rule);
+  border-radius: var(--radius);
+}
+.prose-box > summary { cursor: pointer; color: var(--ink); }
+.prose-box > summary .box-title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--size-h3);
+  line-height: var(--leading-tight);
+}
+.prose-box > summary .box-line {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-ui);
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+.prose-box[open] > summary { margin-bottom: var(--space-4); }
+.prose-box > summary + section { border-top: 0; padding-top: 0; }
+.prose-box > section:last-child { margin-bottom: var(--space-2); }
+.prose-box + section { margin-top: var(--space-5); }
 
 .facts {
   display: grid;
@@ -587,7 +622,7 @@ input {
   gap: var(--space-2) var(--space-5);
 }
 .footer-byline strong { color: var(--ink); }
-.footer-links { display: flex; gap: var(--space-4); }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
 .site-footer .disclaimer { max-width: var(--measure-wide); margin: var(--space-2) 0 0; }
 
 /* ---- Embed page (embed.html: a chart card alone in a host's iframe) ------------------------------ */
@@ -597,6 +632,63 @@ input {
 [data-page="embed"] .site-footer { padding-block: var(--space-2) var(--space-3); border-top: 0; }
 .embed-problem-title { font-weight: var(--weight-strong); }
 
+/* ---- Dashboard (dashboard.ts: ?view=dashboard) --------------------------------------------------- */
+
+/* Rows of tiles, one card filling each tile, every chart drawn at its tile's width (an open panel grows the tile). Key figures
+   sit in two pairs: four in a row, two by two, or (phone) one column; never three and one. */
+.dashboard { display: grid; gap: var(--space-5); }
+.dashboard-row,
+.dashboard-pair {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min)), 1fr));
+}
+.dashboard-row.dashboard-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(2 * var(--dashboard-key-min) + var(--space-5))), 1fr)); }
+.dashboard-pair { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--dashboard-key-min)), 1fr)); }
+.dashboard-tile { display: grid; min-width: 0; }
+.tiles.key-figures { grid-template-columns: minmax(0, 1fr); }
+.key-figures .tile-value { overflow-wrap: anywhere; }
+.tile-reason { margin: var(--space-1) 0 0; font-size: var(--size-small); color: var(--muted); }
+/* Carousel stage (carousel.ts): its row's height (set by the map tile beside it), the token its floor; controls on top, the
+   slide's chart fitted to the viewport below them and grown into the card's spare room (overview.ts fitToRoom, fill). Alone in its row (phone)
+   a fixed height, its own token: the controls plus the tallest slide's text (narrow, wide fallback fonts) over a chart at its
+   least height. While a tool panel or the sources-and-notes details is open the stage grows to its content (the fit finds no
+   overflow); closed, the height is back. */
+.dashboard-stage {
+  height: auto;
+  min-height: var(--dashboard-stage-height);
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+/* room for the focus ring: the stage clips */
+.carousel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: calc(var(--focus-width) + var(--focus-offset));
+}
+.carousel-position { margin-left: auto; font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
+.carousel-viewport { position: relative; flex: 1 1 0; min-height: 0; }
+.carousel-slot { position: absolute; inset: 0; overflow: hidden; }
+.carousel-slot--pending { visibility: hidden; }
+.carousel-slot > .chart-grid,
+.carousel-slot .chart-card { height: 100%; }
+.carousel-slot[data-state="ready"] { animation: var(--rotate-animation); }
+.carousel-unavailable,
+.carousel-error { margin: 0; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) { height: auto; overflow: visible; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .carousel-viewport { flex: none; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .carousel-slot { position: static; }
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .carousel-slot > .chart-grid,
+.dashboard-stage:has(.chart-panel:not([hidden]), details.card-details[open]) .chart-card { height: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slot[data-state="ready"] { animation: none; }
+}
+
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
 @media (max-width: 720px) {
@@ -605,6 +697,10 @@ input {
   .facts { grid-template-columns: minmax(0, 1fr); }
   .facts dd { margin-bottom: var(--space-2); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-row,
+  .dashboard-row.dashboard-keys,
+  .dashboard-pair { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-stage { height: var(--dashboard-stage-phone-height); }
   .data-table th,
   .data-table td { padding-right: var(--space-2); overflow-wrap: anywhere; hyphens: auto; }
 }
@@ -617,16 +713,15 @@ input {
   .chart-tools,
   button { display: none; }
   /* sources and notes print open: a closed <details> hides its content in the ::details-content slot (the beforeprint
-     handler in chartCard.ts covers engines without it) */
-  details.card-details::details-content { content-visibility: visible; display: block; }
+     handlers in chartCard.ts and methods.ts cover engines without it) */
+  details.card-details::details-content,
+  details.prose-box::details-content { content-visibility: visible; display: block; }
   .prose-layout { display: block; }
   a { color: inherit; }
 }
 
 /* Overview views (charts.ts): "no data" and "not attributable" fills are hatched, never only a colour (WCAG 1.4.1); the
-   patterns (`--map-hatch*` tokens) are defined in each chart's SVG. */
-.hatch-continent-share { fill: url(#continent-share-hatch); }
-.hatch-pct-monthly { fill: url(#pct-monthly-hatch); }
+   patterns (`--map-hatch*` tokens) are defined in each chart's SVG and its marks fill from that one (overviewCharts.ts). */
 /* heat cells and their legend swatches: edge >= 3:1 vs the card (--map-edge), >= 1px and non-scaling (a thinner
    anti-aliased line blends below 3:1), as map shapes */
 .heat-cell,
@@ -635,22 +730,45 @@ input {
 .heat-cell rect,
 .heat-legend-swatch,
 .hatch-pct-monthly { vector-effect: non-scaling-stroke; }
+/* Treemap (treemap.ts): rectangles are separated by strokes only (area = applications); the not-attributable rest is hatched
+   (own pattern, the `--map-hatch*` tokens) with a solid plate under its label; each continent is outlined. */
+.treemap-rect { stroke: var(--surface); stroke-width: var(--map-edge-width); vector-effect: non-scaling-stroke; }
+.treemap-residual { stroke: var(--map-edge); } /* fill: its own pattern, set per treemap as an attribute (treemap.ts) */
+.treemap-plate { fill: var(--treemap-residual); pointer-events: none; }
+.treemap-band { fill: none; stroke: var(--ink); stroke-width: var(--treemap-band-width); vector-effect: non-scaling-stroke; pointer-events: none; }
+.treemap-label, .treemap-continent-label, .treemap-continent-number { pointer-events: none; }
+.treemap-continent-label { text-decoration: underline; }
+.treemap-key-number { font-size: var(--treemap-key-number-size); }
+.treemap-swatch { stroke: var(--ink); stroke-width: var(--map-edge-width); vector-effect: non-scaling-stroke; }
+.treemap-swatch.treemap-residual { stroke: var(--ink); }
 .chart-footnote {
   margin: var(--space-2) 0 0;
   font-family: var(--font-ui);
   font-size: var(--size-small);
   color: var(--muted);
 }
+/* reference lines (code lists) stay on the page and in the embed; the wallboard gives their room to the chart */
+.board .chart-footnote--reference,
+.focus-layout .chart-footnote--reference { display: none; }
+/* wallboard: the lines around a chart are tight, so a card with notes still leaves the chart its height */
+.board .chart-note,
+.focus-layout .chart-note { margin-bottom: var(--space-2); }
+.board .chart-footnote,
+.focus-layout .chart-footnote { margin-top: var(--space-1); }
 
 /* Wallboard focus (main.ts adds .focus-layout for a rotation view that shows one card): the frame is tightened so the card
    and the chart drawn to the height left (overview.ts fitToRoom) fit the viewport without scrolling. */
-.focus-layout .site-header { padding-block: var(--space-3); }
-.focus-layout .page { padding-block: var(--space-2); }
+.focus-layout .site-header { padding-block: var(--space-2); }
+.focus-layout .page { padding-block: var(--space-1); }
+.focus-layout .source-line,
+.focus-layout .card-details { margin-top: var(--space-1); }
 .focus-layout .site-footer { padding-block: var(--space-2); }
 .focus-layout .site-footer .disclaimer { max-width: none; margin-top: var(--space-1); }
 .focus-layout .footer-byline p { margin: 0; } /* its paragraph margin would undo the tight footer */
 /* a wall screen has no use for the tools, map controls, footer links or the reproduction recipe (the source line, byline and
    disclaimer stay); the footer links wrap to a second line in wide fallback fonts, taking the chart's last room */
+.focus-layout .site-nav,
+.focus-layout .brand-tagline,
 .focus-layout .footer-links,
 .focus-layout .chart-tools,
 .focus-layout .chart-query,

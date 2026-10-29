@@ -1,12 +1,13 @@
 // Methods page: static explanations + every number read from manifest.json, overview.json and
 // entity/CH.json (no figure typed into the page). Formulas restate pipeline/derive.py in words.
 import type { GroupNullReason, GroupsFile } from "./atlas";
-import type { Config, Entities, EntityFile, EntityKind, GenderMeasure, Manifest, Overview, RatioCheck, RatioDenominator, RatioMethod, SeriesId, SourceBlock, WipoRatioId, WorldId } from "./data";
+import type { Config, Entities, EntityFile, EntityKind, GenderMeasure, Manifest, Overview, RatioCheck, RatioDenominator, RatioMethod, SeriesBreak, SeriesId, SourceBlock, WipoRatioId, WorldId } from "./data";
+import { DASHBOARD_TILE_IDS, type DashboardTileId } from "./dashboard";
 import { h, formatCount, type Child } from "./dom";
 import { fixedHalfAway, fixedPercent } from "./format";
 import { GENDER_BASIS_LABEL, GENDER_TITLES, coverageFloorText, formatShare, genderCaveat, genderDecimals, genderNullText, unlistedMembersText } from "./genderText";
 import { PCT_UNLISTED_ORIGIN_GROUPS, nullReasonText, wipoTotalCounts, wipoTotalGapCause } from "./groupText";
-import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, groupPageTarget, labelOfEntities } from "./map";
+import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, continuingText, groupPageTarget, labelOfEntities, membershipNullText, stateInProse } from "./map";
 import { mapScale } from "./mapScale";
 import { isPauseMovePixels, isRotationSeconds, viewLink, type Params } from "./params";
 import { AI_METHODS_LINE, DISCLAIMER, sourceLine } from "./provenance";
@@ -97,8 +98,8 @@ function sourcesSection({ cfg, params, manifest, overview }: MethodsData): Secti
     body: [
       h("p", {}, "All figures come from the ",
         dataCenterUrl ? h("a", { href: dataCenterUrl, rel: "noopener" }, dataCenter) : dataCenter,
-        " (WIPO Statistics Database). Patent Atlas computes growth, shares, ranks and world comparisons from them. ",
-        "Patent and PCT statistics are released on different cycles, so each carries its own release date."),
+        " (WIPO Statistics Database); Patent Atlas computes growth, shares, ranks and world comparisons from them. ",
+        "Patent and PCT statistics follow separate release cycles, each with its own release date."),
       h("dl", { class: "facts" },
         (Object.keys(manifest.releases) as (keyof typeof TAB_TITLES)[]).map((tab) => [
           h("dt", {}, `${TAB_TITLES[tab] ?? tab} release`), h("dd", {}, manifest.releases[tab]),
@@ -132,8 +133,8 @@ function definitionsSection({ manifest, entities, swiss }: MethodsData): Section
     h("dl", { class: "terms" },
       h("dt", {}, "Origin"),
       h("dd", {}, "Where the first-named applicant resides. Origin figures count applications by a country's residents at any office. ",
-        "Origin figures are absolute counts (WIPO 'total count'): an application at a regional office counts once. ",
-        "A filing at a regional office counts as a resident filing for applicants from that office's member states."),
+        "Origin figures are absolute counts (WIPO 'total count'): an application at a regional office counts once, ",
+        "as a resident filing for applicants from that office's member states."),
       h("dt", {}, "Filing office"),
       h("dd", {}, "The office that received the application: a national office or a regional one",
         regionalOffices ? ` (${regionalOffices}).` : "."),
@@ -144,8 +145,8 @@ function definitionsSection({ manifest, entities, swiss }: MethodsData): Section
       h("dt", {}, "Former states and territories"),
       h("dd", {}, formerStates ? `${formerStates}: ` : "", "they keep their historical data, marked former, and are never ranked."),
       h("dt", {}, "WIPO aggregates"),
-      h("dd", {}, "Totals WIPO reports for sets of countries, such as the EU or LDCs: left out of ranks, sums and top lists. ",
-        "They are not the regions and continents below, which are built from member countries."),
+      h("dd", {}, "Totals WIPO reports for sets of countries, such as the EU or LDCs. They are left out of ranks, sums and top lists, ",
+        "and differ from the regions and continents below, which are built from member countries."),
     ),
   ];
   const year = String(manifest.last_year.origin_apps);
@@ -161,7 +162,7 @@ function definitionsSection({ manifest, entities, swiss }: MethodsData): Section
           `such as the EPO as resident filings. The resident count of the office of ${swiss.label} covers only filings made at that office. `,
           `By origin, residents of ${swiss.label} filed `, h("strong", {}, formatCount(origin.types.resident?.[year])),
           ` resident applications; the office of ${swiss.label} received `, h("strong", {}, formatCount(office.types.resident?.[year])),
-          ` applications from residents. Most of the difference reflects residents of ${swiss.label} filing at other offices, chiefly the EPO.`),
+          ` applications from residents. Most of the difference is filings by residents of ${swiss.label} at other offices, chiefly the EPO.`),
         h("p", { class: "source-line" }, sourceLine(originSource, manifest)),
       ),
     );
@@ -175,17 +176,17 @@ function worldSection({ manifest, overview }: MethodsData): Section {
     id: "world-totals",
     title: "World totals and shares",
     body: [
-      h("p", {}, "World figures are WIPO's own totals, not our sums: the patent world total (code WD) and the PCT total (code ZZ). ",
+      h("p", {}, "World figures are WIPO's own totals: the patent world total (code WD) and the PCT total (code ZZ). ",
         "WD includes WIPO's estimates for offices that did not report; ZZ counts the applications recorded in WIPO's database at retrieval. ",
         "WIPO's published figures for the latest PCT year are estimates and can differ slightly."),
       h("ul", {},
         presentSources(overview).filter(([id]) => overview.share_denominator[id]).map(([id]) =>
           h("li", {}, `${SERIES_TITLES[id]}: share of ${overview.share_denominator[id]}.`)),
       ),
-      h("p", {}, "We also add up all reporting entities as a check. A sum above WIPO's total is treated as a data error and stops publication, ",
-        "except in years where WIPO's own data are known to show this (listed below as warnings)."),
+      h("p", {}, "Patent Atlas adds up all reporting entities only as a check. A sum above WIPO's total is treated as a data error and stops ",
+        "publication, except in years where WIPO's own data are known to show this (listed below as warnings)."),
       h("table", { class: "data-table" },
-        h("thead", {}, h("tr", {}, h("th", {}, "World total"), h("th", {}, "Years"), h("th", {}, "Our sum ÷ WIPO total, lowest"), h("th", {}, "highest"))),
+        h("thead", {}, h("tr", {}, h("th", {}, "World total"), h("th", {}, "Years"), h("th", {}, "Patent Atlas sum ÷ WIPO total, lowest"), h("th", {}, "highest"))),
         h("tbody", {}, (Object.keys(ratios) as WorldId[]).map((id) =>
           h("tr", {}, h("td", {}, WORLD_TITLES[id] ?? id), h("td", {}, ratios[id].years ?? "–"),
             h("td", { class: "num" }, percent(ratios[id].min, 2)), h("td", { class: "num" }, percent(ratios[id].max, 2))))),
@@ -207,14 +208,19 @@ function citationShort(citation: string): string {
   return end < 0 ? citation : citation.slice(0, end);
 }
 
-/** Footnotes for the breaks (overview `series_breaks`, pipeline/breaks.py) a chart spans: year - 1 and year both charted,
- * its series affected, and the break's country is the chart's country, in its group, or the chart is the world. Only the
- * country's own growth exists to withhold (yoy null); world and groups publish none. No `series_breaks` = no notes. */
-export function seriesBreakNotes(overview: Overview, scope: BreakScope): string[] {
+/** The breaks (overview `series_breaks`, pipeline/breaks.py) a chart spans: year - 1 and year both charted, its series
+ * affected, and the break's country is the chart's country, in its group, or the chart is the world. No `series_breaks` = none. */
+export function seriesBreaksIn(overview: Overview, scope: BreakScope): SeriesBreak[] {
   return (overview.series_breaks ?? [])
     .filter((entry) => scope.first <= entry.year - 1 && scope.last >= entry.year && entry.series.includes(scope.series)
       && (scope.code !== undefined ? scope.code === entry.code
-        : scope.group !== undefined ? entry.groups.includes(scope.group) : scope.world === true))
+        : scope.group !== undefined ? entry.groups.includes(scope.group) : scope.world === true));
+}
+
+/** Footnotes for the breaks `seriesBreaksIn` finds. Only the country's own growth exists to withhold (yoy null); world and
+ * groups publish none. */
+export function seriesBreakNotes(overview: Overview, scope: BreakScope): string[] {
+  return seriesBreaksIn(overview, scope)
     .map((entry) => {
       const text = `Series break ${entry.year}: ${entry.note} (summarised from WIPO, ${citationShort(entry.citation)}, ${entry.page}).`;
       if (scope.code !== undefined && scope.growth === false) return text;
@@ -235,7 +241,7 @@ function seriesBreaksSection({ overview }: MethodsData): Section | null {
       h("p", {}, "WIPO marks years where a country's data are not comparable with the year before. ",
         "That country's growth into the year is not computed: its data hold no figure for it, with the reason. ",
         "Charts that span the break carry a note: the country's own, and the world, region and continent charts that include it. ",
-        "Each note below is our summary of WIPO's, not a quotation."),
+        "Each note below summarises WIPO's note in our words."),
       h("ul", { class: "series-breaks" }, listed.map((entry) => h("li", {},
         h("strong", {}, `${entry.label}, ${entry.year}`), `: ${entry.note}. `,
         `Series: ${entry.series.map((id) => SERIES_TITLES[id] ?? id).join("; ")}. `,
@@ -276,7 +282,7 @@ function yearsSection({ manifest, overview }: MethodsData): Section {
 }
 
 /** Terms of the overview views: what each plots and how it is computed (all figures from overview.json). */
-function viewTerms(overview: Overview): [string, string][] {
+function viewTerms(overview: Overview): [string, Child][] {
   const { rank_race: race, method } = overview;
   const share = overview.continent_share.origin_apps;
   return [
@@ -292,7 +298,43 @@ function viewTerms(overview: Overview): [string, string][] {
     ["PCT monthly heat strip", "PCT applications by filing month, WIPO world total (all receiving offices): one cell per month and year, " +
       "shaded in equal steps between the lowest and the highest month shown. A month WIPO has no figure for is hatched, never shaded as the lowest. " +
       PCT_LATE_FILINGS],
+    ...treemapTerms(overview),
+    ...shareShiftTerms(overview),
   ];
+}
+
+/** The treemap term; left out of data without the fold rule (older data). */
+function treemapTerms(overview: Overview): [string, Child][] {
+  const { method, treemap } = overview;
+  const fold = method.treemap?.fold_share_pct;
+  if (fold === undefined) return [];
+  const denominator = overview.share_denominator.origin_apps;
+  const rest = treemap?.residual?.label;
+  return [["Treemap", [
+    h("p", {}, `Patent applications by origin in ${treemap?.year ?? overview.top_year}. The area of a rectangle is the origin's share of the ${denominator}, grouped by continent.`,
+      rest ? ` “${rest}” is what the continents' totals leave of the world total; origins that no continent holds are inside it.` : ""),
+    h("p", {}, `An origin folds into “Other <continent>” when its share is below ${fold}% of WD, exact, before rounding, so a folded origin may show as ${fold}% after rounding. `,
+      "A continent where every origin folds is one rectangle named after the continent."),
+    h("p", {}, `The treemap is drawn only when the grouped countries of all continents together account for at least ${Math.round(method.group_attribution_min * 100)}% of the world total (the attribution floor), and the WIPO world total is present and not provisional; otherwise the chart says why it is not drawn. `,
+      `A negative${rest ? ` “${rest}”` : " not-attributable"} rest is a warning in the continent-share history and blocks at the treemap year: the refresh stops and the last good data stays. The refresh also stops when origins without a continent exceed that rest. `,
+      `Shares are each rounded on their own (${decimals(method.rounding.decimals.share)}), so they may add up to 100 ± a few hundredths of a percent.`),
+  ]]];
+}
+
+/** The share-shift term; left out of data without its rule (older data). */
+function shareShiftTerms(overview: Overview): [string, string][] {
+  const { method, share_shift: block } = overview;
+  const rule = method.share_shift;
+  if (!rule) return [];
+  const years = method.cagr_years;
+  const bound = (10 ** -rule.decimals).toFixed(rule.decimals);
+  const base = block ? ` (${block.base_year})` : "";
+  return [["Share shift", `The change in share of the ${overview.share_denominator.origin_apps} of the top ${overview.top_n} origins of ${block?.year ?? overview.top_year}. The base year is ${years} years before the latest complete year${base}. ` +
+    `The change is in percentage points (pp): the share in the latest year minus the share in the base year, a ${rule.change} (both rounded to ${decimals(rule.decimals)}). ` +
+    `So each row of the figures table adds up, the change is within ${bound} pp of the exact difference and its sign never flips. ` +
+    "An origin with no figure in the base year is listed under the chart, not plotted. " +
+    "If the world total is missing or provisional in either year, the chart is not drawn. " +
+    "A † marks an origin with a series break between the two years (see Series breaks): its two shares come from different methods."]];
 }
 
 function formulasSection({ overview }: MethodsData): Section {
@@ -302,6 +344,8 @@ function formulasSection({ overview }: MethodsData): Section {
     ["Year-on-year growth", `(value this year − value last year) ÷ value last year × 100, ${decimals(places.yoy)}.`],
     [`${years}-year compound annual growth`,
       `((value in the end year ÷ value ${years} years earlier) ^ (1 ÷ ${years}) − 1) × 100, ${decimals(places.cagr)}.`],
+    ["World change", "Year-on-year growth of a world total: WIPO's total for all offices (WD) for patent applications, WIPO's PCT total (ZZ) for PCT. " +
+      `It is computed from WIPO's totals with the year-on-year formula above, ${decimals(places.yoy)}, and left empty across a series break.`],
     ["Share of world", `value ÷ WIPO world total for the same year × 100, ${decimals(places.share)}.`],
     ["Rank", "Position in a year, 1 = most applications. " +
       `${(Object.keys(RANK_BASIS) as SeriesId[]).map((series) => `${SERIES_TITLES[series]}: ranked among ${RANK_BASIS[series]}.`).join(" ")} ` +
@@ -451,10 +495,10 @@ function groupingsSection({ overview, entities, groups }: MethodsData): Section 
         "Its line then does not move when a member starts or stops reporting."),
       h("h3", {}, "Cross-check of WIPO totals"),
       h("p", {}, "For a continent shown as WIPO's total, the page draws the sum of its member countries beside it. ",
-        "Codes that WIPO counts in the continent's total but that are no member (regional offices, former entities) are added to the sum, so the two compare like with like. ",
+        "Codes that WIPO counts in the continent's total but that are not members (regional offices, former entities) are added to the sum, so both count the same codes. ",
         `The gap, (WIPO total − sum) ÷ WIPO total, is expected between ${wholePercent(low)} and ${wholePercent(high)}. `,
         gapCauses(context),
-        " A year outside that range is a warning, never a stop."),
+        " A year outside that range raises a warning; it does not stop the update."),
       assignments.length ? h("ul", { class: "crosscheck-assignment" }, assignments) : null,
     ],
   };
@@ -480,7 +524,7 @@ function mapSection({ cfg, groups, entities, geoSources }: MethodsData): Section
     title: "World map",
     body: [
       h("p", {}, `Each area is coloured by its value in the chosen year, in ${scale.bins} bins that are powers of ${scale.logBase} wide `,
-        `(${bins.join("; ")}). The bins are the same in every year, so the year slider compares like with like. `,
+        `(${bins.join("; ")}). The bins are the same in every year, so colours compare across years on the year slider. `,
         "In region and continent mode each member is coloured by its group's total."),
       h("dl", { class: "terms" },
         h("dt", {}, MAP_STATE_LABELS.zero), h("dd", {}, "Dotted: WIPO reported 0."),
@@ -489,7 +533,7 @@ function mapSection({ cfg, groups, entities, geoSources }: MethodsData): Section
         h("dt", {}, MAP_STATE_LABELS.former),
         h("dd", {}, "Hatched the other way, on its own ground: the successor has no figure of its own that year and the former entity reported (successor rule below)."),
         h("dt", {}, MAP_STATE_LABELS.neutral),
-        h("dd", {}, "Grey and hatched, unlabelled, no link, whatever the data: disputed areas and areas WIPO does not list as a country."),
+        h("dd", {}, "Grey and hatched, with no label or link, whatever the data: disputed areas and areas WIPO does not list as a country."),
       ),
       h("h3", {}, "Successor rule"),
       h("p", {}, "A country is marked “reported under <former entity>” in a year when it has no data of its own, the former entity covered it that year ",
@@ -506,6 +550,52 @@ function mapSection({ cfg, groups, entities, geoSources }: MethodsData): Section
         geoSources.map((source) => [`Geometry: ${source.name}, `, h("a", { href: source.url, rel: "noopener" }, source.url), ` (${source.licence}). `])),
       h("p", { class: "disclaimer" }, MAP_DISCLAIMER),
       h("p", { class: "muted" }, MAP_CREDIT),
+    ],
+  };
+}
+
+/** PCT membership layer: both WIPO documents, the member rule, territories, former entities, successor and continuing
+ * States; every date and count from overview `pct_membership`. */
+function pctMembershipSection({ overview, entities }: MethodsData): Section | null {
+  const block = overview.pct_membership;
+  if (!block) return null; // data written before v2a
+  return {
+    id: "pct-membership",
+    title: "PCT membership",
+    body: [
+      h("p", {}, "The world map's PCT membership layer shows which countries are PCT Contracting States, year by year. ",
+        "Each State's code, name and the date on which it became bound by the PCT come from WIPO's page ",
+        h("a", { href: block.source_url, rel: "noopener" }, "PCT Contracting States"),
+        "; the count and the status date come from WIPO's list ",
+        h("a", { href: block.count_check_url, rel: "noopener" }, "PCT Contracting States and Two-letter Codes"),
+        ` (PDF): ${block.count[String(block.last_year)]} States on ${block.status_on}, retrieved ${block.retrieved}.`),
+      h("p", {}, `A country is a member in a year when it was bound by the PCT by 31 December of that year; the latest year, ${block.last_year}, `,
+        `shows the list as of ${block.status_on}. The year slider starts in ${block.first_year}, the year the PCT entered into force. `,
+        "The card's count is of today's Contracting States bound by 31 December of each year; territories and former entities are not counted."),
+      h("p", {}, "A territory is not a Contracting State. Where a footnote on WIPO's page says the PCT applies to a territory through a ",
+        "Contracting State, or WIPO's PCT Notifications say it applied, the map gives the territory the member fill in those years (the ",
+        "source's dates; where a footnote gives none, the date the State became bound): ",
+        block.territories.map((t) => [`${t.name} (${t.code}) `, t.periods.map((period) => [`through ${stateInProse(period)} `,
+          period.to ? `${period.from} to ${period.to}` : `since ${period.from}`, " (",
+          period.sources.map((cited) => cited.url === block.source_url ? "footnote" : h("a", { href: cited.url, rel: "noopener" }, cited.document.split(" (")[0]))
+            .map((cited, index) => (index ? [", ", cited] : cited)),
+          ")"]).map((part, index) => (index ? ["; ", part] : part)), ". "]),
+        "Other territories with their own WIPO code are not on the list and show as not a PCT member."),
+      h("p", {}, `WIPO's list names today's States only. A former entity (${labelsOf(entities, "historical")}) is never shown as a non-member: `,
+        `it has no data, with the reason “${membershipNullText("not_on_current_list")}”. `,
+        "For a successor State, the years while its territory's treaty status depended on a former State, or on a State it left, ",
+        "are not shown: from the earlier State's date as WIPO prints it (else ",
+        `${block.first_year}) to the end below, the map shows no data, hatched, and claims neither member nor non-member. Before that `,
+        "window and after it, until the State's own date, the normal rule applies. Successor States follow ISO 3166-3 (former country ",
+        "codes); a new State that left a continuing one, ISO 3166-1. Each earlier State under its WIPO or ISO name:"),
+      h("ul", { class: "pct-successors" }, block.successors.map((entry) => h("li", {},
+        `${entry.name} (${entry.source}), ${entry.from ?? block.first_year} to ${entry.to} (end: ${entry.end_source}): ${entry.codes.map((code) => `${labelOfEntities(entities)(code)} (${code})` +
+          (entry.own_dates[code] ? `, own date ${entry.own_dates[code]}` : "")).join(", ")}.${entry.note ? ` ${entry.note}` : ""}`))),
+      block.continuing.length ? h("p", {}, continuingText(block)) : null,
+      h("p", {}, "WIPO's PDF list prints the code MT for Mauritius as well as for Malta; WIPO's page gives Mauritius MU, which this site uses."),
+      h("p", {}, `Codes on the list with no WIPO statistics entity are named under the map: ${block.unmatched.length ? block.unmatched.join(", ") : "none"}.`),
+      h("p", {}, "The list is updated by hand when WIPO publishes a new one: the rows are transcribed from the page, the count and status ",
+        "date from the PDF. No script reads either document."),
     ],
   };
 }
@@ -577,15 +667,15 @@ function scaleSection({ manifest, overview, entities }: MethodsData): Section | 
         "World: WIPO's own World row, whose numerator is the residents' applications at all offices (World, WD). ",
         "PCT per million: WIPO's PCT applications by origin (total), with WIPO's PCT world total over WDI's world population for the World figure."),
       h("h3", {}, "Computed cases"),
-      h("ul", {},
-        h("li", {}, h("strong", {}, "A country-year WIPO publishes no value for"), ": computed with the formula above, with WIPO's thresholds applied."),
-        h("li", {}, h("strong", {}, "Regions and continents"), ": the sum of the members' numerators ÷ the sum of their denominators, over the members that have both values that year, ",
+      h("dl", { class: "terms" },
+        h("dt", {}, "A country-year WIPO publishes no value for"), h("dd", {}, "Computed with the formula above, with WIPO's thresholds applied."),
+        h("dt", {}, "Regions and continents"), h("dd", {}, "The sum of the members' numerators ÷ the sum of their denominators, over the members that have both values that year, ",
           "shown with “n of m”: n members counted of m members. The attribution floor of the numerator series applies (",
           `the grouped countries must cover at least ${groupFloor}% of its world total), so a year it empties stays empty. `,
           `A group year is empty when the summed denominator is at or below the threshold, with the reason “${ratioNullText("below_wipo_threshold", "per_million", overview, "group")}”.`),
-        h("li", {}, h("strong", {}, "PCT per million"), ": WIPO publishes no PCT figure per population. The population threshold WIPO uses for its per-million figures is applied; ",
+        h("dt", {}, "PCT per million"), h("dd", {}, "WIPO publishes no PCT figure per population. The population threshold WIPO uses for its per-million figures is applied; ",
           "groups sum their members' PCT counts ÷ the sum of their population, regions and continents alike."),
-        h("li", { "data-no-denominator": "" }, h("strong", {}, "No denominator"), ": a country without a WDI value gets no computed figure; WIPO's own value is still shown where it exists. ",
+        h("dt", {}, "No denominator"), h("dd", { "data-no-denominator": "" }, "A country without a WDI value gets no computed figure; WIPO's own value is still shown where it exists. ",
           `Without WDI population in any year: ${noDenominatorLabels(overview, entities, "population")}; their empty years give the reason “${ratioNullText("no_population", "per_million", overview)}”. `,
           `Without WDI GDP in any year: ${noDenominatorLabels(overview, entities, "gdp_ppp")}; reason “${ratioNullText("no_gdp", "per_gdp", overview)}”. `,
           `Former entities (${labelsOf(entities, "historical")}) have no per-capita or per-GDP figures: ratios are given for current countries only, `,
@@ -650,12 +740,12 @@ function ratioCheckSection({ manifest, overview }: MethodsData): Section | null 
     id: "ratio-check",
     title: "Cross-check with WIPO",
     body: [
-      h("p", {}, "For every WIPO ratio value whose inputs Patent Atlas also has, the computation is compared with WIPO's published figure. WIPO's value is always the one shown; the comparison never overrides it. ",
+      h("p", {}, "For every WIPO ratio value whose inputs Patent Atlas also has, the computed value is compared with WIPO's published figure. The site always shows WIPO's value. ",
         `A cell passes when the two differ by at most ${method.abs_tolerance} + ${limitPercent(method.rel_tolerance)}% of WIPO's value.`),
-      h("p", {}, "Each ratio has its own blocking test, never pooled with the other. The other test only warns. ",
+      h("p", {}, "Each ratio is tested on its own: of its two tests below, one blocks the update and the other only warns. ",
         "The World row always blocks: a World cell outside tolerance, or no World cell compared, stops the update. ",
         `WDI's World row must also have a value within ${method.wdi_max_lag} years of the last year requested, or the update stops.`),
-      h("p", {}, "Known drift: the World Bank revises GDP and population after WIPO's release, so a country's whole series can differ from WIPO's by one factor. It is listed here as a warning, not an error."),
+      h("p", {}, "Known drift: the World Bank revises GDP and population after WIPO's release, so a country's whole series can differ from WIPO's by one factor. This is listed here as a warning and does not stop the update."),
       (method.wipo_ratio_ids as WipoRatioId[]).map((id) => ratioCheckPart(id, ratios[id], method)),
     ],
   };
@@ -686,6 +776,7 @@ const RESULT_CLASS: Record<Manifest["checks"]["wdi"], string> = { pass: "result-
 function checksSection(data: MethodsData): Section {
   const { manifest, overview } = data;
   const checks = manifest.checks;
+  const growthTolerance = overview.method.golden_growth_tolerance_pp;
   return {
     id: "cross-checks",
     title: "Cross-checks",
@@ -705,25 +796,27 @@ function checksSection(data: MethodsData): Section {
         h("p", { class: "wdi-warning-reason" }, checks.wdi_warning_reason ?? ""),
         list(checks.wdi_warnings, ""),
       ],
-      h("h3", {}, "Published WIPO figures (blocking)"),
-      h("p", {}, `Headline figures from WIPO's World Intellectual Property Indicators and PCT Yearly Review must agree within ${overview.method.golden_tolerance_pct}%. Last result:`),
+      h("h3", { id: "check-golden" }, "Published WIPO figures (blocking)"),
+      h("p", {}, "Headline figures from WIPO's World Intellectual Property Indicators and PCT Yearly Review must agree with the published value: ",
+        `${growthTolerance === undefined ? "every figure" : "every figure except growth"} within ${overview.method.golden_tolerance_pct}% (relative)`,
+        growthTolerance === undefined ? "" : `, growth figures within ${growthTolerance} percentage points (absolute)`, ". Last result:"),
       list(checks.golden, "No figures compared."),
       h("p", {}, "Where each figure is published:"),
       h("ul", { class: "golden-sources" }, checks.golden_sources.map((src) => h("li", {},
         h("code", {}, src.id), `: ${src.citation}. ${src.page}. `, h("a", { href: src.url, rel: "noopener" }, src.url)))),
       h("h3", {}, "World totals (blocking)"),
-      h("p", {}, "Our sum of reporting entities against WIPO's totals: see ", h("a", { href: "#world-totals" }, "World totals and shares"), "."),
+      h("p", {}, "The Patent Atlas sum of reporting entities against WIPO's totals: see ", h("a", { href: "#world-totals" }, "World totals and shares"), "."),
       h("h3", {}, "OECD trend (warning only)"),
-      h("p", {}, "OECD patent statistics (PATSTAT, priority date) are counted differently, so only the direction of yearly change for the largest PCT origins is compared. Differences are logged, never blocking."),
+      h("p", {}, "OECD patent statistics (PATSTAT, priority date) are counted differently, so only the direction of yearly change for the largest PCT origins is compared. Differences are logged."),
       list(checks.oecd, "No differences in direction flagged."),
       h("h3", { id: "check-pct-monthly" }, "PCT months against the yearly total (warning only)"),
-      h("p", {}, "The twelve monthly PCT figures of a year must add up to WIPO's yearly PCT total. A year with months WIPO has no figure for is noted, not compared. Differences are logged, never blocking."),
+      h("p", {}, "The twelve monthly PCT figures of a year must add up to WIPO's yearly PCT total. A year with months WIPO has no figure for is noted and not compared. Differences are logged."),
       checks.pct_monthly === undefined
         ? h("p", { class: "muted" }, "Not recorded in this release.")
         : list(checks.pct_monthly, "No differences."),
       h("h3", { id: "check-groups" }, "Group figures (warning only)"),
-      h("p", {}, `Group cross-check outside the expected range of ${wholePercent(overview.method.group_crosscheck_range[0])} to ${wholePercent(overview.method.group_crosscheck_range[1])}, `,
-        "a negative band under the continents, and a PCT “Unknown” row that does not match the world total are listed here. They are logged, never blocking."),
+      h("p", {}, `Listed here: group cross-check gaps outside the expected range of ${wholePercent(overview.method.group_crosscheck_range[0])} to ${wholePercent(overview.method.group_crosscheck_range[1])}, `,
+        "a negative band under the continents, and a PCT “Unknown” row that does not match the world total."),
       list(checks.groups ?? [], "None in this release."),
       regressionBlock(data),
     ],
@@ -737,7 +830,47 @@ function revisionsSection(): Section {
     body: [
       h("p", {}, "WIPO revises past years as offices send corrections. Every update fetches each series' whole year range again, so figures for earlier years can change between releases. ",
         `WIPO withholds the most recent months of PCT data. ${PCT_LATE_FILINGS}`),
-      h("p", {}, "Data are checked for a new release monthly. A figure always carries the release and retrieval date it came from."),
+      h("p", {}, "Patent Atlas checks for a new release every month. Each figure carries the release and retrieval date it came from."),
+    ],
+  };
+}
+
+/** One line per dashboard tile; the list follows DASHBOARD_TILE_IDS (page order), a tile without its line fails the typecheck. */
+const DASHBOARD_TILE_TEXT: Record<DashboardTileId, string> = {
+  "key-world-patents": "World patent applications: WIPO's total for all offices (WD), with its change on the year.",
+  "key-world-pct": "World PCT applications: WIPO's PCT total (ZZ), with its change on the year.",
+  "key-top-origin": "Top origin: the country with the most patent applications by origin.",
+  "key-top-grower": "Fastest grower: the country with the highest compound annual growth among the top origins.",
+  "world-map": "World map: applications by origin, as on the overview.",
+  "treemap": "Treemap: who files the world's patents, as on the overview.",
+  "share-shift": "Share shift: who gained and lost ground, as on the overview.",
+};
+
+function dashboardSection({ cfg }: MethodsData): Section {
+  const { minSeconds, resumeAfterSeconds, pauseMovePixels } = cfg.rotation;
+  const { seconds, slides } = cfg.dashboard;
+  const moveText = isPauseMovePixels(pauseMovePixels) && pauseMovePixels > 0 ? `Pointer movement of at least ${pauseMovePixels} pixels in all` : "Pointer movement";
+  const releaseText = isRotationSeconds(cfg, resumeAfterSeconds)
+    ? `, or after ${resumeAfterSeconds} seconds without movement`
+    : "";
+  return {
+    id: "dashboard",
+    title: "Dashboard",
+    body: [
+      h("p", {}, "The dashboard (", h("code", {}, "?view=dashboard"), ", “Dashboard” in the header) shows the headline figures and charts on one page. ",
+        "Each tile names its year and source and links to its full chart on the overview. A tile whose data is missing says so; it is never left blank or filled with 0. The tiles:"),
+      h("ul", { class: "dashboard-tiles" }, DASHBOARD_TILE_IDS.map((id) => h("li", { "data-tile": id }, DASHBOARD_TILE_TEXT[id]))),
+      h("p", {}, `Next to the world map, a carousel shows ${slides.length} charts one at a time, each for ${seconds} seconds. `,
+        "Its buttons are ", h("code", {}, "Play"), " and ", h("code", {}, "Pause"), " (one button that changes its name), ",
+        h("code", {}, "Previous"), " and ", h("code", {}, "Next"), ". Without ", h("code", {}, "?rotate"), " it never starts by itself. ",
+        h("code", {}, "?rotate=<seconds>"), ` starts it playing at that interval (at least ${minSeconds}), for an office screen, even with reduced motion; reduced motion only turns off the fade between slides.`),
+      h("p", {}, "While playing, the carousel stops (a hold) in these cases and goes on from where it stopped when the hold ends:"),
+      h("ul", { class: "carousel-holds" },
+        h("li", {}, `${moveText} over the carousel holds it until the pointer leaves${releaseText}.`),
+        h("li", {}, "Keyboard focus inside the carousel holds it, except on the Play or Pause button. A mouse click on a button does not."),
+        h("li", {}, "A hidden browser tab holds it."),
+        h("li", {}, "An open figures, cite or embed panel, or an open sources and notes box, holds it.")),
+      h("p", {}, "Pause stops it; only Play ends that pause. Play also ends a pointer hold."),
     ],
   };
 }
@@ -762,11 +895,13 @@ function wallboardSection({ cfg, params }: MethodsData): Section {
     id: "wallboard",
     title: "Wallboard mode",
     body: [
-      h("p", {}, h("strong", {}, "Office screen. "), "Open the overview with the wallboard theme and ",
+      h("h3", {}, "Office screen"),
+      h("p", {}, "Open the overview with the wallboard theme and ",
         h("code", {}, "?rotate=<seconds>"),
         ` (at least ${minSeconds}): it shows ${views.length} views in turn, each for that many seconds, a chart on its own, a country page or the women-inventors page. `,
         `Touching the mouse or keyboard pauses it; the “Resume rotation” button in the header restarts it${resumeText}${jitterText}`),
-      h("p", {}, h("strong", {}, "Conference screen. "), "Open ", h("a", { href: viewLink(cfg, params, "wallboard") }, h("code", {}, "?view=wallboard")),
+      h("h3", {}, "Conference screen"),
+      h("p", {}, "Open ", h("a", { href: viewLink(cfg, params, "wallboard") }, h("code", {}, "?view=wallboard")),
         " (the “Conference wallboard” link in the footer) for a TV or projector: a carousel made for full screen, of ",
         `${board.slideIds.length} charts, one per slide, each for ${board.seconds} seconds (change it with `, h("code", {}, "?rotate=<seconds>"),
         `, at least ${minSeconds}). The page does not reload between slides; after each full round it checks for a new data version and reloads only when one has been published (that reload leaves full screen started with F or the button; for an unattended screen use the browser’s own full screen or kiosk mode). A bottom bar names the slide, its sources, the data version and the WIPO disclaimer. `,
@@ -775,7 +910,8 @@ function wallboardSection({ cfg, params }: MethodsData): Section {
       h("p", {}, "Keys (keyboard, presentation clicker or TV remote):"),
       h("ul", { class: "board-keys-list" }, keyTableRows().map((row) => h("li", {}, `${row.label}: ${row.keys.join(", ")}`))),
       h("p", {}, BOARD_ESCAPE_NOTE),
-      h("p", {}, h("strong", {}, "Slide picker. "), "S (or the Slides button) opens a list of the slides: tick the ones to show, move them up or down, and Apply. ",
+      h("h3", {}, "Slide picker"),
+      h("p", {}, "S (or the Slides button) opens a list of the slides: tick the ones to show, move them up or down, and Apply. ",
         "The board starts again at the first chosen slide, without reloading, and the address becomes ", h("code", {}, "?view=wallboard&slides=<ids>"),
         " so the choice can be bookmarked. Ids, in the default order: ", board.slideIds.join(", ") || "none configured",
         ". The order given is kept; unknown ids are dropped with a notice (duplicates silently); an empty or wholly unknown list shows every slide."),
@@ -810,7 +946,7 @@ function womenGroupPart({ overview, groups, entities }: MethodsData): Child[] {
       ? h("p", { class: "muted" }, "The data carry no group summary, so the left-out members are not listed here.")
       : leftOut.length === 0 ? h("p", { class: "muted" }, "No member is left out.")
         : h("ul", { class: "women-left-out" }, leftOut.map(({ group, text }) => h("li", {}, `${group.label}: ${text}`))),
-    h("p", {}, `${GENDER_TITLES.women_share} is ${genderNullText("not_computable", overview)} for a group, since a share of inventors cannot be averaged without them. `,
+    h("p", {}, `${GENDER_TITLES.women_share} is ${genderNullText("not_computable", overview)} for a group. `,
       "The exception is a figure WIPO itself prints, shown as published and labelled “", GENDER_BASIS_LABEL.wipo, "”:"),
     printed === null || printed.length === 0
       ? h("p", { class: "muted" }, "No printed group figure in the data.")
@@ -895,7 +1031,7 @@ function womenSection(data: MethodsData): Section | null {
         `WIPO's notes: ${note.citation}, ${note.page}. `, h("a", { href: note.url, rel: "noopener" }, note.url),
         methodologyUrl && [" How WIPO attributes gender to inventors: its methodology page, ", h("a", { href: methodologyUrl, rel: "noopener" }, methodologyUrl), "."]),
       h("p", {}, "The denominator (all applications, or only those whose inventors WIPO could attribute a gender to) is not stated in the PCT Yearly Review 2026; ",
-        "WIPO's methodology pages are not checked here, and Patent Atlas does not guess it. ",
+        "Patent Atlas has not checked WIPO's methodology pages for it and assumes neither. ",
         `Basis, denominator and the checks behind them: Patent Atlas research note ${WOMEN_RESEARCH_NOTE}.`),
       h("p", {}, "Weights for group values are PCT publications by origin (WIPO table 1010, class Total, by publication year), ",
         "never filings by filing year.")),
@@ -929,23 +1065,91 @@ function disclaimerSection(): Section {
   };
 }
 
+/** A themed box of sections: native <details>, closed by default; `line` says in a few words what is inside. */
+type Box = { id: string; title: string; line: string; sections: (Section | null)[] };
+
+function methodsBoxes(data: MethodsData): Box[] {
+  return [
+    { id: "box-data", title: "Data sources and releases", line: "WIPO queries, release and retrieval dates, complete and provisional years, series breaks, revisions.",
+      sections: [sourcesSection(data), yearsSection(data), seriesBreaksSection(data), revisionsSection()] },
+    { id: "box-definitions", title: "Definitions and groupings", line: "Origin and filing office, world totals and shares, regions and continents, PCT membership.",
+      sections: [definitionsSection(data), worldSection(data), groupingsSection(data), pctMembershipSection(data)] },
+    { id: "box-computation", title: "How each figure is computed", line: "Growth, shares, ranks, the overview charts, per capita and per GDP figures, the world map.",
+      sections: [formulasSection(data), scaleSection(data), mapSection(data)] },
+    { id: "box-checks", title: "Checks before each update", line: "Comparisons with WIPO's published figures, World Bank and OECD data and the data already online, with tolerances and results.",
+      sections: [checksSection(data), ratioCheckSection(data)] },
+    { id: "box-women", title: "Women inventors", line: "WIPO's two measures, the publication-year basis, omissions, group values and checks.",
+      sections: [womenSection(data)] },
+    { id: "box-views", title: "Dashboard and wallboard", line: "Dashboard tiles and carousel, the office and conference screens, keys and the slide picker.",
+      sections: [dashboardSection(data), wallboardSection(data)] },
+  ];
+}
+
+/** Opens every box holding the element with this id (a link into a closed box); scrolls to it when asked. */
+function openTo(id: string, scroll: boolean): void {
+  const target = document.getElementById(id);
+  if (!target) return;
+  for (let node: Element | null = target; node; node = node.parentElement) {
+    if (node instanceof HTMLDetailsElement) node.open = true;
+  }
+  if (scroll) target.scrollIntoView();
+}
+
+function hashId(hash: string): string {
+  try { return decodeURIComponent(hash.slice(1)); } catch { return hash.slice(1); }
+}
+
+/** Window listeners (hash, print) are added on the first render only, never at import: every page loads this module. */
+let windowListening = false;
+
+// print shows every box: open the closed ones for the print, close them again after (the stylesheet does the same where
+// the browser supports ::details-content)
+const boxesOpenedForPrint = new Set<HTMLDetailsElement>();
+function openBoxesForPrint(): void {
+  for (const details of document.querySelectorAll<HTMLDetailsElement>("details.prose-box:not([open])")) {
+    details.open = true;
+    boxesOpenedForPrint.add(details);
+  }
+}
+function closeBoxesAfterPrint(): void {
+  for (const details of boxesOpenedForPrint) details.open = false;
+  boxesOpenedForPrint.clear();
+}
+
 export function renderMethods(el: HTMLElement, data: MethodsData): void {
-  const sections = [
-    sourcesSection(data), definitionsSection(data), groupingsSection(data), worldSection(data), seriesBreaksSection(data),
-    yearsSection(data), formulasSection(data), scaleSection(data), mapSection(data), womenSection(data), checksSection(data), ratioCheckSection(data), revisionsSection(), wallboardSection(data),
-    disclaimerSection(),
-  ].filter((section): section is Section => section !== null);
+  const boxes = methodsBoxes(data).map((box) => ({ ...box, sections: box.sections.filter((section): section is Section => section !== null) }));
+  const disclaimer = disclaimerSection();
+  const sections = [...boxes.flatMap((box) => box.sections), disclaimer];
+  const sectionElement = (section: Section) => h("section", { id: section.id }, h("h2", {}, section.title), section.body);
   el.replaceChildren(
     h("header", { class: "page-intro" },
       h("h1", {}, "Methods and sources"),
-      h("p", { class: "lede" }, "Where every figure comes from, how it is computed, and how it is checked against independent sources."),
+      h("p", { class: "lede" }, "The data behind Patent Atlas: sources and release dates, definitions, formulas, and the checks run before each ",
+        "update against WIPO's published figures, World Bank and OECD data. Patent and PCT figures come from the WIPO Statistics Database; population ",
+        "and GDP for the per capita and per GDP figures come from the World Bank's World Development Indicators (WDI)."),
       h("p", { class: "methods-made" }, AI_METHODS_LINE),
     ),
     h("div", { class: "prose-layout" },
       h("nav", { class: "toc", "aria-label": "On this page" },
         h("ul", {}, sections.map((section) => h("li", {}, h("a", { href: `#${section.id}` }, section.title))))),
       h("div", { class: "prose" },
-        sections.map((section) => h("section", { id: section.id }, h("h2", {}, section.title), section.body))),
+        boxes.map((box) => h("details", { class: "prose-box", id: box.id },
+          h("summary", {}, h("span", { class: "box-title" }, box.title), h("span", { class: "box-line" }, box.line)),
+          box.sections.map(sectionElement))),
+        sectionElement(disclaimer)),
     ),
   );
+  // a link into a closed box opens it first; the browser's own fragment scroll then finds the target drawn
+  el.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
+    if (link) openTo(hashId(link.getAttribute("href") ?? "#"), false);
+  });
+  if (!windowListening) {
+    windowListening = true;
+    window.addEventListener("hashchange", () => openTo(hashId(location.hash), true));
+    window.addEventListener("beforeprint", openBoxesForPrint);
+    window.addEventListener("afterprint", closeBoxesAfterPrint);
+  }
+  // the page draws after its data loads, past the browser's own scroll to the #hash
+  if (location.hash.length > 1) openTo(hashId(location.hash), true);
 }

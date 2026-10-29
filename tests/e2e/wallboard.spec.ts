@@ -65,6 +65,23 @@ async function openBoard(page: Page, query = "", firstId = slides[0].id): Promis
   await ready(page, firstId);
 }
 
+/** The shown slide's `selector` element has settled: the fit's resize-settle redraw can land after `ready` and replace it
+ * (focus inside it would fall to the body). Two reads 2 x RESIZE_SETTLE_MS apart find the same element (marked) and box. */
+async function slideSettled(page: Page, selector: string): Promise<void> {
+  let last = "";
+  await expect.poll(async () => {
+    const now = await page.locator(selector).first().evaluate((element) => {
+      const marked = element.hasAttribute("data-settle-probe");
+      element.setAttribute("data-settle-probe", "");
+      const box = element.getBoundingClientRect();
+      return JSON.stringify({ marked, box: [box.x, box.y, box.width, box.height] });
+    });
+    const same = now === last && JSON.parse(now).marked;
+    last = now.replace('"marked":false', '"marked":true');
+    return same;
+  }, { intervals: [2 * RESIZE_SETTLE_MS] }).toBe(true);
+}
+
 test("never navigates: the address is unchanged after two intervals; ?rotate= is the board's interval", async ({ page }) => {
   const errors = trackErrors(page);
   const seconds = config.rotation.minSeconds;
@@ -135,6 +152,54 @@ test("pause keys toggle with the Paused badge; paused, the board stays", async (
     await expect(badge, entry.label).toBeHidden();
   }
   await page.clock.runFor(SLIDE_MS + STEP_MS);
+  await at(page, 2, slides.length);
+  expect(errors).toEqual([]);
+});
+
+const boardLive = (page: Page) => page.locator(".board > div.visually-hidden[aria-live='polite']");
+
+test("live text: a key move announces the slide, pause and resume keys say Paused and Resumed; an automatic move adds nothing", async ({ page }) => {
+  const errors = trackErrors(page);
+  await openBoard(page);
+  const live = boardLive(page);
+  await page.clock.runFor(SLIDE_MS + STEP_MS);
+  await at(page, 2, slides.length);
+  await expect(live).toHaveText("");
+  await page.keyboard.press(pressName(keysFor("next")[0].key));
+  await at(page, 3, slides.length);
+  await expect(live).toHaveText(`Slide 3 of ${slides.length}: ${slides[2].label}`);
+  const pause = pressName(keysFor("pause")[0].key);
+  await page.keyboard.press(pause);
+  await expect(live).toHaveText("Paused");
+  await page.keyboard.press(pause);
+  await expect(live).toHaveText("Resumed");
+  await ready(page, slides[2].id);
+  await page.clock.runFor(SLIDE_MS + STEP_MS);
+  await at(page, 4, slides.length);
+  await expect(live).toHaveText("Resumed");
+  expect(errors).toEqual([]);
+});
+
+test("a pause mid-slide keeps the time left: the progress bar stands still while paused; resumed, the slide ends after the time left", async ({ page }) => {
+  const errors = trackErrors(page);
+  await openBoard(page);
+  const width = () => page.locator(".board-progress-fill").evaluate((element) => parseFloat((element as HTMLElement).style.width));
+  const pause = pressName(keysFor("pause")[0].key);
+  await page.clock.runFor(SLIDE_MS / 2);
+  await page.keyboard.press(pause);
+  await expect(page.locator(".board-paused")).toBeVisible();
+  const frozen = await width();
+  expect(frozen).toBeGreaterThan(40);
+  expect(frozen).toBeLessThan(60);
+  for (let interval = 0; interval < 3; interval += 1) {
+    await page.clock.runFor(SLIDE_MS);
+    expect(await width()).toBe(frozen);
+    await at(page, 1, slides.length);
+  }
+  await page.keyboard.press(pause);
+  await page.clock.runFor(SLIDE_MS / 2 - STEP_MS);
+  await at(page, 1, slides.length);
+  await page.clock.runFor(2 * STEP_MS);
   await at(page, 2, slides.length);
   expect(errors).toEqual([]);
 });
@@ -284,6 +349,19 @@ test("bar: the slide's own credits (a per-GDP slide names World Bank WDI), data 
   expect(errors).toEqual([]);
 });
 
+test("bar: a PCT membership slide names WIPO's PCT list with its count and status date, not the Statistics Database", async ({ page }) => {
+  const errors = trackErrors(page);
+  const pct = readJson("site/data/overview.json").pct_membership;
+  const member = { id: "test-pct-member", label: "PCT membership", params: "chart=world-map&metric=pct_member" };
+  await page.route("**/config.json", (route) =>
+    route.fulfill({ json: { ...config, wallboard: { ...board, slides: [...slides, member] } } }));
+  await openBoard(page, `&slides=${member.id}`, member.id);
+  await expect(page.locator(".board-credits")).toHaveText(
+    `Source: WIPO, PCT Contracting States (${pct.count[pct.last_year]} States on ${pct.status_on})`);
+  await expect(page.locator(".board-disclaimer")).toHaveText(DISCLAIMER);
+  expect(errors).toEqual([]);
+});
+
 test("?slides= keeps the order given, drops duplicates and unknown ids with a notice; all unknown -> every slide", async ({ page }) => {
   const errors = trackErrors(page);
   await openBoard(page, `&slides=${slides[2].id},nope,${slides[0].id},${slides[2].id}`, slides[2].id);
@@ -307,10 +385,11 @@ test("keys aimed at a focused map link are the link's: no pause, no advance (Spa
   const errors = trackErrors(page);
   context.on("page", (popup) => { void popup.close(); }); // the link's own target=_blank
   await openBoard(page, "&slides=map-origin,world-trend", "map-origin");
+  await slideSettled(page, ".board-slot .map-svg");
   const link = page.locator(".board-slot .map-svg a").first();
-  await link.focus();
-  expect(await page.evaluate(() => document.activeElement?.tagName.toLowerCase())).toBe("a");
   for (const key of ["Space", "Enter"]) {
+    await link.focus();
+    await expect(link).toBeFocused();
     await page.keyboard.press(key); // each alone: two board presses would pause and resume
     await at(page, 1, 2);
     await expect(page.locator(".board-paused")).toBeHidden();
@@ -570,6 +649,13 @@ test("an invalid ?rotate= on the board: a notice, the configured interval", asyn
   await at(page, 2, slides.length);
 });
 
+test("config: treemap and share-shift are wallboard slides; the dashboard carousel does not rotate them", () => {
+  for (const id of ["treemap", "share-shift"]) {
+    expect(slides.find((slide) => slide.id === id)?.params, id).toBe(`chart=${id}`);
+    expect(config.dashboard.slides, id).not.toContain(id);
+  }
+});
+
 const TV_SIZES = [
   { width: 1920, height: 1080, deviceScaleFactor: 1 },
   { width: 1280, height: 720, deviceScaleFactor: 1 },
@@ -612,6 +698,41 @@ for (const size of TV_SIZES) {
     });
   });
 }
+
+// A slide short of room: the treemap plot gives way (labels drop where they no longer fit, the key and its numbers stay), the
+// share-shift bars squeeze toward the text's own height; every rectangle and bar is still drawn.
+test.describe("treemap and share-shift slides squeeze, never lose a mark", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+  const overview = readJson("site/data/overview.json");
+
+  test("treemap: every rectangle, the key and its numbers stay; the plot is shorter than its natural size", async ({ page }) => {
+    await openBoard(page, "&slides=treemap", "treemap");
+    await page.clock.runFor(RESIZE_SETTLE_MS * 2);
+    const drawn = await page.locator('.board-slot[data-slide="treemap"] svg.treemap-chart').evaluate((svg) => ({
+      rects: svg.querySelectorAll("rect.treemap-rect").length,
+      key: [...svg.querySelectorAll("g.treemap-key-item")].map((item) => item.getAttribute("data-continent")),
+      numbers: svg.querySelectorAll("text.treemap-key-number").length,
+      height: svg.getBoundingClientRect().height,
+      width: svg.getBoundingClientRect().width,
+    }));
+    const continents = overview.treemap.continents.filter((continent: any) => continent.countries.length > 0 || continent.other);
+    expect(drawn.rects).toBeGreaterThan(continents.length);
+    expect(drawn.key).toEqual([...continents.map((continent: any) => continent.id), "residual"]);
+    expect(drawn.numbers).toBe(continents.length);
+    expect(drawn.height).toBeLessThan(drawn.width / 2);
+  });
+
+  test("share-shift: one bar per origin, its step at least the text's own height", async ({ page }) => {
+    await openBoard(page, "&slides=share-shift", "share-shift");
+    await page.clock.runFor(RESIZE_SETTLE_MS * 2);
+    const drawn = await page.locator('.board-slot[data-slide="share-shift"] svg').first().evaluate((svg) => {
+      const bars = [...svg.querySelectorAll('g[aria-label="bar"] rect')].map((rect) => rect.getBoundingClientRect());
+      return { count: bars.length, step: bars[1].top - bars[0].top, font: parseFloat(getComputedStyle(svg).fontSize) };
+    });
+    expect(drawn.count).toBe(overview.share_shift.rows.filter((row: any) => row.change_pp !== null).length);
+    expect(drawn.step).toBeGreaterThanOrEqual(drawn.font - 0.5);
+  });
+});
 
 // ---- Slide picker, help, readability, entry (Task 4) ----
 
@@ -887,7 +1008,7 @@ test("overlays open and close in full screen (stubbed): by key, button and Esc",
 });
 
 test("methods page: the Wallboard section lists the key table and describes both modes and the picker", async ({ page }) => {
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#wallboard");
   const section = page.locator("#wallboard");
   await expect(section.locator("ul.board-keys-list li").first()).toBeVisible(); // drawn by script
   const items = await section.locator("ul.board-keys-list li").allTextContents();

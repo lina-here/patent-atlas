@@ -82,8 +82,9 @@ export function startRotation(cfg: Config, params: Params): HTMLElement | null {
       // movementX/Y can be missing or NaN (synthetic events): counted as 0
       const { movementX, movementY } = event as PointerEvent;
       const travel = Math.hypot(Number.isFinite(movementX) ? movementX : 0, Number.isFinite(movementY) ? movementY : 0);
+      if (travel === 0) return; // nor restarts the auto-resume wait
       movedPixels += travel;
-      if (movedPixels === 0 || movedPixels < pauseThreshold) return;
+      if (movedPixels < pauseThreshold) return;
     }
     if (timer === undefined) return;
     if (resume.hidden) {

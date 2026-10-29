@@ -1,10 +1,12 @@
 import datetime
 import json
+from decimal import Decimal
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
 
-from pipeline import breaks, crosscheck, derive, gender, groups, m49, scale, worlds, write
+from pipeline import breaks, crosscheck, derive, gender, groups, m49, pct_states, scale, worlds, write
 from pipeline.collect import GenderData, RatioData, SeriesData
 from pipeline.series import GENDER_FIELD_IDS, GENDER_FROM, GENDER_SERIES, RATIO_FROM, RATIO_SERIES, series_by_id
 from pipeline.wdi import Denominator
@@ -191,7 +193,7 @@ def test_build_outputs_shapes():
     group_files = {Path("group") / f"{item['id']}.json" for item in groups.groups_list()}
     map_files = {Path("map") / f"{map_id}.json"
                  for map_id in ("origin_apps", "office_apps", "pct_origin", "per_million", "per_gdp", "women_any",
-                                "women_share")}
+                                "women_share", "pct_member")}
     assert set(out) == ({Path("entities.json"), Path("overview.json"), Path("manifest.json"), Path("groups.json")}
                         | entity_files | group_files | map_files)
 
@@ -210,6 +212,7 @@ def test_build_outputs_shapes():
     assert (overview["top_n"], overview["grower_min"]) == (write.TOP_N, write.GROWER_MIN)
     assert overview["method"] == {
         "cagr_years": derive.CAGR_YEARS, "golden_tolerance_pct": crosscheck.GOLDEN_TOLERANCE_PCT,
+        "golden_growth_tolerance_pp": crosscheck.GOLDEN_GROWTH_TOLERANCE_PP,
         "rounding": {"mode": "half away from zero",
                      "decimals": {"yoy": derive.YOY_DECIMALS, "cagr": derive.CAGR_DECIMALS,
                                   "share": derive.SHARE_DECIMALS, "resident_share": derive.SHARE_DECIMALS}},
@@ -222,7 +225,9 @@ def test_build_outputs_shapes():
         "panel_years": groups.PANEL_YEARS,
         "origin_abroad_from": groups.ORIGIN_ABROAD_FROM,
         "ratios": scale.method_constants(),
-        "gender": gender.method_constants()}
+        "gender": gender.method_constants(),
+        "treemap": {"fold_share_pct": write.TREEMAP_FOLD_SHARE_PCT},
+        "share_shift": {"change": "difference of published shares", "decimals": derive.SHARE_DECIMALS}}
     assert overview["last_year"] == {"origin_apps": 2024, "office_apps": 2024, "pct_origin": 2025}
     assert overview["world_last_year"] == {"world_office": 2024, "pct_world": 2025}
     assert all(isinstance(year, str) for year in overview["world_office"])
@@ -379,6 +384,450 @@ def test_published_value():
     assert published_value(out, "women_share", "world", 2025) == 18.5  # (15 x 1000 + 20 x 3000 + 10 x 100) / 4100
     assert published_value(out, "women_any", "EP", 2024) is None  # not a country: no gender block
     assert published_value(out, "women_share", "XX", 2024) is None
+
+
+def test_published_value_growth():
+    """Golden growth ids (crosscheck.GOLDEN_GROWTH_SERIES) read overview world_yoy.<world>.yoy."""
+    out = outputs()
+    world_yoy = out[Path("overview.json")]["world_yoy"]
+    assert published_value(out, "world_office_yoy", "world", 2024) == 0.5  # WD 744000 / 740000: 0.54%
+    assert published_value(out, "pct_world_yoy", "world", 2025) == 0.3  # ZZ 62400 / 62200: 0.32%
+    for series_id, key in crosscheck.GOLDEN_GROWTH_SERIES.items():
+        for year in range(2014, 2026):
+            assert published_value(out, series_id, "world", year) == world_yoy[key]["yoy"].get(str(year))
+        assert published_value(out, series_id, "world", 2013) is None  # first year: no yoy
+        assert published_value(out, series_id, "CH", 2020) is None  # world figures only
+    assert published_value(out, "world_office_yoy", "world", 2017) is None  # WIPO's 2017 break (breaks.py)
+
+
+def world_series(overview, key):
+    return {int(year): value for year, value in overview[key].items()}
+
+
+def test_world_yoy_from_published_world():
+    """Spec 2a: tile change = derive.yoy_growth of the published world series (WD / ZZ); break years null."""
+    overview = outputs()[Path("overview.json")]
+    assert set(overview["world_yoy"]) == set(write.PUBLISHED_WORLDS) == set(crosscheck.GOLDEN_GROWTH_SERIES.values())
+    for key in write.PUBLISHED_WORLDS:
+        series = world_series(overview, key)
+        expected = derive.yoy_growth(series)
+        broken = breaks.world_break_years(worlds.WORLD_SOURCES[key][0])
+        expected.update({year: None for year in broken if year in expected})
+        block = overview["world_yoy"][key]
+        assert list(block["yoy"]) == [str(year) for year in sorted(series)[1:]], key  # years 2..last
+        assert block["yoy"] == {str(year): value for year, value in expected.items()}, key
+        assert block["yoy_null_reason"] == {str(year): breaks.SERIES_BREAK for year in sorted(broken)
+                                            if str(year) in block["yoy"]}, key
+    assert overview["world_yoy"]["world_office"]["yoy"]["2024"] == 0.5  # (744000 - 740000) / 740000 = 0.54%
+    assert overview["world_yoy"]["pct_world"]["yoy"]["2025"] == 0.3  # (62400 - 62200) / 62200 = 0.32%
+
+
+def test_world_yoy_break_year_null_with_reason(monkeypatch):
+    """A break listing office_apps (any code) nulls the world office change of that year; PCT untouched."""
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {"code": "CH", "year": 2020, "series": ["office_apps"], "note": "n", "citation": "c", "url": "u", "page": "p"}])
+    assert breaks.world_break_years("office_apps") == {2020}
+    assert breaks.world_break_years("pct_origin") == set()
+    world_yoy = outputs()[Path("overview.json")]["world_yoy"]
+    office = world_yoy["world_office"]
+    assert office["yoy"]["2020"] is None
+    assert office["yoy_null_reason"] == {"2020": "series_break"}
+    assert office["yoy"]["2019"] == 0.6 and office["yoy"]["2021"] == 0.5  # 4000 / 720000, 4000 / 728000
+    assert office["yoy"]["2017"] is not None  # repo breaks replaced: only the fixture's year is null
+    pct = world_yoy["pct_world"]
+    assert pct["yoy_null_reason"] == {} and all(value is not None for value in pct["yoy"].values())
+
+
+def test_world_break_years_every_code_listing_the_series(monkeypatch):
+    entry = {"note": "n", "citation": "c", "url": "u", "page": "p"}
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {**entry, "code": "CN", "year": 2017, "series": ["office_apps", "origin_apps"]},
+        {**entry, "code": "CH", "year": 2005, "series": ["office_apps"]},
+        {**entry, "code": "US", "year": 2010, "series": ["origin_apps"]}])
+    assert breaks.world_break_years("office_apps") == {2005, 2017}
+    assert breaks.world_break_years("origin_apps") == {2010, 2017}
+    assert breaks.world_break_years("pct_origin") == set()
+
+
+def test_world_yoy_cut_at_world_last_year():
+    data = make_data()
+    data["pct_origin"].values["CH"]["total"][2025] = None  # PCT 2025 reported by 1 of 2 origins -> provisional
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["world_last_year"]["pct_world"] == 2024
+    pct = overview["world_yoy"]["pct_world"]["yoy"]
+    assert "2025" not in pct and list(pct)[-1] == "2024"
+    assert list(overview["world_yoy"]["world_office"]["yoy"])[-1] == "2024"
+
+
+def add_origin(origin, code, total):
+    origin.values[code] = {"total": total, "resident": nulls(), "abroad": nulls()}
+    origin.labels[code] = code
+
+
+def test_top_grower_among_top_origins(monkeypatch):
+    """Spec 2a amendments: fastest grower among the top_n origins (no small-base outliers): MG (cagr 27.1, rank 4)
+    is outside the top 3; JP (rank 1) has no base year (null cagr): skipped."""
+    monkeypatch.setattr(write, "TOP_N", 3)
+    data = make_data()
+    add_origin(data["origin_apps"], "JP", {**nulls(), 2024: 10**6})
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert [row["code"] for row in overview["top_origins"]] == ["JP", "US", "CH"]
+    assert derive.cagr({**ramp(0, 1), 2013: 0}, 2024) == 27.1  # MG: (11 / 1) ** 0.1 - 1, rank 4
+    assert overview["top_grower"] == {"code": "CH", "label": "Switzerland", "rank": 3, "value": 2100,
+                                      "cagr10": 6.7, "breaks": []}  # (2100 / 1100) ** 0.1 - 1 = 6.68%
+
+
+@pytest.mark.parametrize("tied, expected", [
+    ("DE", "DE"),  # same cagr10 as CH, better rank (6300 > 2100): rank wins
+    ("AT", "AT"),  # same cagr10 and same value as CH: shared rank, code order
+])
+def test_top_grower_tie(monkeypatch, tied, expected):
+    monkeypatch.setattr(write, "TOP_N", 3)
+    data = make_data()
+    factor = {"DE": 3, "AT": 1}[tied]  # CH's path (1000 + 100 a year) times factor: same ratio, same cagr10
+    add_origin(data["origin_apps"], tied, ramp(1000 * factor, 100 * factor))
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    top = {row["code"]: row["rank"] for row in overview["top_origins"]}
+    assert "CH" in top and tied in top
+    assert overview["top_grower"]["code"] == expected and overview["top_grower"]["cagr10"] == 6.7
+
+
+def test_top_grower_none_when_no_cagr():
+    data = make_data()
+    for code in ("CH", "US", "MG"):  # no base year: every top origin's cagr10 null
+        data["origin_apps"].values[code]["total"][2014] = None
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["top_origins"] and overview["top_grower"] is None
+
+
+def test_top_grower_breaks_in_window(monkeypatch):
+    """Tile footnote: break years of the chosen code's origin series after the CAGR base year, up to top_year (base
+    < year <= end: a break at the base year leaves both ends on one method)."""
+    monkeypatch.setattr(write, "TOP_N", 3)
+    entry = {"code": "CN", "series": ["origin_apps"], "note": "n", "citation": "c", "url": "u", "page": "p"}
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {**entry, "year": year} for year in (2013, 2014, 2015, 2017, 2024)] + [
+        {**entry, "code": "CH", "year": 2018}, {**entry, "year": 2016, "series": ["office_apps"]}])
+    data = make_data()
+    add_origin(data["origin_apps"], "CN", ramp(1000, 1000))  # 2014 2000 -> 2024 12000: cagr10 19.6
+    data["origin_apps"].labels["CN"] = "China"
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["top_grower"] == {"code": "CN", "label": "China", "rank": 1, "value": 12000, "cagr10": 19.6,
+                                      "breaks": [2015, 2017, 2024]}
+
+
+def test_top_grower_ends_at_top_year():
+    """origin 2024 provisional (1 of 3 countries) -> top_year 2023: cagr10 ends there, as fastest_growers."""
+    data = make_data()
+    for code in ("US", "MG"):
+        data["origin_apps"].values[code]["total"][2024] = None
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["top_year"] == 2023
+    # base 2013: MG 0 (null cagr), US 5000 -> 5500 (1.0), CH 1000 -> 2000 (7.18%)
+    assert overview["top_grower"] == {"code": "CH", "label": "Switzerland", "rank": 2, "value": 2000,
+                                      "cagr10": 7.2, "breaks": []}
+
+
+# Treemap (spec 2a amendments: the pipeline writes the treemap figures)
+WD_2024 = 744000  # office_data WD ramp(700000, 4000) at 2024 = the treemap year
+
+
+def fold_line():
+    """Smallest 2024 value keeping its own rectangle: value x 100 >= TREEMAP_FOLD_SHARE_PCT x WD."""
+    line = Decimal(str(write.TREEMAP_FOLD_SHARE_PCT)) * WD_2024 / 100
+    assert line == int(line)  # fixture: a whole count sits exactly on the line
+    return int(line)
+
+
+def treemap_data():
+    """origin 2024 above the attribution floor, every continent reporting, values around the fold line: KR on it
+    (kept), IN one below (folded); CH, AT, AU, MG below (africa, oceania: folded only); BR, CL tied. TW: no M49
+    continent. MX: listed, null in 2024. EU: aggregate. Other years: the default fixture (floor fails there)."""
+    data = make_data()
+    line = fold_line()
+    origin = data["origin_apps"]
+    rows = {"JP": ("Japan", 400000), "CN": ("China", 150000), "KR": ("Republic of Korea", line),
+            "IN": ("India", line - 1), "DE": ("Germany", 50000), "AT": ("Austria", 100), "BR": ("Brazil", 2 * line),
+            "CL": ("Chile", 2 * line), "MX": ("Mexico", None), "AU": ("Australia", line // 4), "TW": ("Taiwan", 500)}
+    for code, (label, value) in rows.items():
+        add_origin(origin, code, {**nulls(), 2024: value})
+        origin.labels[code] = label
+    origin.values["CH"]["total"][2024] = line // 2
+    origin.values["US"]["total"][2024] = 2 * line
+    return data
+
+
+def treemap(data):
+    return write._treemap(data["origin_apps"], groups.context(data), write._labels(data))
+
+
+def continent_rows(block):
+    return {row["id"]: row for row in block["continents"]}
+
+
+def test_treemap_sums():
+    """Countries + other = continent value = continent_share total; continents + not-attributable rest = WD;
+    continents in M49 order with their group label; countries value desc, then code."""
+    data = treemap_data()
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    block, share = overview["treemap"], overview["continent_share"]["origin_apps"]
+    assert (block["series"], block["year"], block["world"], block["null_reason"]) == (
+        "origin_apps", overview["top_year"], WD_2024, None)
+    assert [row["id"] for row in block["continents"]] == list(m49.CONTINENTS)
+    for row in block["continents"]:
+        assert row["label"] == groups.group_label(row["id"])
+        folded = row["other"]["value"] if row["other"] else 0
+        assert sum(country["value"] for country in row["countries"]) + folded == row["value"]
+        assert row["value"] == share["continent"][row["id"]]["2024"]
+        assert row["share"] == derive.share(row["value"], WD_2024)
+        assert row["countries"] == sorted(row["countries"], key=lambda country: (-country["value"], country["code"]))
+    residual = block["residual"]
+    assert sum(row["value"] for row in block["continents"]) + residual["value"] == WD_2024
+    assert residual["value"] == share["unallocated"]["2024"] and residual["value"] >= 0
+    assert residual["share"] == derive.share(residual["value"], WD_2024)
+    rows = continent_rows(block)
+    assert rows["asia"]["countries"][:2] == [
+        {"code": "JP", "label": "Japan", "value": 400000, "share": derive.share(400000, WD_2024)},
+        {"code": "CN", "label": "China", "value": 150000, "share": derive.share(150000, WD_2024)}]
+    assert [country["code"] for country in rows["latin-america-caribbean"]["countries"]] == ["BR", "CL"]  # tie
+
+
+def test_treemap_fold_boundary():
+    """value x 100 < TREEMAP_FOLD_SHARE_PCT x WD folds, exact (before rounding): KR on the line keeps its rectangle;
+    IN one below folds although its rounded share equals the threshold (methods text explains it). Every origin of a
+    continent folded -> `other` alone; other codes sorted by code."""
+    line = fold_line()
+    rows = continent_rows(treemap(treemap_data()))
+    assert [country["code"] for country in rows["asia"]["countries"]] == ["JP", "CN", "KR"]
+    assert rows["asia"]["other"] == {"value": line - 1, "share": write.TREEMAP_FOLD_SHARE_PCT, "codes": ["IN"]}
+    assert [country["code"] for country in rows["europe"]["countries"]] == ["DE"]
+    assert rows["europe"]["other"]["codes"] == ["AT", "CH"]  # CH larger: still code order
+    assert (rows["africa"]["countries"], rows["africa"]["other"]) == (
+        [], {"value": 11, "share": derive.share(11, WD_2024), "codes": ["MG"]})
+    assert (rows["oceania"]["countries"], rows["oceania"]["other"]["codes"]) == ([], ["AU"])
+    assert rows["northern-america"]["other"] is None
+
+
+@pytest.mark.parametrize("below, reason", [(0, None), (1, groups.ATTRIBUTION_FLOOR)])
+def test_treemap_null_reason_attribution_floor(below, reason):
+    """Grouped origins = GROUP_ATTRIBUTION_MIN x WD -> drawn; one application less -> reason, every row list empty
+    (the card shows the reason, no chart)."""
+    data = treemap_data()
+    origin = data["origin_apps"].values
+    floor = Decimal(str(groups.GROUP_ATTRIBUTION_MIN)) * WD_2024
+    assert floor == int(floor)
+    grouped = sum(types["total"][2024] or 0 for code, types in origin.items() if m49.continent_of(code))
+    origin["JP"]["total"][2024] -= grouped - int(floor) + below
+    block = treemap(data)
+    assert (block["null_reason"], block["world"]) == (reason, WD_2024)
+    if reason is None:
+        assert len(block["continents"]) == len(m49.CONTINENTS) and block["residual"]["value"] >= 0
+    else:
+        assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+
+
+def test_treemap_none_reported_passes_through():
+    """A continent with no member reporting (latin america: BR, CL null; MX null already) above the floor ->
+    continent_share's none_reported, empty rows."""
+    data = treemap_data()
+    for code in ("BR", "CL"):
+        data["origin_apps"].values[code]["total"][2024] = None
+    block = treemap(data)
+    assert (block["null_reason"], block["world"]) == (groups.NONE_REPORTED, WD_2024)
+    assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+
+
+@pytest.mark.parametrize("case", ["provisional", "null"])
+def test_treemap_wd_provisional(case):
+    """WD provisional at the treemap year (office reported by EP alone; origin a year ahead) or null: no WIPO world
+    total to divide by -> no_wipo_world_total, world null, every row list empty."""
+    data = treemap_data()
+    office = data["office_apps"].values
+    if case == "provisional":
+        for code in ("US", "CH"):
+            for key in ("total", "resident", "nonresident"):
+                office[code][key][2024] = None
+    else:
+        office["WD"]["total"][2024] = None
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    block = overview["treemap"]
+    assert overview["top_year"] == block["year"] == 2024
+    assert (block["null_reason"], block["world"]) == (groups.NO_WIPO_WORLD_TOTAL, None)
+    assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+
+
+def test_treemap_null_country_listed_not_zero():
+    """M49 countries WIPO lists with null at the year: `no_value` (code order), never a 0 rectangle; a 0 is a value."""
+    data = treemap_data()
+    origin = data["origin_apps"]
+    for code, label, value in (("AR", "Argentina", 0), ("BE", "Belgium", None)):
+        add_origin(origin, code, {**nulls(), 2024: value})
+        origin.labels[code] = label
+    block = treemap(data)
+    assert block["no_value"] == [{"code": "BE", "label": "Belgium"}, {"code": "MX", "label": "Mexico"}]
+    drawn = {country["code"] for row in block["continents"] for country in row["countries"]}
+    folded = {code for row in block["continents"] if row["other"] for code in row["other"]["codes"]}
+    assert not {"BE", "MX"} & (drawn | folded)
+    assert continent_rows(block)["latin-america-caribbean"]["other"] == {"value": 0, "share": 0.0, "codes": ["AR"]}
+
+
+def test_treemap_unattributed_inside_residual():
+    """Origins with a value and no M49 continent (TW; a former state reporting that year): listed under the rest
+    (inside it, value desc), never in a continent; aggregates (EU) never listed."""
+    data = treemap_data()
+    data["origin_apps"].values["SU"]["total"][2024] = 70
+    block = treemap(data)
+    assert block["unattributed"] == [
+        {"code": "TW", "label": "Taiwan", "value": 500, "share": derive.share(500, WD_2024)},
+        {"code": "SU", "label": "Soviet Union", "value": 70, "share": derive.share(70, WD_2024)}]
+    assert sum(row["value"] for row in block["unattributed"]) <= block["residual"]["value"]
+    drawn = {country["code"] for row in block["continents"] for country in row["countries"]}
+    folded = {code for row in block["continents"] if row["other"] for code in row["other"]["codes"]}
+    assert not {"TW", "SU", "EU"} & (drawn | folded)
+
+
+def test_treemap_members_must_add_up():
+    """Countries + other = continent value holds on member sums only: a WIPO-total continent (PCT R rows: no member
+    reports Africa's R1 here) stops the run rather than publishing rectangles that do not add up."""
+    data = make_data()
+    r1 = data["pct_origin"].values["R1"]["total"][2025]
+    with pytest.raises(ValueError, match=f"africa 2025: members sum 0 != continent total {r1}"):
+        write._treemap(data["pct_origin"], groups.context(data), write._labels(data))
+
+
+def test_treemap_residual_label(monkeypatch):
+    """Rest label = groups.unallocated_label (one source with the continent-share band)."""
+    data = treemap_data()
+    assert treemap(data)["residual"]["label"] == groups.unallocated_label("origin_apps", groups.context(data)) == \
+        groups.UNALLOCATED_LABEL["origin_apps"]
+    monkeypatch.setitem(groups.UNALLOCATED_LABEL, "origin_apps", "edited")
+    assert treemap(data)["residual"]["label"] == "edited"
+
+
+def test_method_treemap_constant(monkeypatch):
+    """method.treemap publishes the fold threshold the figures apply (methods page reads it, never a copy)."""
+    data = treemap_data()  # values around the current line
+    monkeypatch.setattr(write, "TREEMAP_FOLD_SHARE_PCT", write.TREEMAP_FOLD_SHARE_PCT * 2)
+    overview = build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]
+    assert overview["method"]["treemap"] == {"fold_share_pct": write.TREEMAP_FOLD_SHARE_PCT}
+    rows = continent_rows(overview["treemap"])
+    assert rows["asia"]["other"]["codes"] == ["IN", "KR"]  # KR (old line) now below
+    assert [country["code"] for country in rows["northern-america"]["countries"]] == ["US"]  # 2 x line: on the new one
+
+
+# Share-shift bar (spec 2a amendments): top_origins, share of WD at base_year and top_year
+def share_shift(data=None):
+    return build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[Path("overview.json")]["share_shift"]
+
+
+def shift_rows(block):
+    return {row["code"]: row for row in block["rows"]}
+
+
+def test_share_shift_rows_are_top_origins(monkeypatch):
+    """Rows = top_origins in rank order (code, label, rank, share); share and share_base = the entity derived.share
+    of both years (WIPO world total WD as denominator); top_n rows only."""
+    out = outputs()
+    overview = out[Path("overview.json")]
+    block = overview["share_shift"]
+    assert (block["series"], block["year"], block["base_year"], block["null_reason"]) == (
+        "origin_apps", overview["top_year"], 2014, None)
+    assert [(row["code"], row["label"], row["rank"], row["share"]) for row in block["rows"]] == [
+        (row["code"], row["label"], row["rank"], row["share"]) for row in overview["top_origins"]]
+    for row in block["rows"]:
+        derived = out[Path("entity") / f"{row['code']}.json"]["series"]["origin_apps"]["derived"]["share"]
+        assert (row["share_base"], row["share"]) == (derived["2014"], derived["2024"]), row["code"]
+    # US 5050 / 704000, 5550 / 744000; CH 1100 / 704000, 2100 / 744000; MG 1 and 11: 0.0 (a value, not null)
+    assert [(row["code"], row["share_base"], row["share"]) for row in block["rows"]] == [
+        ("US", 0.72, 0.75), ("CH", 0.16, 0.28), ("MG", 0.0, 0.0)]
+    monkeypatch.setattr(write, "TOP_N", 2)
+    assert [row["code"] for row in share_shift()["rows"]] == ["US", "CH"]
+
+
+def test_share_shift_base_year_from_cagr_years(monkeypatch):
+    """base_year = top_year - derive.CAGR_YEARS (the cagr10 window, method.cagr_years); year = top_year, so a
+    provisional origin year moves both."""
+    data = make_data()
+    for code in ("US", "MG"):  # origin 2024 reported by 1 of 3 countries -> provisional, top_year 2023
+        data["origin_apps"].values[code]["total"][2024] = None
+    block = share_shift(data)
+    assert (block["year"], block["base_year"]) == (2023, 2023 - derive.CAGR_YEARS)
+    monkeypatch.setattr(derive, "CAGR_YEARS", 4)
+    overview = outputs()[Path("overview.json")]
+    block = overview["share_shift"]
+    assert (block["year"], block["base_year"], overview["method"]["cagr_years"]) == (2024, 2020, 4)
+    us = shift_rows(block)["US"]
+    assert us["share_base"] == derive.share(ramp(5000, 50)[2020], ramp(700000, 4000)[2020])
+
+
+def test_share_shift_change_is_difference_of_shares():
+    """change_pp = published share - published share_base, exact in Decimal (the figures table adds up), within
+    0.01 pp of the unrounded difference; method.share_shift states the rule. CH: 0.28 - 0.16 = 0.12, where float
+    subtraction gives 0.12000000000000002 and the unrounded difference (0.126) would print 0.13."""
+    overview = outputs()[Path("overview.json")]
+    assert overview["method"]["share_shift"] == {"change": "difference of published shares",
+                                                 "decimals": derive.SHARE_DECIMALS}
+    rows = shift_rows(overview["share_shift"])
+    assert (rows["CH"]["share_base"], rows["CH"]["share"], rows["CH"]["change_pp"]) == (0.16, 0.28, 0.12)
+    assert 0.28 - 0.16 != 0.12
+    assert derive.share(2100 * 704000 - 1100 * 744000, 744000 * 704000) == 0.13
+    assert (rows["US"]["change_pp"], rows["MG"]["change_pp"]) == (0.03, 0.0)
+    origin, wd = make_data()["origin_apps"].values, make_data()["office_apps"].values["WD"]["total"]
+    for code, row in rows.items():
+        assert Decimal(repr(row["change_pp"])) == Decimal(repr(row["share"])) - Decimal(repr(row["share_base"]))
+        exact = (Fraction(100 * origin[code]["total"][2024], wd[2024])
+                 - Fraction(100 * origin[code]["total"][2014], wd[2014]))
+        assert abs(Fraction(repr(row["change_pp"])) - exact) <= Fraction(1, 100), code
+
+
+def test_share_shift_missing_base_listed_null():
+    """Spec 2a amendments: an origin with no base-year value is listed (rank, share), not plotted: share_base and
+    change_pp null, never 0."""
+    data = make_data()
+    add_origin(data["origin_apps"], "JP", {**nulls(), 2024: 300000})
+    data["origin_apps"].labels["JP"] = "Japan"
+    rows = shift_rows(share_shift(data))
+    assert rows["JP"] == {"code": "JP", "label": "Japan", "rank": 1, "share_base": None,
+                          "share": derive.share(300000, WD_2024), "change_pp": None, "breaks": []}
+    assert rows["US"]["rank"] == 2 and rows["US"]["change_pp"] is not None
+
+
+@pytest.mark.parametrize("year, expected", [
+    (2017, [2017]),  # inside the window: the two shares sit on different methods
+    (2024, [2024]),  # the end year counts
+    (2014, []),  # the base year: both shares after the change
+    (2013, []),
+])
+def test_share_shift_break_marked(monkeypatch, year, expected):
+    """breaks = break years of the code's origin series in (base_year, year] (card note); other series' breaks and
+    other codes never listed."""
+    entry = {"note": "n", "citation": "c", "url": "u", "page": "p"}
+    monkeypatch.setattr(breaks, "SERIES_BREAKS", [
+        {**entry, "code": "CN", "year": year, "series": ["origin_apps"]},
+        {**entry, "code": "CN", "year": 2018, "series": ["office_apps"]},
+        {**entry, "code": "US", "year": 2016, "series": ["office_apps"]}])
+    data = make_data()
+    add_origin(data["origin_apps"], "CN", ramp(1000, 1000))
+    data["origin_apps"].labels["CN"] = "China"
+    rows = shift_rows(share_shift(data))
+    assert rows["CN"]["breaks"] == expected
+    assert rows["US"]["breaks"] == rows["CH"]["breaks"] == []
+
+
+@pytest.mark.parametrize("case", ["base_null", "year_null", "year_provisional"])
+def test_share_shift_wd_null_base(case):
+    """WD null at the base year or the year, or provisional at the year (office 2024 reported by EP alone): no WIPO
+    world total to divide by -> no_wipo_world_total, no rows (the card shows the reason); the years still stated."""
+    data = make_data()
+    office = data["office_apps"].values
+    if case == "year_provisional":
+        for code in ("US", "CH"):
+            for key in ("total", "resident", "nonresident"):
+                office[code][key][2024] = None
+    else:
+        office["WD"]["total"][2014 if case == "base_null" else 2024] = None
+    assert share_shift(data) == {"series": "origin_apps", "base_year": 2014, "year": 2024,
+                                 "null_reason": groups.NO_WIPO_WORLD_TOTAL, "rows": []}
 
 
 def test_write_files_sorted_two_space(tmp_path):
@@ -1212,3 +1661,87 @@ def test_unlisted_gender_codes():
     assert write.unlisted_gender_codes(collected()) == [
         f"women_any DE: WIPO values {GENDER_FROM}-2025, no country entity (not shown)",
         f"women_share DE: WIPO values {GENDER_FROM}-2025, no country entity (not shown)"]
+
+
+def test_pct_member_map_file():
+    """map/pct_member.json (pct_states.py): fixture entities CH, US, MG (listed), VA (country, not listed), SU (former),
+    EP (regional office, skipped); the list's other States have no entity here: unmatched, carried."""
+    states = pct_states.load_pct_states()
+    file = outputs()[Path("map") / "pct_member.json"]
+    assert set(file) == {"values", "null_reason", "in_force", "unmatched", "territories", "successor_of", "sources"}
+    years = [str(year) for year in range(pct_states.PCT_FIRST_YEAR, states.status_on.year + 1)]
+    assert set(file["values"]) == {"CH", "US", "MG", "VA"}
+    assert all(list(file["values"][code]) == years for code in file["values"])
+    assert not any(file["values"]["VA"].values())  # non-listed country: false every year, never null
+    assert file["values"]["CH"]["1978"] is True and file["values"]["US"]["1978"] is True
+    assert file["null_reason"] == {"SU": "not_on_current_list"}
+    assert file["territories"] == {} and file["successor_of"] == {}  # none among the fixture entities
+    assert file["in_force"]["CH"] == "1978-01-24" and file["in_force"]["BS"] == "2026-08-19"
+    assert len(file["in_force"]) == states.count
+    assert file["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
+    assert file["sources"] == {"pct_member": {
+        "source_url": states.source_url, "count_check_url": states.count_check_url,
+        "status_on": states.status_on.isoformat(), "retrieved": states.retrieved.isoformat()}}
+
+
+def test_pct_membership_overview():
+    states = pct_states.load_pct_states()
+    block = outputs()[Path("overview.json")]["pct_membership"]
+    assert block["status_on"] == states.status_on.isoformat() and block["retrieved"] == states.retrieved.isoformat()
+    assert (block["source_url"], block["count_check_url"]) == (states.source_url, states.count_check_url)
+    assert (block["first_year"], block["last_year"]) == (pct_states.PCT_FIRST_YEAR, states.status_on.year)
+    assert list(block["count"]) == [str(year) for year in range(pct_states.PCT_FIRST_YEAR, block["last_year"] + 1)]
+    assert block["count"][str(block["last_year"])] == states.count
+    assert block["count"] == {str(year): count for year, count in pct_states.counts(states).items()}
+    assert block["unmatched"] == sorted(set(states.in_force) - {"CH", "US", "MG"})
+    # every territory and successor entry of the list (the methods page names them), not only the fixture's entities
+    assert [territory["code"] for territory in block["territories"]] == sorted(states.territories)
+    hong_kong = block["territories"][[t["code"] for t in block["territories"]].index("HK")]
+    assert (hong_kong["code"], hong_kong["name"]) == ("HK", "Hong Kong, China")
+    assert [{key: period[key] for key in ("via", "state", "from", "to")} for period in hong_kong["periods"]] == [
+        {"via": "GB", "state": "United Kingdom", "from": "1981-04-15", "to": "1997-06-30"},
+        {"via": "CN", "state": "China", "from": "1997-07-01", "to": None}]
+    assert [source["url"].rsplit("_", 1)[1] for source in hong_kong["periods"][0]["sources"]] == ["34", "122"]
+    assert [entry["predecessor"] for entry in block["successors"]] == sorted(states.successors)
+    assert block["successors"][0] == {"predecessor": "CS", "name": "Czechoslovakia", "source": "ISO 3166-3: CSHH",
+                                      "codes": ["CZ", "SK"], "from": None, "to": "1992-12-31",
+                                      "end_source": states.successors["CS"].end_source, "own_dates": {}, "note": ""}
+    sudan = block["successors"][[entry["predecessor"] for entry in block["successors"]].index("SD")]
+    assert (sudan["codes"], sudan["own_dates"]) == (["SS"], {"SS": "2011-07-09"})
+    assert (sudan["from"], sudan["to"]) == ("1984-04-16", "2011-07-08")
+    assert block["continuing"] == [
+        {"code": "RS", "name": "Serbia", "in_force": "1997-02-01", "continues": "Serbia and Montenegro"},
+        {"code": "RU", "name": "Russian Federation", "in_force": "1978-03-29", "continues": "Soviet Union"}]
+
+
+def test_pct_member_map_file_territories_and_successors():
+    """Territories (entities only): each period's State and dates; successor States with null years: their predecessor
+    and window."""
+    states = pct_states.load_pct_states()
+    file = write._pct_member_map_file(states, ["CN", "HK", "MO", "NL", "CW", "UA", "RU", "SU", "SD", "SS"])
+    assert file["territories"] == {
+        "CW": [{"via": "NL", "state": "Netherlands", "from": "1979-07-10", "to": None}],
+        "HK": [{"via": "GB", "state": "United Kingdom", "from": "1981-04-15", "to": "1997-06-30"},
+               {"via": "CN", "state": "China", "from": "1997-07-01", "to": None}]}
+    assert file["successor_of"] == {  # RU: no year before its date
+        "SS": {"code": "SD", "name": "Sudan", "from": "1984-04-16", "to": "2011-07-08"},
+        "UA": {"code": "SU", "name": "Soviet Union", "from": "1978-03-29", "to": "1991-12-25"}}
+    assert file["null_reason"] == {"SS": "successor_state", "SU": "not_on_current_list", "UA": "successor_state"}
+    assert (file["values"]["UA"]["1985"], file["values"]["UA"]["1991"]) == (None, True)
+    assert [file["values"]["SS"][year] for year in ("1983", "1984", "2011", "2012")] == [False, None, None, False]
+    assert (file["values"]["SD"]["1983"], file["values"]["SD"]["1984"]) == (False, True)
+    assert [file["values"]["HK"][year] for year in ("1980", "1981", "1996", "1997")] == [False, True, True, True]
+    assert not any(file["values"]["MO"].values())
+    assert "HK" not in file["in_force"]
+
+
+def test_pct_states_injected():
+    """build_outputs takes the list run.py loaded (a load error blocks the run before any output)."""
+    states = pct_states.load_pct_states()
+    few = pct_states.PctStates(source_url=states.source_url, count_check_url=states.count_check_url,
+                               status_on=states.status_on, retrieved=states.retrieved, count=1,
+                               in_force={"CH": states.in_force["CH"]}, names={"CH": "Switzerland"}, continuing={})
+    out = outputs(pct=few)
+    assert out[Path("map") / "pct_member.json"]["unmatched"] == []
+    assert not any(out[Path("map") / "pct_member.json"]["values"]["US"].values())
+    assert out[Path("overview.json")]["pct_membership"]["count"][str(states.status_on.year)] == 1

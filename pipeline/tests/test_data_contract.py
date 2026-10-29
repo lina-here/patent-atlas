@@ -64,23 +64,33 @@ def test_overview_publishes_wipo_worlds_only():
 
 
 def test_overview_method_constants_for_methods_page():
-    method = load(DATA / "overview.json")["method"]  # methods.ts states these; never typed into the page
+    overview = load(DATA / "overview.json")
+    method = overview["method"]  # methods.ts states these; never typed into the page
     expected = V01_METHOD_KEYS | (GROUP_METHOD_KEYS if (DATA / "groups.json").is_file() else set())
     expected |= {"ratios"} if HAS_RATIOS else set()
     expected |= {"gender"} if HAS_GENDER else set()
+    expected |= {"golden_growth_tolerance_pp", "treemap", "share_shift"}  # v2a
     assert set(method) == expected
     assert set(method["rounding"]["decimals"]) == {"yoy", "cagr", "share", "resident_share"}
+
+
+V2A_BLOCKS = {"world_yoy", "top_grower", "treemap", "share_shift",  # overview blocks the v2a dashboard draws
+              "pct_membership"}  # and the map's PCT membership layer
+
+
+def test_v2a_blocks_published():
+    """The v2a data refresh wrote every block the dashboard draws: the *_when_published checks below run on them
+    (a missing block fails here, never a skip)."""
+    overview = load(DATA / "overview.json")
+    assert V2A_BLOCKS <= set(overview), sorted(V2A_BLOCKS - set(overview))
 
 
 SERIES_BREAK_KEYS = {"code", "label", "year", "series", "note", "citation", "url", "page", "groups"}  # site SeriesBreak
 
 
 def test_series_breaks_when_published():
-    """Audit F1: each break WIPO publishes is in the entity data too (yoy of the year null, reason series_break).
-    Skipped until a refresh writes `series_breaks` (Task 3b)."""
+    """Audit F1: each break WIPO publishes is in the entity data too (yoy of the year null, reason series_break)."""
     overview = load(DATA / "overview.json")
-    if "series_breaks" not in overview:
-        pytest.skip("site/data predates series_breaks (written by the next refresh)")
     for entry in overview["series_breaks"]:
         assert set(entry) == SERIES_BREAK_KEYS, entry
         derived = load(DATA / "entity" / f"{entry['code']}.json")["series"]
@@ -88,6 +98,169 @@ def test_series_breaks_when_published():
             year = str(entry["year"])
             assert derived[series_id]["derived"]["yoy"][year] is None, (entry["code"], series_id)
             assert derived[series_id]["derived"]["yoy_null_reason"][year] == "series_break", (entry["code"], series_id)
+
+
+def test_world_yoy_when_published():
+    """Spec 2a key-figure tiles: world change recomputed from the committed world series (derive.yoy_growth); a
+    year of a series break listing the world's series null, reason series_break."""
+    from pipeline import derive
+    from pipeline.worlds import WORLD_SOURCES
+    from pipeline.write import PUBLISHED_WORLDS
+    overview = load(DATA / "overview.json")
+    assert set(overview["world_yoy"]) == set(PUBLISHED_WORLDS)
+    for key in PUBLISHED_WORLDS:
+        series_id = WORLD_SOURCES[key][0]
+        series = {int(year): value for year, value in overview[key].items()}
+        broken = {entry["year"] for entry in overview["series_breaks"] if series_id in entry["series"]}
+        expected = derive.yoy_growth(series)
+        expected.update({year: None for year in broken if year in expected})
+        block = overview["world_yoy"][key]
+        assert block["yoy"] == {str(year): value for year, value in expected.items()}, key
+        assert block["yoy_null_reason"] == {str(year): "series_break" for year in sorted(broken)
+                                            if year in expected}, key
+
+
+def test_top_grower_when_published():
+    """Top grower = the top_origins row (same code, rank, value) with the highest cagr10 to top_year, recomputed
+    from the committed entity totals (derive.cagr); null when no row has one."""
+    from pipeline import derive
+    overview = load(DATA / "overview.json")
+    totals = entity_totals()
+    rates = {row["code"]: derive.cagr({int(year): value for year, value in totals[row["code"]]["origin_apps"].items()},
+                                      overview["top_year"]) for row in overview["top_origins"]}
+    grower = overview["top_grower"]
+    rated = [row for row in overview["top_origins"] if rates[row["code"]] is not None]
+    if grower is None:
+        assert rated == []
+        return
+    row = min(rated, key=lambda item: (-rates[item["code"]], item["rank"], item["code"]))  # tie: rank, then code
+    assert (grower["code"], grower["label"], grower["rank"], grower["value"], grower["cagr10"]) == (
+        row["code"], row["label"], row["rank"], row["value"], rates[row["code"]])
+    top_year, years = overview["top_year"], overview["method"]["cagr_years"]
+    assert grower["breaks"] == sorted(  # tile footnote: breaks after the CAGR base year, up to top_year
+        entry["year"] for entry in overview["series_breaks"] if entry["code"] == grower["code"]
+        and "origin_apps" in entry["series"] and top_year - years < entry["year"] <= top_year)
+
+
+def test_treemap_when_published():
+    """Spec 2a amendments (pipeline writes the treemap): recomputed from committed files. Continent value =
+    continent_share total = countries + other; continents + not-attributable rest = WD (overview.world_office); rest
+    >= 0 (negative blocks the refresh); origin values = map/origin_apps.json; fold rule from method.treemap; labels
+    from groups.json / entities.json."""
+    from decimal import Decimal
+    from pipeline import derive
+    overview = load(DATA / "overview.json")
+    block, year = overview["treemap"], str(overview["top_year"])
+    share = overview["continent_share"]["origin_apps"]
+    world = overview["world_office"].get(year)  # null or past world_last_year: absent
+    assert (block["series"], block["year"], block["world"], block["null_reason"]) == (
+        "origin_apps", overview["top_year"], world, share["null_reason"].get(year))
+    if block["null_reason"] is not None:
+        assert (block["continents"], block["residual"], block["unattributed"], block["no_value"]) == ([], None, [], [])
+        return
+    values = {code: years.get(year) for code, years in load(DATA / "map" / "origin_apps.json")["values"].items()}
+    labels = {item["code"]: item["label"] for item in load(DATA / "entities.json")}
+    continents = [item for item in load(DATA / "groups.json")["items"] if item["kind"] == "continent"]
+    line = Decimal(str(overview["method"]["treemap"]["fold_share_pct"])) * world
+    assert [(row["id"], row["label"]) for row in block["continents"]] == [(item["id"], item["label"])
+                                                                           for item in continents]
+    for row, item in zip(block["continents"], continents):
+        reported = {code for code in item["members"] if values.get(code) is not None}
+        assert row["value"] == share["continent"][row["id"]][year] == sum(values[code] for code in reported), row["id"]
+        assert row["share"] == derive.share(row["value"], world)
+        for country in row["countries"]:
+            assert country == {"code": country["code"], "label": labels[country["code"]],
+                               "value": values[country["code"]], "share": derive.share(values[country["code"]], world)}
+            assert Decimal(country["value"]) * 100 >= line, country["code"]
+        assert row["countries"] == sorted(row["countries"], key=lambda country: (-country["value"], country["code"]))
+        other = row["other"] or {"value": 0, "codes": []}
+        assert other["codes"] == sorted(other["codes"]) and all(Decimal(values[code]) * 100 < line
+                                                                for code in other["codes"]), row["id"]
+        assert other["value"] == sum(values[code] for code in other["codes"])
+        assert row["other"] is None or (other["codes"] and other["share"] == derive.share(other["value"], world))
+        assert {country["code"] for country in row["countries"]} | set(other["codes"]) == reported, row["id"]
+    residual = block["residual"]
+    assert (residual["value"], residual["label"]) == (share["unallocated"][year], share["unallocated_label"])
+    assert residual["value"] >= 0 and residual["share"] == derive.share(residual["value"], world)
+    assert sum(row["value"] for row in block["continents"]) + residual["value"] == world
+    grouped = {code for item in continents for code in item["members"]}
+    assert block["unattributed"] == sorted(
+        ({"code": code, "label": labels[code], "value": value, "share": derive.share(value, world)}
+         for code, value in values.items() if code not in grouped and value is not None),
+        key=lambda row: (-row["value"], row["code"]))
+    assert sum(row["value"] for row in block["unattributed"]) <= residual["value"]  # inside the rest
+    assert block["no_value"] == [{"code": code, "label": labels[code]} for code in sorted(values)
+                                 if code in grouped and values[code] is None]
+
+
+def test_share_shift_when_published():
+    """Spec 2a amendments (share-shift bar): recomputed from committed files. year = top_year, base_year = top_year -
+    method.cagr_years; rows = top_origins (code, label, rank, share); shares = entity derived.share at both years;
+    change_pp = share - share_base exact in Decimal (null base -> null), the rule method.share_shift states; breaks =
+    the code's origin series breaks in (base_year, year]. WD null or past world_last_year at either year ->
+    no_wipo_world_total, no rows."""
+    from decimal import Decimal
+    overview = load(DATA / "overview.json")
+    block, method = overview["share_shift"], overview["method"]
+    year, base_year = overview["top_year"], overview["top_year"] - method["cagr_years"]
+    assert (block["series"], block["year"], block["base_year"]) == ("origin_apps", year, base_year)
+    assert method["share_shift"] == {"change": "difference of published shares",
+                                     "decimals": method["rounding"]["decimals"]["share"]}
+    if any(overview["world_office"].get(str(shown)) is None for shown in (year, base_year)):  # cut years absent
+        assert (block["null_reason"], block["rows"]) == ("no_wipo_world_total", [])
+        return
+    assert block["null_reason"] is None
+    assert [(row["code"], row["label"], row["rank"], row["share"]) for row in block["rows"]] == [
+        (row["code"], row["label"], row["rank"], row["share"]) for row in overview["top_origins"]]
+    for row in block["rows"]:
+        share = load(DATA / "entity" / f"{row['code']}.json")["series"]["origin_apps"]["derived"]["share"]
+        assert (row["share_base"], row["share"]) == (share.get(str(base_year)), share[str(year)]), row["code"]
+        if row["share_base"] is None:
+            assert row["change_pp"] is None, row["code"]
+        else:
+            assert Decimal(str(row["change_pp"])) == Decimal(str(row["share"])) - Decimal(str(row["share_base"]))
+        assert row["breaks"] == sorted(entry["year"] for entry in overview["series_breaks"]
+                                       if entry["code"] == row["code"] and "origin_apps" in entry["series"]
+                                       and base_year < entry["year"] <= year), row["code"]
+
+
+def test_pct_member_when_published():
+    """Committed map/pct_member.json = pct_states.member_years of the committed pct_states.json against committed
+    entities.json; former entities null (not_on_current_list), never false; overview counts match the list."""
+    import datetime
+    from pipeline import pct_states
+    states = pct_states.load_pct_states()
+    entities = load(DATA / "entities.json")
+    codes = [entity["code"] for entity in entities]
+    file = load(DATA / "map" / "pct_member.json")
+    expected = pct_states.member_years(states, codes)
+    assert file["values"] == {code: {str(year): member for year, member in years.items()}
+                              for code, years in expected.items()}
+    assert file["null_reason"] == pct_states.null_reasons(states, codes)
+    assert {code for code, reason in file["null_reason"].items() if reason == pct_states.NOT_ON_CURRENT_LIST} == {
+        entity["code"] for entity in entities if entity["kind"] == "historical"}
+    # successor States: null before their own date, never false then; predecessor and own date for the tooltip
+    hidden = {code for code, reason in file["null_reason"].items() if reason == pct_states.SUCCESSOR_STATE}
+    assert hidden and set(file["successor_of"]) == hidden
+    for code in hidden:
+        window = file["successor_of"][code]
+        start, end = (window["from"] or str(pct_states.PCT_FIRST_YEAR))[:4], window["to"][:4]
+        for year, member in file["values"][code].items():
+            assert (member is None) == (start <= year <= end and member is not True), (code, year)
+        assert file["successor_of"][code]["code"] in states.successors
+    # territories: member fill in their periods, never counted
+    assert set(file["territories"]) == set(states.territories) & set(codes)
+    for code, territory in file["territories"].items():
+        assert [period["from"] for period in territory] == [
+            period.since.isoformat() for period in states.territories[code].periods] and code not in file["in_force"]
+    assert file["in_force"] == {code: day.isoformat() for code, day in states.in_force.items()}
+    assert file["unmatched"] == pct_states.unmatched(states, codes)
+    assert file["sources"]["pct_member"]["status_on"] == states.status_on.isoformat()
+    block = load(DATA / "overview.json")["pct_membership"]
+    assert (block["status_on"], block["last_year"]) == (states.status_on.isoformat(), states.status_on.year)
+    assert block["count"] == {str(year): count for year, count in pct_states.counts(states).items()}
+    assert block["count"][str(block["last_year"])] == states.count
+    assert datetime.date.fromisoformat(block["retrieved"]) >= datetime.date.fromisoformat(block["status_on"])
 
 
 def test_files_under_size_limit():
@@ -115,6 +288,7 @@ def test_group_and_map_files_listed():
     from pipeline.write import MAP_RATIOS
     maps = set(load(DATA / "overview.json")["last_year"]) | (set(MAP_RATIOS) if HAS_RATIOS else set())
     maps |= set(GENDER_MEASURES) if HAS_GENDER else set()
+    maps |= {"pct_member"} if "pct_membership" in load(DATA / "overview.json") else set()
     assert {path.stem for path in (DATA / "map").glob("*.json")} == maps
     overview = load(DATA / "overview.json")
     assert set(overview["continent_share"]) == set(overview["last_year"])

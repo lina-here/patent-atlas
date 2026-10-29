@@ -14,10 +14,31 @@ Files (paths relative to the data root; JSON year keys are strings):
 - map/<series>.json: {values: {code: year map}, sources}: countries and former states, cut at world last_year.
 - overview.json `continent_share`: per series continent totals + unallocated band (groups.continent_share).
 - overview.json `series_breaks`: breaks.listing() + each code's `label` (footnotes on world and group charts).
+- overview.json key figures (spec 2a tiles): `world_yoy` {world_office|pct_world: {yoy, yoy_null_reason}} =
+  derive.yoy_growth of the published world series (cut at its world_last_year), a year in
+  breaks.world_break_years of its series null with reason "series_break"; golden growth figures check it
+  (crosscheck.GOLDEN_GROWTH_SERIES). `top_grower` {code, label, rank, value, cagr10, breaks} | null = highest
+  cagr10 to top_year among top_origins (tie: better rank, then code; null cagr skipped), `breaks` = its origin
+  series' break years after the CAGR base year up to top_year (tile footnote).
+- overview.json `treemap` (spec 2a treemap, written here): origin_apps at top_year by continent, shares of WD;
+  `_treemap`. Not drawable (continent_share null reason: attribution floor, WD null or provisional, none_reported)
+  -> reason, empty rows; a negative rest, or unattributed origins above it, blocks (run.py).
+- overview.json `share_shift` (spec 2a share-shift bar): top_origins rows, shares of WD at base_year (top_year -
+  CAGR_YEARS) and top_year, change_pp = difference of the published shares (`method.share_shift`), breaks in
+  (base_year, top_year]; WD null or provisional at either year -> no_wipo_world_total, no rows; `_share_shift`.
 - overview.json views: `rank_race` {first_year, top, rows: [{code, label, ranks}]} (countries ever in the top
   RANK_RACE_TOP, RANK_RACE_FROM..top_year; ranks below the top kept, null = no value); `size_growth`
   [{code, label, continent, value, cagr10}] (countries >= GROWER_MIN at top_year, null cagr kept);
   `pct_monthly` {"YYYY": 12 months} WIPO world (origin Total, RO Total) + `pct_monthly_source`.
+- PCT membership (pct_states.py, hand-transcribed `pct_states.json`): map/pct_member.json {values: {code: {year:
+  bool | null}} (country entities; not listed = false; territory = PCT applies; successor State null in its window),
+  null_reason {code: "not_on_current_list" (former entities, never false) | "successor_state"}, in_force {code: date}
+  (every listed State), unmatched [listed codes with no entity], territories {code: [{via, state, from, to}]}
+  (entities), successor_of {code: {code, name, from, to}} (null-year successors: predecessor, window), sources
+  {pct_member}}; overview `pct_membership` {status_on, retrieved, source_url, count_check_url, first_year, last_year
+  (status_on year), count {year: members on the list}, unmatched, continuing [{code, name, in_force, continues}],
+  territories [{code, name, periods [{via, state, from, to, sources}]}], successors [{predecessor, name, source,
+  codes, from, to, end_source, own_dates, note}]}.
 - manifest.json: releases, retrieval date, pipeline sha, last years, absent rows, `wdi_denominators` (WDI indicator,
   name, last updated, GDP base), `ratio_labels` (WIPO API label per ratio); run.py adds checks and, when the data
   changed, `version` (newest releases.json entry, releases.py). releases.json: run.py, never in `changed`/`_existing`.
@@ -45,9 +66,10 @@ from __future__ import annotations
 import datetime
 import json
 import os
+from decimal import Decimal
 from pathlib import Path
 
-from pipeline import breaks, crosscheck, derive, gender, groups, m49, scale, wdi
+from pipeline import breaks, crosscheck, derive, gender, groups, m49, pct_states, scale, wdi
 from pipeline.collect import GenderData, RatioData, SeriesData
 from pipeline.entities import classify, iso3
 from pipeline.series import (
@@ -65,13 +87,18 @@ from pipeline.series import (
     TOTAL_ROW_CODES,
     GenderDef,
 )
-from pipeline.worlds import COVERAGE_MIN_RATIO, SHARE_DENOMINATOR, WORLD_OF_SERIES, WORLD_SOURCES, World
+from pipeline.worlds import (
+    COVERAGE_MIN_RATIO, SHARE_DENOMINATOR, WORLD_OF_SERIES, WORLD_SOURCES, World, in_world_origin)
 from pipeline.worlds import totals as _totals
 
 TOP_N = 20
 GROWER_MIN = 1000  # fastest growers: countries with >= this many origin applications in the year shown
 RANK_RACE_TOP = 10  # spec Views: rank race = top 10 origins since 1995
 RANK_RACE_FROM = 1995
+# treemap: origin with value x 100 < this x WD folds into its continent's "other" (exact, before rounding);
+# published as method.treemap (the pipeline writes the treemap figures: spec 2a amendments)
+TREEMAP_FOLD_SHARE_PCT = 0.5
+SHARE_SHIFT_CHANGE = "difference of published shares"  # method.share_shift: how change_pp is computed
 PCT_MONTHLY_QUERY = (f"PCT tab; indicator {PCT_BY_FILING_DATE}; report: monthly statistics; receiving office: "
                      f"Total; origin: Total")
 SOURCE_NAME = "WIPO Statistics Database"
@@ -184,6 +211,114 @@ def _fastest_growers(origin: SeriesData, world: World, labels: dict[str, str]) -
             for _, code, rate, value in growers[:TOP_N]]
 
 
+def _top_grower(origin: SeriesData, world: World, top_origins: list[dict]) -> dict | None:
+    """Fastest grower among the top_origins rows (spec 2a amendments: no small-base outliers): highest cagr10 to
+    world.last_year (top_year), null skipped; tie -> better rank, then code. `breaks` = break years of its origin
+    series inside the CAGR window: after the base year (a break there leaves both ends on one method), up to the
+    end year."""
+    end = world.last_year
+    totals = _totals(origin)
+    rates = [(derive.cagr(totals[row["code"]], end), row) for row in top_origins]
+    rated = [(rate, row) for rate, row in rates if rate is not None]
+    if not rated:
+        return None
+    rate, row = min(rated, key=lambda item: (-item[0], item[1]["rank"], item[1]["code"]))
+    window = range(end - derive.CAGR_YEARS + 1, end + 1)
+    return {"code": row["code"], "label": row["label"], "rank": row["rank"], "value": row["value"], "cagr10": rate,
+            "breaks": sorted(year for year in breaks.break_years(row["code"], origin.series.id) if year in window)}
+
+
+def _world_yoy(worlds: dict[str, World]) -> dict[str, dict]:
+    """Year-on-year change of each published world series as published (WD / ZZ, cut at its world_last_year);
+    a year in breaks.world_break_years of its series = null, reason in `yoy_null_reason`."""
+    result = {}
+    for key in PUBLISHED_WORLDS:
+        world = worlds[key]
+        yoy = derive.yoy_growth({year: value for year, value in world.published.items() if year <= world.last_year})
+        broken = sorted(year for year in breaks.world_break_years(WORLD_SOURCES[key][0]) if year in yoy)
+        yoy.update({year: None for year in broken})
+        result[key] = {"yoy": _years(yoy), "yoy_null_reason": {str(year): breaks.SERIES_BREAK for year in broken}}
+    return result
+
+
+def _treemap(origin: SeriesData, ctx: groups.Context, labels: dict[str, str]) -> dict:
+    """{series, year, world, null_reason, continents, residual, unattributed, no_value} at top_year (the series' cut);
+    world = WD (groups.world_total: null when null or provisional), shares = derive.share of it.
+    null_reason = continent_share's for the year (attribution floor, WD null or provisional, a continent with no
+    member reporting: none_reported) -> every row list empty, residual null.
+    continents (CONTINENTS order): member-sum value = its M49 members with a value; a member under
+    TREEMAP_FOLD_SHARE_PCT of WD folds into `other` {value, share, codes} (null when none). residual = the
+    not-attributable rest (groups.unallocated); unattributed = origins with a value and no continent (inside the rest);
+    no_value = M49 members WIPO lists with null that year (listed, never 0)."""
+    series_id = origin.series.id
+    year = groups.cut_year(series_id, ctx.worlds)
+    world = groups.world_total(series_id, ctx.worlds).get(year)
+    totals = groups.continent_share(series_id, ctx)
+    result: dict = {"series": series_id, "year": year, "world": world, "null_reason": totals["null_reason"].get(year),
+                    "continents": [], "residual": None, "unattributed": [], "no_value": []}
+    if result["null_reason"] is not None:
+        return result
+    values = {code: types["total"].get(year) for code, types in origin.values.items()}
+
+    def row(code: str) -> dict:
+        return {"code": code, "label": labels[code], "value": values[code], "share": derive.share(values[code], world)}
+
+    line = Decimal(str(TREEMAP_FOLD_SHARE_PCT)) * world
+    for continent in m49.CONTINENTS:
+        reported = sorted((code for code in groups.listed_members(ctx.data, series_id, continent)
+                           if values[code] is not None), key=lambda code: (-values[code], code))
+        folded = sorted(code for code in reported if Decimal(values[code]) * 100 < line)
+        value = totals["continent"][continent][year]
+        member_sum = sum(values[code] for code in reported)
+        if member_sum != value:  # holds on member_sum basis only
+            raise ValueError(f"treemap {continent} {year}: members sum {member_sum} != continent total {value}")
+        other = sum(values[code] for code in folded)
+        result["continents"].append({
+            "id": continent, "label": groups.group_label(continent), "value": value,
+            "share": derive.share(value, world),
+            "countries": [row(code) for code in reported if code not in folded],
+            "other": {"value": other, "share": derive.share(other, world), "codes": folded} if folded else None})
+    rest = totals["unallocated"][year]
+    result["residual"] = {"value": rest, "share": derive.share(rest, world),
+                          "label": groups.unallocated_label(series_id, ctx)}
+    unattributed = [code for code, value in values.items()
+                    if value is not None and in_world_origin(code) and m49.continent_of(code) is None]
+    result["unattributed"] = [row(code) for code in sorted(unattributed, key=lambda code: (-values[code], code))]
+    result["no_value"] = [{"code": code, "label": labels[code]} for code in sorted(values)
+                          if values[code] is None and m49.continent_of(code) is not None]
+    return result
+
+
+def _share_shift(origin: SeriesData, world: World, denominator: dict[int, int | None],
+                 top_origins: list[dict]) -> dict:
+    """{series, base_year, year, null_reason, rows} for the top_origins rows (rank order). year = world.last_year
+    (top_year), base_year = year - derive.CAGR_YEARS (cagr10 window). `denominator` = groups.world_total (WD), so
+    shares = entity derived.share. change_pp = published share - published share_base, exact in Decimal: the figures
+    table adds up, within 0.01 pp of the unrounded difference; null with share_base (origin missing in the base
+    year: listed, not plotted). breaks = break years of the code's origin series in (base_year, year]: the two
+    shares sit on different methods. WD null or provisional at either year -> no_wipo_world_total, rows []."""
+    series_id = origin.series.id
+    year = world.last_year
+    base_year = year - derive.CAGR_YEARS
+    result: dict = {"series": series_id, "base_year": base_year, "year": year, "null_reason": None, "rows": []}
+    if denominator.get(year) is None or denominator.get(base_year) is None:
+        result["null_reason"] = groups.NO_WIPO_WORLD_TOTAL
+        return result
+    totals = _totals(origin)
+    window = range(base_year + 1, year + 1)
+    for top in top_origins:
+        code = top["code"]
+        share = derive.share(totals[code].get(year), denominator[year])
+        share_base = derive.share(totals[code].get(base_year), denominator[base_year])
+        change = None
+        if share is not None and share_base is not None:
+            change = float(Decimal(repr(share)) - Decimal(repr(share_base)))
+        broken = sorted(item for item in breaks.break_years(code, series_id) if item in window)
+        result["rows"].append({"code": code, "label": top["label"], "rank": top["rank"], "share_base": share_base,
+                               "share": share, "change_pp": change, "breaks": broken})
+    return result
+
+
 def _size_growth(origin: SeriesData, world: World, labels: dict[str, str]) -> list[dict]:
     """Every country of `_sized`, largest first; null cagr10 listed (the chart lists it under the plot)."""
     return [{"code": code, "label": labels[code], "continent": m49.continent_of(code), "value": value,
@@ -215,6 +350,7 @@ def method_constants() -> dict:
     return {
         "cagr_years": derive.CAGR_YEARS,
         "golden_tolerance_pct": crosscheck.GOLDEN_TOLERANCE_PCT,
+        "golden_growth_tolerance_pp": crosscheck.GOLDEN_GROWTH_TOLERANCE_PP,
         "rounding": {
             "mode": derive.ROUNDING_MODE,
             "decimals": {"yoy": derive.YOY_DECIMALS, "cagr": derive.CAGR_DECIMALS,
@@ -229,6 +365,8 @@ def method_constants() -> dict:
         "origin_abroad_from": groups.ORIGIN_ABROAD_FROM,
         "ratios": scale.method_constants(),
         "gender": gender.method_constants(),
+        "treemap": {"fold_share_pct": TREEMAP_FOLD_SHARE_PCT},
+        "share_shift": {"change": SHARE_SHIFT_CHANGE, "decimals": derive.SHARE_DECIMALS},
     }
 
 
@@ -591,6 +729,59 @@ def _map_file(series: SeriesData, until: int) -> dict:
             "sources": {series.series.id: _source(series, None)}}
 
 
+def _pct_source(states: pct_states.PctStates) -> dict:
+    return {"source_url": states.source_url, "count_check_url": states.count_check_url,
+            "status_on": states.status_on.isoformat(), "retrieved": states.retrieved.isoformat()}
+
+
+def _periods(states: pct_states.PctStates, territory: pct_states.Territory, sources: bool = False) -> list[dict]:
+    return [{"via": period.via, "state": states.names[period.via], "from": period.since.isoformat(),
+             "to": period.until and period.until.isoformat(),
+             **({"sources": [{"document": cited.document, "url": cited.url} for cited in period.sources]}
+                if sources else {})} for period in territory.periods]
+
+
+def _window(states: pct_states.PctStates, predecessor: pct_states.Predecessor) -> dict:
+    """from: the predecessor's printed date (null = the series' start); to: its end."""
+    start = pct_states.window_start(states, predecessor)
+    return {"from": start and start.isoformat(), "to": predecessor.end.isoformat()}
+
+
+def _pct_member_map_file(states: pct_states.PctStates, codes: list[str]) -> dict:
+    null_reason = pct_states.null_reasons(states, codes)
+    successors = pct_states.successor_of(states)
+    return {"values": {code: {str(year): member for year, member in years.items()}
+                       for code, years in pct_states.member_years(states, codes).items()},
+            "null_reason": null_reason,
+            "in_force": {code: day.isoformat() for code, day in states.in_force.items()},
+            "unmatched": pct_states.unmatched(states, codes),
+            "territories": {code: _periods(states, territory)
+                            for code, territory in sorted(states.territories.items()) if code in codes},
+            "successor_of": {code: {"code": successors[code].code, "name": successors[code].name,
+                                    **_window(states, successors[code])}
+                             for code, reason in null_reason.items() if reason == pct_states.SUCCESSOR_STATE},
+            "sources": {pct_states.PCT_MEMBER_ID: _pct_source(states)}}
+
+
+def _pct_membership(states: pct_states.PctStates, codes: list[str]) -> dict:
+    """Overview block: the map's year range and note counts; for the methods page the dates, unmatched and continuing
+    States, every territory and successor entry of the list."""
+    return {**_pct_source(states), "first_year": pct_states.PCT_FIRST_YEAR, "last_year": pct_states.last_year(states),
+            "count": {str(year): count for year, count in pct_states.counts(states).items()},
+            "unmatched": pct_states.unmatched(states, codes),
+            "continuing": [{"code": code, "name": states.names[code], "in_force": states.in_force[code].isoformat(),
+                            "continues": continues} for code, continues in sorted(states.continuing.items())],
+            "territories": [{"code": code, "name": territory.name, "periods": _periods(states, territory, True)}
+                            for code, territory in sorted(states.territories.items())],
+            "successors": [{"predecessor": code, "name": predecessor.name, "source": predecessor.source,
+                            "codes": list(predecessor.codes), **_window(states, predecessor),
+                            "end_source": predecessor.end_source,
+                            "own_dates": {successor: day.isoformat()
+                                          for successor, day in sorted(predecessor.own_dates.items())},
+                            "note": predecessor.note}
+                           for code, predecessor in sorted(states.successors.items())]}
+
+
 def groups_listing(group_items: list[dict]) -> dict:
     """groups.json: group list + former-entity successors (the map hatches a successor "reported under" its former)
     + `no_group` (code -> why M49 lists no region; methods page)."""
@@ -599,10 +790,14 @@ def groups_listing(group_items: list[dict]) -> dict:
 
 
 def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime.date, sha: str,
-                  group_ctx: groups.Context | None = None) -> dict[Path, dict | list]:
+                  group_ctx: groups.Context | None = None,
+                  pct: pct_states.PctStates | None = None) -> dict[Path, dict | list]:
     """Every site data file, keyed by path relative to the data root. Manifest `checks` filled by run.py.
     `collected` = collect() result + run.py's WDI `denominators`; `group_ctx` = groups.context of its series
-    (run.py shares it with the checks), built here when None."""
+    (run.py shares it with the checks), built here when None; `pct` = the PCT States list run.py loaded, loaded here
+    when None."""
+    if pct is None:
+        pct = pct_states.load_pct_states()
     data: dict[str, SeriesData] = collected["series"]
     for series in data.values():
         if series.last_year >= retrieved.year:
@@ -669,14 +864,21 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
     country_gender = {code: blocks for code, blocks in entity_gender.items() if classify(code) == "country"}
     for measure in gender.MEASURES:
         outputs[MAP_DIR / f"{measure}.json"] = _gender_map_file(measure, country_gender, collected)
+    outputs[MAP_DIR / f"{pct_states.PCT_MEMBER_ID}.json"] = _pct_member_map_file(pct, codes)
     gender_overview = _gender_overview(collected)
+    top_origins = _top_origins(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"], labels)
     outputs[OVERVIEW] = {
         **{key: _years(worlds[key].published, worlds[key].last_year) for key in PUBLISHED_WORLDS},
         "coverage": {key: _years(worlds[key].coverage) for key in PUBLISHED_WORLDS},
         "world_last_year": {key: worlds[key].last_year for key in PUBLISHED_WORLDS},
         "top_year": worlds["world_origin"].last_year,
         "coverage_rule": {"min_ratio": COVERAGE_MIN_RATIO, "lookback_years": derive.PROVISIONAL_LOOKBACK_YEARS},
-        "top_origins": _top_origins(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"], labels),
+        "top_origins": top_origins,
+        "top_grower": _top_grower(data["origin_apps"], worlds["world_origin"], top_origins),
+        "world_yoy": _world_yoy(worlds),
+        "treemap": _treemap(data["origin_apps"], group_ctx, labels),
+        "share_shift": _share_shift(data["origin_apps"], worlds["world_origin"], denominators["origin_apps"],
+                                    top_origins),
         "share_denominator": {series_id: SHARE_DENOMINATOR_LABEL[key] for series_id, key in SHARE_DENOMINATOR.items()},
         "fastest_growers": _fastest_growers(data["origin_apps"], worlds["world_origin"], labels),
         "size_growth": _size_growth(data["origin_apps"], worlds["world_origin"], labels),
@@ -700,6 +902,7 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
         "world_sources": {key: _world_source(key, data, worlds[key]) for key in PUBLISHED_WORLDS},
         "continent_share": {series.id: _continent_share(series.id, group_ctx) for series in SERIES},
         "series_breaks": [{**entry, "label": labels.get(entry["code"], entry["code"])} for entry in breaks.listing()],
+        "pct_membership": _pct_membership(pct, codes),
     }
     outputs[MANIFEST] = {
         "releases": dict(releases),
@@ -719,7 +922,13 @@ def build_outputs(collected: dict, releases: dict[str, str], retrieved: datetime
 def published_value(outputs: dict[Path, dict], series_id: str, code_or_world: str, year: int) -> int | float | None:
     """Total as published: "world" = the overview world series of `series_id`, else the entity file. Ratio ids
     (scale.RATIO_IDS): overview `world_ratios`, else entity `ratios.<id>.value`. Gender measures (women_any,
-    women_share): overview `gender.world`, else entity `gender.<id>.value`."""
+    women_share): overview `gender.world`, else entity `gender.<id>.value`. Growth ids
+    (crosscheck.GOLDEN_GROWTH_SERIES): overview `world_yoy.<world>.yoy`, world only (else None)."""
+    if series_id in crosscheck.GOLDEN_GROWTH_SERIES:
+        if code_or_world != "world":
+            return None
+        world_yoy = outputs[OVERVIEW].get("world_yoy", {}).get(crosscheck.GOLDEN_GROWTH_SERIES[series_id], {})
+        return world_yoy.get("yoy", {}).get(str(year))
     if series_id in gender.MEASURES:
         if code_or_world == "world":
             return outputs[OVERVIEW]["gender"]["world"].get(series_id, {}).get(str(year))

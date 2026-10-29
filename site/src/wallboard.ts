@@ -2,12 +2,14 @@
 // one chart per slide (`cfg.wallboard.slides`, each an embed query) for a TV, driven by keyboard, presentation clicker or
 // remote. No header or footer; the bottom bar names the slide, its sources, the data version and the WIPO disclaimer.
 // Draws what the embed draws (renderSlide); computes no figure. Never navigates (office `?rotate=` does: rotation.ts);
-// reloads its own address only when a full cycle finds a new data version.
-import { loadFresh, loadJson, setFetchTimeout, type Config, type Entities, type Manifest, type Overview } from "./data";
+// reloads its own address only when a full cycle finds a new data version. Slides, timer, failures and that reload: the
+// shared slide engine (slideDeck.ts); keys, picker, help and the bar: here.
+import { isListSource, loadJson, setFetchTimeout, type Config, type Entities, type Manifest, type Overview } from "./data";
 import { h } from "./dom";
 import { renderSlide, type SlideResult } from "./embed";
 import { echoValue, isRotationSeconds, readParams, type Params } from "./params";
 import { DISCLAIMER, releaseLabel } from "./provenance";
+import { createSlideDeck, type DeckSlide, type SlotMarkup } from "./slideDeck";
 
 export const WALLBOARD_VIEW = "wallboard";
 /** The board always draws in this theme (charts bake its colours; its tokens size the board for a room). */
@@ -76,6 +78,8 @@ const MAX_SAFE_AREA_PERCENT = 20;
 /** Progress bar update step; the theme's transition smooths it, reduced motion shows the steps. */
 const PROGRESS_STEP_MS = 1000;
 const UNAVAILABLE = "Data unavailable for this chart";
+/** The board's slot markup (base.css `.board-slot`; tests read the attributes). */
+const BOARD_SLOT: SlotMarkup = { slotClass: "board-slot", pendingClass: "board-slot--pending", slideAttribute: "data-slide", stateAttribute: "data-state" };
 
 const isPositive = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value > 0;
 
@@ -86,7 +90,7 @@ export function boardFetchTimeoutSeconds(cfg?: Config): number {
   return isPositive(seconds) ? seconds : FALLBACK.fetchTimeoutSeconds;
 }
 
-type BoardSlide = { id: string; label: string; params: Params };
+type BoardSlide = DeckSlide;
 type Settings = {
   seconds: number; hideControlsSeconds: number; fetchTimeoutSeconds: number; safeAreaPercent: number;
   /** every valid configured slide, in config order (the picker's choices) */
@@ -156,21 +160,17 @@ export function boardFacts(cfg: Config): { seconds: number; slideIds: string[] }
   return { seconds: settings.seconds, slideIds: settings.available.map((slide) => slide.id) };
 }
 
-/** A slide or its failure, never a throw (a load error or timeout = failed). */
+/** A slide; a load error or timeout throws (the deck counts it failed). */
 async function drawSlide(slot: HTMLElement, slide: BoardSlide, cfg: Config, manifest: Manifest): Promise<SlideResult> {
-  try {
-    const [entities, overview] = await Promise.all([loadJson<Entities>("data/entities.json"), loadJson<Overview>("data/overview.json")]);
-    return await renderSlide(slot, slide.params, { cfg, manifest, entities, overview }, true);
-  } catch (error) {
-    console.error(error);
-    return { ok: false, title: "", sources: [], dataCredits: [], notices: [], problem: [String(error)], dispose: () => {} };
-  }
+  const [entities, overview] = await Promise.all([loadJson<Entities>("data/entities.json"), loadJson<Overview>("data/overview.json")]);
+  return renderSlide(slot, slide.params, { cfg, manifest, entities, overview }, { fitToStage: true });
 }
 
-/** "Source: WIPO Statistics Database (release May 2026); World Bank WDI": the slide's own source blocks, each distinct
+/** "Source: WIPO Statistics Database (release May 2026); World Bank WDI" (a published list: its name and status): the slide's own source blocks, each distinct
  * name and release once, plus World Bank WDI when the slide uses it (its full credit line stays in the card). */
 function creditsText(result: SlideResult, manifest: Manifest): string {
-  const names = result.sources.map((src) => `${src.name} (release ${releaseLabel(manifest.releases[src.tab])})`);
+  const names = result.sources.map((src) => (isListSource(src) ? `${src.name} (${src.status})`
+    : `${src.name} (release ${releaseLabel(manifest.releases[src.tab])})`));
   if (result.dataCredits.some((line) => line.includes("World Bank WDI"))) names.push("World Bank WDI (CC BY 4.0)");
   return `Source: ${[...new Set(names)].join("; ")}`;
 }
@@ -247,132 +247,52 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
     ...settings.slidesNotices.map((text) => h("p", { class: "board-notice", [SLIDES_NOTICE_ATTRIBUTE]: "" }, text)));
   app.replaceChildren(board);
 
-  let index = 0;
-  let token = 0; // the render of the slide shown now; an older render is stale: disposed, never shown
-  let current: { token: number; settled: boolean; dispose: () => void } = { token: 0, settled: true, dispose: () => {} };
-  let failuresInRow = 0; // slides failed since the last that drew: all of them -> error screen
-  let errorShown = false;
-  let paused = false;
-  let timer: number | undefined;
   let ticker: number | undefined;
-  let remainingMs = slideMs;
-  let segmentStart = 0;
-
-  const progress = (): void => {
-    const running = paused ? 0 : performance.now() - segmentStart;
-    const done = Math.min(1, (slideMs - remainingMs + running) / slideMs);
-    fill.style.width = `${done * 100}%`;
-  };
-  const stopTimer = (): void => {
-    if (!paused) remainingMs = Math.max(0, remainingMs - (performance.now() - segmentStart));
-    clearTimeout(timer);
+  /** The bar's progress from the deck's: stepped while running (the theme's transition smooths it), still while paused. */
+  const syncProgress = (): void => {
+    const update = (): void => { fill.style.width = `${deck.progress() * 100}%`; };
     clearInterval(ticker);
+    update();
+    if (!deck.paused) ticker = window.setInterval(update, PROGRESS_STEP_MS);
   };
-  const armTimer = (): void => {
-    clearTimeout(timer);
-    clearInterval(ticker);
-    segmentStart = performance.now();
-    progress();
-    if (paused) return;
-    timer = window.setTimeout(slideEnded, remainingMs);
-    ticker = window.setInterval(progress, PROGRESS_STEP_MS);
-  };
-
   const errorScreen = (): HTMLElement => h("div", { class: "board-error", role: "alert" },
     h("p", { class: "board-error-title" }, "The charts could not be loaded."),
     h("p", {}, "Trying again with the next round of slides."));
+  let errorShown = false; // the deck's error screen is up: the bar keeps "Data unavailable" until a slide draws
 
-  /** The slide `slot` holds failed (or was not ready at its end: `shown` false, it is left at once). */
-  function slideFailed(slot: HTMLElement, shown: boolean): void {
-    failuresInRow += 1;
-    if (failuresInRow >= slides.length) {
-      failuresInRow = 0;
+  const deck = createSlideDeck(stage, slides, slideMs, manifest, {
+    draw: (slot, slide) => drawSlide(slot, slide, cfg, manifest),
+    onShow(slide, index, total, manual) {
+      if (!errorShown) {
+        label.textContent = slide.label;
+        credits.textContent = "";
+      }
+      count.textContent = `${index + 1} / ${total}`;
+      syncProgress();
+      if (manual) live.textContent = `Slide ${index + 1} of ${total}: ${slide.label}`;
+    },
+    onReady(slide, result) {
+      errorShown = false;
+      label.textContent = slide.label;
+      credits.textContent = creditsText(result, manifest);
+    },
+    onPausedChange(paused, byUser) {
+      pausedBadge.hidden = !paused;
+      pauseButton.textContent = paused ? "Resume" : "Pause";
+      if (byUser) live.textContent = paused ? "Paused" : "Resumed";
+      syncProgress();
+    },
+    onAllFailed() {
       errorShown = true;
       label.textContent = "Data unavailable";
       credits.textContent = "";
-      stage.replaceChildren(errorScreen());
-      return;
-    }
-    if (errorShown) slot.remove();
-    else if (shown) slot.replaceChildren(h("p", { class: "board-unavailable", role: "status" }, UNAVAILABLE));
-  }
+    },
+    errorScreen,
+    unavailable: () => h("p", { class: "board-unavailable", role: "status" }, UNAVAILABLE),
+  }, { userPaused: false }, BOARD_SLOT);
 
-  function show(next: number, manual: boolean): void {
-    index = (next + slides.length) % slides.length;
-    const slide = slides[index];
-    const mine = ++token;
-    current.dispose();
-    const slot = h("div", { class: "board-slot", "data-slide": slide.id, "data-state": "loading" });
-    if (errorShown) {
-      // the error screen stays until a slide draws; the slide loads hidden behind it
-      stage.querySelector(".board-slot")?.remove();
-      slot.classList.add("board-slot--pending");
-      stage.append(slot);
-    } else {
-      stage.replaceChildren(slot);
-      label.textContent = slide.label;
-      credits.textContent = "";
-    }
-    count.textContent = `${index + 1} / ${slides.length}`;
-    const entry = { token: mine, settled: false, dispose: () => {} };
-    current = entry;
-    remainingMs = slideMs;
-    armTimer();
-    if (manual) live.textContent = `Slide ${index + 1} of ${slides.length}: ${slide.label}`;
-    void drawSlide(slot, slide, cfg, manifest).then((result) => {
-      if (mine !== token) { // stale: a later slide is shown
-        result.dispose();
-        slot.remove();
-        return;
-      }
-      entry.settled = true;
-      entry.dispose = result.dispose;
-      slot.dataset.state = result.ok ? "ready" : "failed";
-      if (!result.ok) {
-        slideFailed(slot, true);
-        return;
-      }
-      failuresInRow = 0;
-      if (errorShown) {
-        errorShown = false;
-        slot.classList.remove("board-slot--pending");
-        stage.replaceChildren(slot);
-      }
-      label.textContent = slide.label;
-      credits.textContent = creditsText(result, manifest);
-    });
-  }
-
-  function slideEnded(): void {
-    if (!current.settled) slideFailed(stage.querySelector<HTMLElement>(".board-slot") ?? stage, false);
-    if (index + 1 >= slides.length) void reloadOnNewVersion();
-    show(index + 1, false);
-  }
-
-  /** Once per full cycle: a deploy since the board started -> reload (same address), so the bar never cites the old
-   * manifest's releases and version for files first loaded after the deploy. Offline: the next cycle tries again. */
-  async function reloadOnNewVersion(): Promise<void> {
-    try {
-      const latest = await loadFresh<Manifest>("data/manifest.json");
-      if (latest.version !== manifest.version) location.reload();
-    } catch (error) {
-      console.warn(error);
-    }
-  }
-
-  function setPaused(value: boolean, announce = true): void {
-    if (value === paused) return;
-    stopTimer();
-    paused = value;
-    pausedBadge.hidden = !paused;
-    pauseButton.textContent = paused ? "Resume" : "Pause";
-    if (announce) live.textContent = paused ? "Paused" : "Resumed";
-    armTimer();
-  }
-
-  // Overlays: open pauses; any close (Esc, its key, Close, Apply) restores the pause state from before opening.
+  // Overlays: open holds the deck; any close (Esc, its key, Close, Apply) releases it (a pause from before opening stays).
   let openOverlay: "slides" | "help" | null = null;
-  let pausedBeforeOverlay = false;
   function toggleOverlay(name: "slides" | "help"): void {
     syncOverlay();
     if (openOverlay === name) {
@@ -382,8 +302,7 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
     if (openOverlay) return;
     if (name === "slides") fillPicker();
     openOverlay = name;
-    pausedBeforeOverlay = paused;
-    setPaused(true, false);
+    deck.hold("overlay", true);
     overlays[name].showModal();
   }
   /** The dialog's `close` event comes later than `close()`: the state is restored here at once (so a quick next key
@@ -402,7 +321,7 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
     pickerMessage.hidden = true;
     // focus the browser has not yet moved out of the closed dialog would swallow the next key (a tick box or button)
     if (overlays[name].contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
-    setPaused(pausedBeforeOverlay, false);
+    deck.hold("overlay", false);
   }
   for (const [name, dialog] of Object.entries(overlays) as ["slides" | "help", HTMLDialogElement][]) {
     dialog.addEventListener("close", () => { if (!dialog.open) restoreAfterOverlay(name); }); // not a stale event of an earlier close
@@ -456,9 +375,8 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
     const query = [rest, repeatsConfig ? "" : `slides=${ids.map(encodeURIComponent).join(",")}`].filter(Boolean).join("&");
     history.replaceState(history.state, "", `${url.pathname}${query ? `?${query}` : ""}${url.hash}`);
     for (const notice of noticeList.querySelectorAll(`[${SLIDES_NOTICE_ATTRIBUTE}]`)) notice.remove();
-    failuresInRow = 0;
     errorShown = false;
-    show(0, true);
+    deck.setSlides(slides, 0);
   }
   pickerDialog.querySelector("[data-apply]")?.addEventListener("click", () => {
     const ids = [...pickerList.querySelectorAll<HTMLInputElement>("li")].flatMap((row) => {
@@ -487,9 +405,9 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
   }
 
   function act(action: BoardAction, manual: boolean): void {
-    if (action === "pause") setPaused(!paused);
-    else if (action === "next") show(index + 1, manual);
-    else if (action === "previous") show(index - 1, manual);
+    if (action === "pause") deck.setUserPaused(!deck.userPaused);
+    else if (action === "next") deck.next(manual);
+    else if (action === "previous") deck.previous(manual);
     else if (action === "slides" || action === "help") toggleOverlay(action);
     else void toggleFullscreen();
   }
@@ -554,5 +472,5 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
       h("p", {}, "Add slides to wallboard.slides in config.json.")));
     return;
   }
-  show(0, false);
+  deck.show(0, false);
 }

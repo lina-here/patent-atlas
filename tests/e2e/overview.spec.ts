@@ -9,9 +9,9 @@ const overview = JSON.parse(readFileSync("site/data/overview.json", "utf8"));
 const groupsFile = JSON.parse(readFileSync("site/data/groups.json", "utf8"));
 
 const OVERVIEW_CHARTS = ["world-map", "world-trend", "top-origins", "fastest-growers", "pct-world-trend", "rank-race", "continent-share",
-  "size-growth", "pct-monthly"];
+  "treemap", "share-shift", "size-growth", "pct-monthly"];
 /** Overview cards that count applications by origin: each carries the pre-ORIGIN_ABROAD_FROM note. */
-const ORIGIN_CARDS = ["world-map", "top-origins", "fastest-growers", "rank-race", "continent-share", "size-growth"];
+const ORIGIN_CARDS = ["world-map", "top-origins", "fastest-growers", "rank-race", "continent-share", "size-growth", "treemap", "share-shift"];
 
 /** World years shown (<= world_last_year) and those among them with a null value. */
 function worldYears(world: "world_office" | "pct_world"): { shown: string[]; nulls: string[] } {
@@ -51,6 +51,16 @@ test("overview shows the world chart cards (map first), each with an SVG chart a
     await expect(card.locator(".source-line")).toContainText(manifest.retrieved);
   }
   expect(errors).toEqual([]);
+});
+
+test("overview shows treemap and share-shift after continent-share", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".chart-card").last()).toHaveAttribute("data-chart", "pct-monthly");
+  const order = await page.locator("#charts .chart-card").evaluateAll((cards) => cards.map((card) => card.getAttribute("data-chart")));
+  const at = order.indexOf("continent-share");
+  expect(at).toBeGreaterThan(-1);
+  expect(order.slice(at, at + 3)).toEqual(["continent-share", "treemap", "share-shift"]);
+  await expect(page.locator('.chart-card[data-chart="treemap"]')).toHaveClass(/chart-card--wide/);
 });
 
 test("show figures reveals a table with the latest year", async ({ page }) => {
@@ -859,7 +869,7 @@ test("the year in the origin note is read from overview.json", async ({ page }) 
 
 test("methods page documents each overview view", async ({ page }) => {
   await page.goto("/methods.html");
-  for (const name of ["Rank race", "Region share of world", "Size versus growth", "PCT monthly heat strip"]) {
+  for (const name of ["Rank race", "Region share of world", "Size versus growth", "PCT monthly heat strip", "Treemap", "Share shift"]) {
     const term = page.locator("#formulas dt", { hasText: name });
     await expect(term).toHaveCount(1);
     await expect(term.locator("xpath=following-sibling::dd[1]")).not.toBeEmpty();
@@ -915,6 +925,31 @@ test("overview without series_breaks (data before the refresh that adds it): no 
   await page.goto("/");
   await expect(page.locator('.chart-card[data-chart="world-trend"] svg').first()).toBeVisible();
   await expect(page.locator('.chart-card[data-chart="continent-share"] svg').first()).toBeVisible();
-  await expect(page.getByText("Series break")).toHaveCount(0);
+  // the share-shift card's dagger line says "series break" in lower case: only the notes are meant. Every break note starts
+  // "Series break <year>:" (methods.ts seriesBreakNotes), also after "Includes <label>: "; a note without that form would slip through.
+  await expect(page.getByText(/Series break \d{4}:/)).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [390, 768, 1440]) {
+  test(`PCT membership map at ${width}px: no page overflow; controls, legend, notes and source line stay inside the card${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/?metric=pct_member");
+    const card = page.locator('.chart-card[data-chart="world-map"]');
+    await expect(card.locator('path[data-bin="nonmember"]').first()).toBeVisible();
+    const fit = await card.evaluate((element) => {
+      const frame = element.getBoundingClientRect();
+      const parts = [...element.querySelectorAll(".map-controls label, .map-legend li, .chart-note, .source-line, .map-disclaimer, .map-svg")]
+        .map((part) => ({ text: (part.textContent ?? part.tagName).slice(0, 40), left: part.getBoundingClientRect().left, right: part.getBoundingClientRect().right }));
+      return { left: frame.left, right: frame.right, parts,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    expect(fit.overflow).toBeLessThanOrEqual(0);
+    expect(fit.parts.length).toBeGreaterThan(5);
+    for (const part of fit.parts) {
+      expect(part.left, part.text).toBeGreaterThanOrEqual(fit.left - 1);
+      expect(part.right, part.text).toBeLessThanOrEqual(fit.right + 1);
+    }
+  });
+}

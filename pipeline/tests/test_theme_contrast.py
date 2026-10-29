@@ -16,6 +16,8 @@ PAIRS = [
     ("map-neutral-line", "map-neutral", 3, "neutral cross-hatch line on its ground"),
     ("map-zero-mark", "map-zero", 3, "reported-zero dots on their ground"),
     ("map-former-line", "map-former", 3, "former-entity hatch line on its ground"),
+    ("map-member", "surface", 3, "PCT member fill vs card"),
+    ("map-nonmember-mark", "map-nonmember", 3, "PCT non-member pattern marks on their ground"),
     ("control-border", "surface", 3, "select/input border in a card"),
     ("control-border", "bg", 3, "select/input border on the page"),
     ("pulse-ink", "bg", 4.5, ".pulse newest-year text on the page"),
@@ -101,3 +103,62 @@ def test_map_edge_width_is_at_least_one_pixel(theme):
     match = re.fullmatch(r"([0-9.]+)px", width)
     assert match, f"{theme}: --map-edge-width {width!r} is not px"
     assert float(match.group(1)) >= 1, f"{theme}: --map-edge-width {width} < 1px"
+
+
+def test_membership_bins_use_their_tokens():
+    """PCT membership layer: member = --map-member fill, non-member = its own pattern (map.ts NONMEMBER_ID)."""
+    base = (ROOT / "site" / "css" / "base.css").read_text()
+    assert re.search(r'\.map-shape\[data-bin="member"\] \{ fill: var\(--map-member\); \}', base)
+    assert re.search(r'\.map-shape\[data-bin="nonmember"\] \{ fill: url\(#world-map-nonmember\); \}', base)
+    assert re.search(r"\.map-nonmember-bg \{ fill: var\(--map-nonmember\); \}", base)
+    assert re.search(r"\.map-nonmember-mark \{ fill: var\(--map-nonmember-mark\); \}", base)
+
+
+CONTINENT_TOKENS = ["continent-africa", "continent-asia", "continent-europe", "continent-latin-america-caribbean",
+                    "continent-northern-america", "continent-oceania", "treemap-residual"]
+TREEMAP_TEXT_MIN = 4.5
+TREEMAP_TEXT_MIN_WALLBOARD = 7  # conference wallboard readability
+
+
+@pytest.mark.parametrize("theme", THEMES)
+@pytest.mark.parametrize("fill", CONTINENT_TOKENS)
+def test_treemap_label_contrast(theme, fill):
+    """Treemap labels are --ink or --surface, whichever contrasts more with the rectangle (treemap.ts); that best
+    contrast must reach 4.5:1 (wallboard 7:1) for every continent fill and for the solid plate behind the label on
+    the hatched rest."""
+    table = tokens(theme)
+    need = TREEMAP_TEXT_MIN_WALLBOARD if theme == "wallboard" else TREEMAP_TEXT_MIN
+    ground = colour(table[fill], table)[0]
+    best = max(ratio(colour(table[label], table)[0], ground) for label in ("ink", "surface"))
+    assert best >= need, f"{theme}: label on --{fill} = {best:.2f} < {need}"
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_treemap_residual_label_on_a_solid_plate(theme):
+    """The rest's label sits on a solid --treemap-residual plate, so the hatch tokens never lie under text."""
+    base = (ROOT / "site" / "css" / "base.css").read_text()
+    assert re.search(r"\.treemap-plate \{[^}]*fill: var\(--treemap-residual\)", base)
+    # the hatch fill is an attribute per treemap (its own pattern id, treemap.ts); a stylesheet fill would override it
+    assert re.search(r"\.treemap-residual \{[^}]*stroke: var\(--map-edge\)", base)
+    assert not re.search(r"\.treemap-residual \{[^}]*fill:", base)
+    treemap = (ROOT / "site" / "src" / "treemap.ts").read_text()
+    assert re.search(r"hatchFill = `url\(#\$\{hatchId\}\)`", treemap)
+    assert "treemap-residual" in tokens(theme)
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_treemap_band_outline_is_thin_enough_not_to_hide_small_rectangles(theme):
+    """The continent outline is a px token between the rectangle stroke's width and the chart line width: any wider hides
+    the fill of a small rectangle that touches it (treemap.spec.ts measures the fill that stays visible)."""
+    table = tokens(theme)
+    band = float(re.fullmatch(r"([0-9.]+)px", table["treemap-band-width"]).group(1))
+    assert float(re.fullmatch(r"([0-9.]+)px", table["map-edge-width"]).group(1)) <= band, theme
+    assert band <= float(re.fullmatch(r"([0-9.]+)px", table["chart-line-width"]).group(1)), theme
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_treemap_key_number_size_is_a_theme_token(theme):
+    """The digit in each key swatch is sized by a theme token (an em ratio of the key text), not by the script."""
+    assert re.fullmatch(r"[0-9.]+em", tokens(theme)["treemap-key-number-size"]), theme
+    base = (ROOT / "site" / "css" / "base.css").read_text()
+    assert re.search(r"\.treemap-key-number \{[^}]*font-size: var\(--treemap-key-number-size\)", base)

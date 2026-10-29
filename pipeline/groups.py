@@ -336,8 +336,8 @@ def continent_share(series_id: str, ctx: Context) -> dict:
 
 
 def check_warnings(ctx: Context) -> list[str]:
-    """Manifest warnings (never blocking): cross-check outside GROUP_CROSSCHECK_RANGE, negative unallocated,
-    PCT `**` band mismatch."""
+    """Manifest warnings (never blocking): cross-check outside GROUP_CROSSCHECK_RANGE, negative unallocated (the
+    continent-share history; at the treemap year run.run_checks blocks on it), PCT `**` band mismatch."""
     low, high = (Decimal(str(bound)) for bound in GROUP_CROSSCHECK_RANGE)
     warnings = []
     for series in SERIES:

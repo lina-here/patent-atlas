@@ -1,7 +1,8 @@
 // Single entry for every page (esbuild bundles this file only). The page kind comes from
 // <body data-page="overview|methods|about|embed">; index.html shows the overview, a country / office page
 // for `?country=` / `?office=`, a region / continent page for `?region=` / `?continent=` (regionPage.ts), or the
-// women-inventors page for `?view=women-inventors` (womenPage.ts), or the data versions for `?view=releases` (releasesPage.ts);
+// women-inventors page for `?view=women-inventors` (womenPage.ts), or the data versions for `?view=releases` (releasesPage.ts),
+// or the dashboard for `?view=dashboard` (dashboard.ts: its `rotate` is the carousel's, never office rotation);
 // embed.html shows one chart card (embed.ts). `?view=wallboard` = the conference wallboard (wallboard.ts): its own branch in
 // start(), with no header, footer or office rotation.
 import { loadAtlas, missingGroupsNotice, lazyMetricsFor, type Atlas, type GroupsFile } from "./atlas";
@@ -9,7 +10,8 @@ import { loadFresh, loadJson, setFetchTimeout, type Config, type Entities, type 
 import { h } from "./dom";
 import { renderEmbed, renderEmbedFooter } from "./embed";
 import { SERIES_TITLES, presentSources, renderMethods, type GeoSource } from "./methods";
-import { addressParams, addressView, echoValue, pageLink, readParams, shareUrl, withParams, type Params } from "./params";
+import { addressParams, addressView, echoValue, pageLink, readParams, shareUrl, viewLink, withParams, type Params } from "./params";
+import { DASHBOARD_VIEW, renderDashboard } from "./dashboard";
 import { DISCLAIMER, citeText, releaseLabel, renderFooter } from "./provenance";
 import { renderEntityPage } from "./entityPage";
 import { checkMapParams } from "./map";
@@ -23,11 +25,14 @@ import { markViewReady, startRotation } from "./rotation";
 import { applyTheme, revealPage, themeLoaded } from "./theme";
 
 type Page = "overview" | "methods" | "about" | "embed";
+/** A header nav entry: a page, or the dashboard (index.html's `?view=dashboard`). */
+type NavItem = "overview" | "dashboard" | "methods" | "about";
 
-const NAV: { page: Page; href: string; label: string }[] = [
-  { page: "overview", href: "./", label: "Overview" },
-  { page: "methods", href: "methods.html", label: "Methods" },
-  { page: "about", href: "about.html", label: "About" },
+const NAV: { item: NavItem; href: (cfg: Config, params: Params) => string; label: string }[] = [
+  { item: "overview", href: (cfg, params) => pageLink(cfg, params, "./"), label: "Overview" },
+  { item: "dashboard", href: (cfg, params) => viewLink(cfg, params, DASHBOARD_VIEW), label: "Dashboard" },
+  { item: "methods", href: (cfg, params) => pageLink(cfg, params, "methods.html"), label: "Methods" },
+  { item: "about", href: (cfg, params) => pageLink(cfg, params, "about.html"), label: "About" },
 ];
 
 function currentPage(): Page {
@@ -56,18 +61,21 @@ function themeSwitch(cfg: Config, params: Params): HTMLElement {
 }
 
 function renderHeader(el: HTMLElement, cfg: Config, page: Page, params: Params): void {
+  const dashboard = page === "overview" && params.view === DASHBOARD_VIEW;
+  const current: NavItem | undefined = dashboard ? "dashboard" : page === "embed" ? undefined : page;
   el.replaceChildren(
     h("a", { class: "brand", href: pageLink(cfg, params, "./") },
       h("span", { class: "brand-name" }, cfg.siteName),
       h("span", { class: "brand-tagline" }, "Patent and PCT statistics"),
     ),
     h("nav", { class: "site-nav", "aria-label": "Main" },
-      NAV.map((item) => h("a", {
-        href: pageLink(cfg, params, item.href),
-        ...(item.page === page ? { "aria-current": "page" } : {}),
-      }, item.label)),
+      NAV.map((entry) => h("a", {
+        href: entry.href(cfg, params),
+        ...(entry.item === current ? { "aria-current": "page" } : {}),
+      }, entry.label)),
     ),
-    h("div", { class: "header-controls" }, themeSwitch(cfg, params), startRotation(cfg, params)),
+    // the dashboard's `rotate` starts its carousel (dashboard.ts), never office rotation, which would navigate away
+    h("div", { class: "header-controls" }, themeSwitch(cfg, params), dashboard ? null : startRotation(cfg, params)),
   );
 }
 
@@ -168,7 +176,7 @@ async function renderIndex(app: HTMLElement, cfg: Config, params: Params, manife
     return [];
   }
   // preloaded with the page data when the address asks for the overview (no country or office)
-  const atlasLoad = params.country || params.office || params.view ? null : loadAtlasOrError(params.metric);
+  const atlasLoad = params.country || params.office || (params.view && params.view !== DASHBOARD_VIEW) ? null : loadAtlasOrError(params.metric);
   const [entities, overview] = await Promise.all([
     loadJson<Entities>("data/entities.json"),
     loadJson<Overview>("data/overview.json"),
@@ -181,6 +189,11 @@ async function renderIndex(app: HTMLElement, cfg: Config, params: Params, manife
   }
   if (params.view === WOMEN_VIEW) { // params.ts has dropped `view` when a country, office, region or continent is asked for
     await renderWomenPage(app, ctx);
+    return notices;
+  }
+  if (params.view === DASHBOARD_VIEW) {
+    const atlas = await overviewAtlas(atlasLoad ?? loadAtlasOrError(params.metric), cfg, overview, params, notices);
+    notices.push(...(await renderDashboard(app, { ...ctx, atlas })));
     return notices;
   }
   if (params.region || params.continent) {
@@ -256,8 +269,8 @@ async function renderAbout(app: HTMLElement, cfg: Config, params: Params, manife
     h("header", { class: "page-intro" },
       h("h1", {}, `About ${cfg.siteName}`),
       h("p", { class: "lede" },
-        `${cfg.siteName} turns WIPO's yearly patent and PCT statistics into charts with its own analysis: growth, world shares, `,
-        "ranks and comparisons between countries and offices. It is made for patent office staff, researchers and students who need figures they can trace and cite."),
+        `${cfg.siteName} charts WIPO's yearly patent and PCT statistics and adds its own analysis: growth, world shares, `,
+        "ranks and comparisons between countries and offices. It is meant for patent office staff, researchers and students who need figures they can trace and cite."),
     ),
     h("div", { class: "prose" },
       h("section", { id: "author" },

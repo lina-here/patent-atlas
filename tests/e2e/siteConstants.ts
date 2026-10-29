@@ -61,3 +61,11 @@ export const BOARD_FALLBACK: Record<"seconds" | "hideControlsSeconds" | "fetchTi
   }
   return values as Record<"seconds" | "hideControlsSeconds" | "fetchTimeoutSeconds" | "safeAreaPercent", number>;
 })();
+
+/** The dashboard's tile ids in page order (dashboard.ts `DASHBOARD_TILE_IDS`): its key figures, then the map, treemap and
+ * share-shift charts. */
+export const DASHBOARD_TILE_IDS: string[] = (() => {
+  const list = /^export const DASHBOARD_TILE_IDS = (\[[^\]]+\])(?: as const)?;/m.exec(readFileSync("site/src/dashboard.ts", "utf8"))?.[1];
+  if (!list) throw new Error("no DASHBOARD_TILE_IDS in site/src/dashboard.ts");
+  return JSON.parse(list);
+})();

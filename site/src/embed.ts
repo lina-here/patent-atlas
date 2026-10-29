@@ -9,13 +9,14 @@ import type { CardBuilder } from "./overview";
 import { renderCards, worldCards } from "./overview";
 import { REGION_COMPARE_CARD_ID, SCALE_CARD_ID, SERIES_CARD_IDS, TILES_CARD_ID, entityCards, loadCountryRegion, loadGroups, type EntityPageContext } from "./entityPage";
 import { GROUP_CARD_IDS, findGroup, groupCards } from "./regionPage";
-import { loadJson, type EntityFile, type SourceBlock } from "./data";
+import { loadJson, type CardSource, type EntityFile } from "./data";
 import { ENTITY_WOMEN_CARD_ID } from "./genderCards";
 import { h } from "./dom";
 import { PAGE_PARAMS, addressTheme, echoValue, shareUrl, withParams, type Params } from "./params";
 import { DISCLAIMER } from "./provenance";
 import { themeLoaded } from "./theme";
 import { WOMEN_CARD_IDS, WOMEN_RANKING_ID, loadWomenRanking, womenCards } from "./womenPage";
+import { keyFigureCards } from "./dashboard";
 
 /** Overview cards that name continents (their display names come from groups.json): only groups.json is loaded for them,
  * and a failure to load it is the card's error (no guessed names). */
@@ -62,7 +63,8 @@ async function worldBuilder(ctx: EntityPageContext, id: string): Promise<Found |
     groups = (await loadGroups())?.items ?? null;
     if (!groups) return { problem: [CONTINENT_NAMES_PROBLEM] };
   }
-  const builder = worldCards(ctx.overview, atlas, { ...ctx, compact: true }, groups ?? atlas?.groups ?? null).find((card) => card.id === id);
+  const builder = [...worldCards(ctx.overview, atlas, { ...ctx, compact: true }, groups ?? atlas?.groups ?? null), ...keyFigureCards(ctx.overview)]
+    .find((card) => card.id === id);
   return builder ? { builder, notices } : undefined;
 }
 
@@ -131,18 +133,24 @@ async function groupBuilder(ctx: EntityPageContext, id: string): Promise<Found> 
  * `dataCredits` = the card's own source blocks and other data credits (World Bank WDI); `dispose` removes the slide's
  * observers and listeners (the wallboard calls it before dropping the slide). */
 export type SlideResult = {
-  ok: boolean; title: string; sources: SourceBlock[]; dataCredits: string[]; notices: string[]; problem: string[];
+  ok: boolean; title: string; sources: CardSource[]; dataCredits: string[]; notices: string[]; problem: string[];
   dispose(): void;
 };
 
-/** One chart card (compact) in `stage` (spec §Rendering): the chart named by `params.chart`
+/** How `renderSlide` draws: `fitToStage` = fitted to the stage's height (wallboard, dashboard carousel), else to the viewport's
+ * (the embed's iframe); `fillStage` = with `fitToStage`, the chart also grows into the card's spare height (dashboard
+ * carousel: the card is as high as its stage); `full` = a full card (Show figures, Cite, Embed, sources and notes) with a same-tab link to the chart on
+ * the overview (dashboard), else compact; `idPrefix` = put before every id the slide makes (CardContext.idPrefix). */
+export type SlideOptions = { fitToStage?: boolean; fillStage?: boolean; full?: boolean; idPrefix?: string };
+
+/** One chart card in `stage` (spec §Rendering): the chart named by `params.chart`
  * (with country/office for entity charts, region/continent for group charts). The atlas is loaded only for the charts
- * that need it. Fitted and redrawn on any resize: `fitToStage` (the wallboard) to the stage's height, else (the embed page)
- * to the viewport's (the host's iframe). Embed page and wallboard. */
+ * that need it. Fitted and redrawn on any resize (`opts.fitToStage`). Embed page, wallboard and dashboard carousel. */
 export async function renderSlide(stage: HTMLElement, params: Params, ctx: Omit<EntityPageContext, "params">,
-  fitToStage = false): Promise<SlideResult> {
+  opts: SlideOptions = {}): Promise<SlideResult> {
+  const { fitToStage = false, fillStage = false, full = false, idPrefix } = opts;
   const failed = (...problem: string[]): SlideResult => ({ ok: false, title: "", sources: [], dataCredits: [], notices: [], problem, dispose: () => {} });
-  const slideCtx: EntityPageContext = { ...ctx, params };
+  const slideCtx: EntityPageContext = { ...ctx, params, idPrefix };
   const id = params.chart;
   if (!id) return failed("No chart chosen.", "Add chart=<id> to the address, for example ?chart=world-trend.");
   const groupChart = Boolean(params.region || params.continent) && !params.country && !params.office && GROUP_CARD_IDS.includes(id);
@@ -156,12 +164,14 @@ export async function renderSlide(stage: HTMLElement, params: Params, ctx: Omit<
   const { builder, notices = [] } = found;
   const content = builder.build();
   if (!content && !builder.problem) return failed(`No data to draw “${id}”.`, "There is no data to draw it.");
-  const grid = h("div", { id: "charts", class: "chart-grid embed-grid" });
+  const grid = h("div", { id: `${idPrefix ?? ""}charts`, class: "chart-grid embed-grid" });
   stage.replaceChildren(grid);
   await themeLoaded();
-  // built once above: renderCards would build it again; no content = the card's problem message (renderCards)
-  const dispose = renderCards(grid, [{ ...builder, build: () => content, wide: true }], { cfg: ctx.cfg, manifest: ctx.manifest, params, compact: true },
-    fitToStage ? { fitTo: stage } : { fit: true });
+  // built once above: renderCards would build it again; no content = the card's problem message (renderCards). A full
+  // card with state (`params`) keeps its builder: each redraw builds from the card's state, never the first build.
+  const build = full && builder.params ? builder.build : () => content;
+  const dispose = renderCards(grid, [{ ...builder, build, wide: true }], { cfg: ctx.cfg, manifest: ctx.manifest, params, compact: !full, linkOverview: full, idPrefix },
+    fitToStage ? { fitTo: stage, fill: fillStage } : { fit: true });
   const title = grid.querySelector("h2")?.textContent ?? "";
   if (!content) return { ...failed(), title, dispose };
   return { ok: true, title, sources: [content.source].flat(), dataCredits: content.dataCredits ?? [], notices, problem: [], dispose };

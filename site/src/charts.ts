@@ -7,12 +7,16 @@ import { areaY, axisX, axisY, barX, dot, gridY, line, plot, pointerX, ruleX, rul
 import { formatCount } from "./dom";
 
 export type LinePoint = { year: number; value: number | null; key?: string };
-export type BarRow = { label: string; value: number };
+/** `key` = the bar's identity when it is not its label (default: the label; unique per bar); `title` = the tooltip name when
+ * the label is a cut or short form (default: the label). */
+export type BarRow = { label: string; value: number; key?: string; title?: string };
 
 /** Drawing width when the caller cannot measure its container (e.g. not yet in the page). */
 export const FALLBACK_WIDTH = 640;
 /** Layout ratio: share of the chart width the bar labels may take before they are cut with an ellipsis. */
-const MAX_LABEL_SHARE = 0.42;
+export const MAX_LABEL_SHARE = 0.42;
+/** Layout ratio: the least plot width (in font sizes) the labels and value texts leave on a narrow chart. */
+const MIN_PLOT_EM = 3;
 /** Only when the theme stylesheet failed to load (no tokens at all): keeps charts drawable and legible. */
 const UNTHEMED = { fontSize: 12, areaOpacity: 0.1, ringOpacity: 0.5, barPadding: 0.3, yTicks: 5 };
 
@@ -151,9 +155,10 @@ export function minMapHeight(): number {
   return cssLength("--chart-font-size", UNTHEMED.fontSize) * MIN_MAP_HEIGHT_EM;
 }
 
-/** The drawing height: the theme's, or `wanted` (wallboard fit) when given, never below MIN_CHART_HEIGHT_EM. */
+/** The drawing height: the theme's, or `wanted` (a fit: shrunk to its room, or grown to fill a carousel card) when given,
+ * never below MIN_CHART_HEIGHT_EM. */
 export function fitHeight(wanted: number | undefined, theme: ChartTheme): number {
-  return wanted === undefined ? theme.height : Math.max(theme.fontSize * MIN_CHART_HEIGHT_EM, Math.min(wanted, theme.height));
+  return wanted === undefined ? theme.height : Math.max(theme.fontSize * MIN_CHART_HEIGHT_EM, wanted);
 }
 
 /** Layout ratio: least distance between two end labels, in font sizes. */
@@ -251,22 +256,41 @@ export function lineChart(data: LinePoint[],
   return svg;
 }
 
-/** Horizontal bars in the given order (ranked lists), value printed at each bar end. */
-export function barChart(rows: BarRow[], opts: { width?: number; height?: number; format?: (value: number) => string } = {}): SVGElement {
+/** The room (px) a bar chart's labels may take at `width`: the label share, less what the value texts (`valueWidth`, one margin
+ * each side when a bar can be negative) and a minimal plot need. */
+export function barLabelRoom(width: number, valueWidth: number, hasNegative: boolean, theme: ChartTheme): number {
+  const gap = theme.fontSize * 0.5;
+  return Math.max(0, Math.min(width * MAX_LABEL_SHARE, width - gap - valueWidth * (hasNegative ? 2 : 1) - MIN_PLOT_EM * theme.fontSize));
+}
+
+/** The width of the widest value text of a bar chart, with its two gaps (the margin the texts need beside the bars). */
+export function barValueWidth(texts: string[], theme: ChartTheme): number {
+  return widest(texts, theme) + theme.fontSize * 0.5 * 2;
+}
+
+/** Horizontal bars in the given order (ranked lists), value printed at each bar end; `fill` = a bar's colour (default: the
+ * theme's first chart colour); `labelRoom` = the width (px) the labels may take (default: `barLabelRoom`). */
+export function barChart(rows: BarRow[], opts: { width?: number; height?: number; format?: (value: number) => string;
+  fill?: (row: BarRow) => string; labelRoom?: number } = {}): SVGElement {
   const theme = readTheme();
   const format = opts.format ?? formatCount;
   const width = opts.width ?? FALLBACK_WIDTH;
   const gap = theme.fontSize * 0.5; // layout ratio: label-to-bar gap scales with the text
   const naturalWidth = widest(rows.map((row) => row.label), theme);
-  const labelWidth = Math.min(naturalWidth, width * MAX_LABEL_SHARE);
-  // Cut only labels past the cap; Plot's own text estimate (lineWidth, in ems) differs from the font.
-  const cut = naturalWidth > labelWidth ? { textOverflow: "ellipsis" as const, lineWidth: labelWidth / theme.fontSize } : {};
-  const valueWidth = widest(rows.map((row) => format(row.value)), theme) + gap * 2;
+  const valueWidth = barValueWidth(rows.map((row) => format(row.value)), theme);
   const values = rows.map((row) => row.value);
   const hasNegative = values.some((value) => value < 0);
-  // `opts.height` (wallboard fit) squeezes the bar step, never below the text's own height
+  const labelWidth = Math.min(naturalWidth, opts.labelRoom ?? barLabelRoom(width, valueWidth, hasNegative, theme));
+  // Cut only labels past the cap; Plot's own text estimate (lineWidth, in ems) differs from the font.
+  const cut = naturalWidth > labelWidth ? { textOverflow: "ellipsis" as const, lineWidth: labelWidth / theme.fontSize } : {};
+  // bars keyed apart from their labels: two equal labels stay two bars, the axis shows the label
+  const keyed = rows.some((row) => row.key !== undefined);
+  const keyOf = (row: BarRow): string => row.key ?? row.label;
+  const labelOfKey = new Map(rows.map((row) => [keyOf(row), row.label]));
+  const y = keyed ? keyOf : "label";
+  // `opts.height` (a fit) sets the bar step: squeezed, never below the text's own height, or grown to fill a carousel card
   const barStep = opts.height === undefined ? theme.barStep
-    : Math.min(theme.barStep, Math.max(theme.fontSize * MIN_BAR_STEP_EM, opts.height / Math.max(1, rows.length)));
+    : Math.max(theme.fontSize * MIN_BAR_STEP_EM, opts.height / Math.max(1, rows.length));
 
   return plot({
     width,
@@ -276,22 +300,23 @@ export function barChart(rows: BarRow[], opts: { width?: number; height?: number
     marginLeft: labelWidth + gap + (hasNegative ? valueWidth : 0),
     marginRight: valueWidth,
     x: { axis: null, domain: [Math.min(0, ...values), Math.max(0, ...values)] },
-    y: { domain: rows.map((row) => row.label), label: null, padding: theme.barPadding },
+    y: { domain: rows.map(keyOf), label: null, padding: theme.barPadding },
     marks: [
       axisY({
         tickSize: 0, tickPadding: gap + (hasNegative ? valueWidth : 0), color: theme.ink, label: null,
+        ...(keyed ? { tickFormat: (key: string) => labelOfKey.get(key) ?? key } : {}),
         ...cut,
       }),
       barX(rows, {
-        x: "value", y: "label", fill: theme.series[0],
-        title: (row: BarRow) => `${row.label}: ${format(row.value)}`,
+        x: "value", y, fill: opts.fill ?? theme.series[0],
+        title: (row: BarRow) => `${row.title ?? row.label}: ${format(row.value)}`,
       }),
       ruleX([0], { stroke: theme.muted }),
       text(rows.filter((row) => row.value >= 0), {
-        x: "value", y: "label", text: (row: BarRow) => format(row.value), dx: gap, textAnchor: "start", fill: theme.ink,
+        x: "value", y, text: (row: BarRow) => format(row.value), dx: gap, textAnchor: "start", fill: theme.ink,
       }),
       text(rows.filter((row) => row.value < 0), {
-        x: "value", y: "label", text: (row: BarRow) => format(row.value), dx: -gap, textAnchor: "end", fill: theme.ink,
+        x: "value", y, text: (row: BarRow) => format(row.value), dx: -gap, textAnchor: "end", fill: theme.ink,
       }),
     ],
   }) as SVGElement;

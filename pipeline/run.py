@@ -2,10 +2,12 @@
 
 collect (WIPO: counts, PCT months, ratios, PCT publications, women-inventor shares) -> WDI denominators (ratios) ->
 build outputs -> cross-checks (crosscheck.py) -> regression vs committed data (regress.py) -> write only when data
-changed, as a new data version (releases.py; refused for a dirty or unknown pipeline). Exit 0 = written, unchanged, or dry
-run passed; 2 = blocking failure (fetch, schema, check, regression, dirty pipeline): nothing written, last good data
-kept. --dry-run runs every check and prints the results, writes nothing. --bootstrap-version: no fetch, first data
-version for the data already in --out (refused unless their manifest names a commit of this repo).
+changed, as a new data version (releases.py; refused for a dirty or unknown pipeline). Exit 0 = written, unchanged, or
+dry run passed; 2 = blocking failure (fetch, schema, check, regression, dirty pipeline): nothing written, last good
+data kept. PCT Contracting States (pct_states.json): loaded before any fetch, a load error blocks; the line naming the
+count, status date and listed codes with no WIPO entity is a report, never blocking. --dry-run runs every check and
+prints the results, writes nothing. --bootstrap-version: no fetch, first data version for the data already in --out
+(refused unless their manifest names a commit of this repo).
 """
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from pipeline import crosscheck, gender, groups, m49, regress, releases as versions, scale, wdi, write
+from pipeline import crosscheck, gender, groups, m49, pct_states, regress, releases as versions, scale, wdi, write
 from pipeline.collect import SeriesData, collect, releases
 from pipeline.crosscheck import CheckError, Fetch, Fetcher
 from pipeline.entities import classify
@@ -166,6 +168,13 @@ def _gender_lines(block: dict) -> list[str]:
             *(f"{line} (warning)" for line in block["warnings"])]
 
 
+def pct_states_line(block: dict) -> str:
+    """Report line of overview `pct_membership`: never blocking (an unmatched code stays listed, counted)."""
+    missing = ", ".join(block["unmatched"]) or "none"
+    return (f"PCT states: {block['count'][str(block['last_year'])]} (status on {block['status_on']}); "
+            f"no WIPO entity: {missing}")
+
+
 def _summary_lines(key: str, result: object) -> list:
     if key == "ratios":
         return [line for ratio_id, block in result.items() for line in _ratio_lines(ratio_id, block)]
@@ -177,7 +186,9 @@ def _summary_lines(key: str, result: object) -> list:
 def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetcher,
                ctx: groups.Context) -> tuple[list[str], dict]:
     """(blocking failures, manifest checks summary). `collected` = collect() result + WDI `denominators`; `ctx` =
-    the groups.context build_outputs used (its worlds too). CheckError from WDI/golden propagates (blocking)."""
+    the groups.context build_outputs used (its worlds too). CheckError from WDI/golden propagates (blocking).
+    Negative not-attributable rest: blocking at the treemap year (overview `treemap`), warning in the continent-share
+    history (groups.check_warnings); unattributed origins above that rest block too."""
     data: dict[str, SeriesData] = collected["series"]
     if ctx.data is not data:
         raise ValueError("group context built for other data")
@@ -214,6 +225,16 @@ def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetch
         golden, lambda entry: write.published_value(outputs, entry["series"], entry["code_or_world"], entry["year"]))
     failures += golden_failures
 
+    treemap = outputs[write.OVERVIEW]["treemap"]
+    if treemap["residual"] is not None:
+        rest = treemap["residual"]["value"]
+        unattributed = sum(row["value"] for row in treemap["unattributed"])
+        if rest < 0:
+            failures.append(f"treemap {treemap['year']}: not-attributable rest negative ({rest})")
+        elif unattributed > rest:  # origins without a continent sit inside the rest (WD below the origin sum)
+            failures.append(f"treemap {treemap['year']}: unattributed origins exceed the not-attributable rest "
+                            f"({unattributed} > {rest})")
+
     numerators = {scale.RATIO_NUMERATOR[ratio_id] for ratio_id in scale.WIPO_RATIO_IDS}
     if len(numerators) != 1:  # ratio_crosscheck takes one numerator for both WIPO ratios (M1)
         raise ValueError(f"WIPO ratios {scale.WIPO_RATIO_IDS} need one numerator, got {sorted(numerators)}")
@@ -241,7 +262,7 @@ def run_checks(collected: dict, outputs: dict[Path, dict | list], fetcher: Fetch
         "pct_monthly": crosscheck.monthly_check(
             {int(year): values for year, values in outputs[write.OVERVIEW]["pct_monthly"].items()},
             worlds["pct_world"].published),  # warnings only: as published vs WIPO's yearly ZZ
-        # warnings only: cross-check, negative band, PCT ** band
+        # warnings only: cross-check, negative band (at the treemap year it blocks, above), PCT ** band
         "groups": groups.check_warnings(ctx),
         # warnings unless the World row or the ratio's blocking test (scale.RATIO_BLOCKING_TEST) fails
         "ratios": ratio_summary(ratio_check, write.unlisted_ratio_codes(collected, worlds)),
@@ -278,13 +299,14 @@ def main(argv: list[str] | None = None) -> int:
     use_system_ca_bundle()
     retrieved = utc_today()
     try:
+        pct = pct_states.load_pct_states()  # ValueError: a bad list blocks the run, before any fetch
         client = WipoClient()
         fetcher = Fetcher()
         collected = collect(client, retrieved)
         collected["denominators"] = ratio_denominators(collected["series"], fetcher.get)
         release_strings = releases(client)
         ctx = groups.context(collected["series"])  # one per run: outputs and checks share it
-        outputs = write.build_outputs(collected, release_strings, retrieved, pipeline_sha(), ctx)
+        outputs = write.build_outputs(collected, release_strings, retrieved, pipeline_sha(), ctx, pct)
         failures, summary = run_checks(collected, outputs, fetcher, ctx)
         regression = regress.compare(outputs, args.out)
     except (WipoError, SchemaError, CheckError, ValueError) as error:
@@ -295,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.accept_regression:
         failures += regression.blocking
     print(f"releases: {release_strings}; retrieved {retrieved}")
+    print(pct_states_line(outputs[write.OVERVIEW]["pct_membership"]))
     for key, result in summary.items():
         for line in _summary_lines(key, result):
             print(f"{key}: {line}")

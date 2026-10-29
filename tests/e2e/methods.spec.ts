@@ -1,7 +1,8 @@
 import { test, expect, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 import { fixtureBreak, routeSeriesBreaks } from "./seriesBreaks";
-import { BOARD_FALLBACK } from "./siteConstants";
+import { BOARD_FALLBACK, DASHBOARD_TILE_IDS } from "./siteConstants";
+import { stateInProse } from "./pctProse";
 
 // Methods page (methods.html): home of methods-page tests from v0.2b on. Wording checks quote the page's own text;
 // figures are read from data files, never typed.
@@ -37,7 +38,7 @@ test("series breaks section lists each break with its note, publication link and
 test("no series_breaks in the data (before the refresh that adds it): no series breaks section, no error", async ({ page }) => {
   const errors = trackErrors(page);
   await routeSeriesBreaks(page, null);
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#world-totals");
   await expect(page.locator("#world-totals")).toBeVisible();
   await expect(page.locator("#series-breaks")).toHaveCount(0);
   await expect(page.locator('.toc a[href="#series-breaks"]')).toHaveCount(0);
@@ -60,7 +61,8 @@ test("definitions: origin figures are absolute counts, a regional filing counts 
   const origin = page.locator("#definitions dt", { hasText: /^Origin$/ }).locator("xpath=following-sibling::dd[1]");
   await expect(origin).toContainText("absolute count");
   await expect(origin).toContainText("counts once");
-  await expect(origin).toContainText("Origin figures are absolute counts (WIPO 'total count'): an application at a regional office counts once.");
+  await expect(origin).toContainText("Origin figures are absolute counts (WIPO 'total count'): an application at a regional office counts once, " +
+    "as a resident filing for applicants from that office's member states.");
 });
 
 // --- v0.2b scale measures: #scale, #ratio-check, regression lines of the checks section --------------------------------
@@ -146,6 +148,7 @@ test("ratio check: tolerances, blocking and warning tests, World row and counts 
   await expect(page.locator('.toc a[href="#ratio-check"]')).toHaveCount(1);
   await expect(check).toContainText(`${method.abs_tolerance} + ${percentOf(method.rel_tolerance)}%`);
   await expect(check).toContainText("The World row always blocks");
+  await expect(check).toContainText("Each ratio is tested on its own: of its two tests below, one blocks the update and the other only warns.");
   await expect(check).toContainText(`within ${method.wdi_max_lag} years`);
   await expect(check).toContainText("revises GDP and population after WIPO's release");
   for (const id of WIPO_IDS) {
@@ -240,7 +243,8 @@ test("regression lines from the committed manifest; none recorded in an older ma
   await expect(page.locator("#cross-checks")).toContainText(`more than ${regression.warn_pct}% `);
   await expect(page.locator("#cross-checks")).toContainText(`${regression.revision_count} revisions`);
   await patchData(page, ({ manifest: m }) => { delete m.checks.regression; });
-  await page.goto("/methods.html");
+  await page.goto("about:blank"); // a hash-only change would keep the page drawn from the unpatched manifest
+  await page.goto("/methods.html#check-regression");
   await expect(page.locator("#check-regression")).toBeVisible();
   await expect(page.locator("#cross-checks")).toContainText("Not recorded in this release.");
   expect(errors).toEqual([]);
@@ -254,7 +258,7 @@ test("data written before v0.2b (no ratio method, no ratio checks): no scale or 
     delete m.ratio_labels;
     delete m.wdi_denominators;
   });
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#cross-checks");
   await expect(page.locator("#cross-checks")).toBeVisible();
   await expect(page.locator("#scale")).toHaveCount(0);
   await expect(page.locator("#ratio-check")).toHaveCount(0);
@@ -464,7 +468,7 @@ async function expectWomenSection(page: Page, files: WomenFiles): Promise<void> 
 test("women inventors: every figure of the section equals the committed data files", async ({ page }) => {
   const errors = trackErrors(page);
   const files = await routeWomenFiles(page, () => undefined);
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#women-inventors");
   await expectWomenSection(page, files);
   expect(errors).toEqual([]);
 });
@@ -493,7 +497,7 @@ test("women inventors: patched data files change every figure of the section", a
     ov.gender.groups.europe.printed_refs.women_any = { "2025": { figure: "A24", page: "patched page 9" } };
     ov.gender.printed_source = { citation: "Patched Printed Citation (2030)", url: "https://example.org/printed.pdf" };
   });
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#women-inventors");
   await expectWomenSection(page, files);
   await expect(page.locator("#women-groups .women-left-out")).toContainText("Switzerland (CH)");
   await expect(page.locator("#women-crosscheck")).toContainText("(1 figure in this release)");
@@ -509,7 +513,7 @@ test("women inventors: the methods page requests no group file and no PCT origin
   const errors = trackErrors(page);
   const requested: string[] = [];
   page.on("request", (request) => requested.push(request.url()));
-  await page.goto("/methods.html");
+  await page.goto("/methods.html#women-inventors");
   await expect(page.locator("#women-inventors")).toBeVisible();
   await expect(page.locator("#women-groups .women-left-out li").first()).toBeVisible();
   expect(requested.filter((url) => url.includes("/data/group/") || url.includes("map/pct_origin.json"))).toEqual([]);
@@ -521,7 +525,7 @@ test("women inventors: the methods page requests no group file and no PCT origin
     delete ov.method.gender;
     await route.fulfill({ json: ov });
   });
-  await bare.goto("/methods.html");
+  await bare.goto("/methods.html#world-totals");
   await expect(bare.locator("#world-totals")).toBeVisible();
   await expect(bare.locator("#women-inventors")).toHaveCount(0);
   await expect(bare.locator('.toc a[href="#women-inventors"]')).toHaveCount(0);
@@ -554,5 +558,240 @@ test("wallboard section states what the board runs with: no wallboard block or a
   await expect(section).toContainText(`of ${wallboard.slides.length} charts, one per slide, each for ${BOARD_FALLBACK.seconds} seconds`);
   await expect(section).toContainText(`Text is at least ${wallboard.minTextPx} px`);
   await expect(page.locator(".notice-error")).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+async function expectPctSection(page: Page, pct: any): Promise<void> {
+  const section = page.locator("#pct-membership");
+  await expect(section.locator("h2")).toHaveText("PCT membership");
+  await expect(page.locator('.toc a[href="#pct-membership"]')).toHaveCount(1);
+  // both WIPO documents, linked: the page (rows) and the PDF list (count, status date)
+  await expect(section.locator(`a[href="${pct.source_url}"]`)).toHaveCount(1);
+  await expect(section.locator(`a[href="${pct.count_check_url}"]`)).toHaveCount(1);
+  await expect(section).toContainText(`${pct.count[pct.last_year]} States on ${pct.status_on}`);
+  await expect(section).toContainText(`retrieved ${pct.retrieved}`);
+  // member rule: bound by 31 December; the latest year as of the status date; slider from the treaty's first year
+  await expect(section).toContainText("bound by the PCT by 31 December of that year");
+  await expect(section).toContainText(`the latest year, ${pct.last_year}, shows the list as of ${pct.status_on}`);
+  await expect(section).toContainText(`The year slider starts in ${pct.first_year}`);
+  await expect(section).toContainText("today's Contracting States bound by 31 December of each year; territories and former entities are not counted");
+  await expect(section).toContainText("A former entity (");
+  await expect(section).toContainText("never shown as a non-member");
+  await expect(section).not.toContainText("former State (");
+  // territories: WIPO's page footnotes, each with its State and date, from the overview
+  await expect(section).toContainText("Where a footnote on WIPO's page says the PCT applies to a territory through a Contracting State");
+  for (const territory of pct.territories) {
+    for (const p of territory.periods) {
+      await expect(section).toContainText(`through ${stateInProse(p.state)} ${p.to ? `${p.from} to ${p.to}` : `since ${p.from}`}`);
+      for (const cited of p.sources) if (cited.url !== pct.source_url) await expect(section.locator(`a[href="${cited.url}"]`)).toHaveCount(1);
+      // the sources of one period, as read: "footnote" for WIPO's page, else each document's name, ", " between
+      const named = p.sources.map((cited: { url: string; document: string }) => (cited.url === pct.source_url ? "footnote" : cited.document.split(" (")[0])).join(", ");
+      await expect(section).toContainText(`${p.to ? `${p.from} to ${p.to}` : `since ${p.from}`} (${named})`);
+    }
+  }
+  await expect(section).toContainText("PCT Notification No. 34, PCT Notification No. 122"); // Hong Kong before 1997
+  // successor States: the rule stated neutrally, no "part of" wording, no reason clause
+  await expect(section).toContainText("years while its territory's treaty status depended on a former State, or on a State it left, are not shown");
+  await expect(section).not.toContainText("part of");
+  await expect(section).not.toContainText("gives no dates for former States");
+  // successor States: ISO 3166-3 (ISO 3166-1 for a State that left a continuing one); each predecessor, its States, note
+  await expect(section).toContainText("Successor States follow ISO 3166-3 (former country codes)");
+  const items = section.locator("ul.pct-successors li");
+  await expect(items).toHaveCount(pct.successors.length);
+  for (const [index, entry] of (pct.successors as { name: string; source: string; from: string | null; to: string; end_source: string; codes: string[]; own_dates: Record<string, string>; note: string }[]).entries()) {
+    await expect(items.nth(index)).toContainText(`${entry.name} (${entry.source}), ${entry.from ?? pct.first_year} to ${entry.to} (end: ${entry.end_source}): `);
+    for (const code of entry.codes) {
+      await expect(items.nth(index)).toContainText(`${entityLabels.get(code)?.label ?? code} (${code})${entry.own_dates[code] ? `, own date ${entry.own_dates[code]}` : ""}`);
+    }
+    if (entry.note) await expect(items.nth(index)).toContainText(entry.note);
+  }
+  for (const state of pct.continuing) await expect(section).toContainText(`${state.name} (continuing ${state.continues})`);
+  await expect(section).toContainText("date as printed by WIPO");
+  await expect(section).toContainText("WIPO's PDF list prints the code MT for Mauritius");
+  await expect(section).toContainText(`named under the map: ${pct.unmatched.length ? pct.unmatched.join(", ") : "none"}.`);
+  await expect(section).toContainText("updated by hand");
+}
+
+test("PCT membership section: both WIPO documents, count, status date, member rule and continuing States from the overview; TOC links it", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  await expectPctSection(page, overview.pct_membership);
+  expect(errors).toEqual([]);
+});
+
+test("PCT membership section follows patched data; without pct_membership no section, no error", async ({ page }) => {
+  const errors = trackErrors(page);
+  const patched = structuredClone(overview.pct_membership);
+  Object.assign(patched, { status_on: "2027-02-01", retrieved: "2027-02-03", last_year: 2027, first_year: 1979, unmatched: ["QZ"],
+    continuing: [{ code: "RU", continues: "Testland", in_force: "1978-03-29", name: "Russian Federation" }] });
+  patched.count["2027"] = 161;
+  await patchData(page, ({ overview: ov }) => { ov.pct_membership = patched; });
+  await page.goto("/methods.html");
+  await expectPctSection(page, patched);
+  expect(errors).toEqual([]);
+  const bare = await page.context().newPage();
+  const bareErrors = trackErrors(bare);
+  await bare.route("**/data/overview.json", async (route) => {
+    const ov = await (await route.fetch()).json();
+    delete ov.pct_membership;
+    await route.fulfill({ json: ov });
+  });
+  await bare.goto("/methods.html#map");
+  await expect(bare.locator("#map")).toBeVisible();
+  await expect(bare.locator("#pct-membership")).toHaveCount(0);
+  await expect(bare.locator('.toc a[href="#pct-membership"]')).toHaveCount(0);
+  expect(bareErrors).toEqual([]);
+});
+
+// --- v2a: treemap, share shift, world change, golden rules, dashboard ---------------------------------------------------
+// Numbers are read from overview.json and config.json; only wording is typed.
+const config = readJson("site/config.json");
+const term = (page: Page, name: string) => page.locator("#formulas dt", { hasText: new RegExp(`^${name}$`) }).locator("xpath=following-sibling::dd[1]");
+
+test("methods: the treemap term states fold rule, residual, denominator, floor and the negative-rest rule", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const dd = term(page, "Treemap");
+  const { fold_share_pct: fold } = overview.method.treemap;
+  await expect(dd).toContainText(`below ${fold}% of WD, exact, before rounding`);
+  // three short paragraphs: what the area is; the fold rule; when it is not drawn, what blocks, share rounding
+  await expect(dd.locator("> p")).toHaveCount(3);
+  await expect(dd.locator("> p").nth(0)).toContainText("The area of a rectangle");
+  await expect(dd.locator("> p").nth(1)).toContainText("folds into");
+  await expect(dd.locator("> p").nth(2)).toContainText("The treemap is drawn only when");
+  await expect(dd.locator("> p").nth(2)).toContainText("each rounded on their own");
+  await expect(dd).toContainText("a folded origin may show as");
+  await expect(dd).toContainText("“Other <continent>”");
+  await expect(dd).toContainText("one rectangle named after the continent");
+  await expect(dd).toContainText(`“${overview.treemap.residual.label}”`);
+  await expect(dd).toContainText(overview.share_denominator.origin_apps);
+  await expect(dd).toContainText(`grouped countries of all continents together account for at least ${Math.round(overview.method.group_attribution_min * 100)}% of the world total (the attribution floor)`);
+  await expect(dd).toContainText("the WIPO world total is present and not provisional");
+  await expect(dd).not.toContainText("A continent total counts only");
+  await expect(dd).toContainText("is a warning in the continent-share history");
+  await expect(dd).toContainText("blocks at the treemap year: the refresh stops and the last good data stays");
+  await expect(dd).toContainText("The refresh also stops when origins without a continent exceed that rest");
+  await expect(dd).toContainText("each rounded on their own");
+  await expect(dd).toContainText("add up to 100");
+  expect(errors).toEqual([]);
+});
+
+test("methods: the share shift term states the base year, the change rule, the bound, the gaps and the breaks", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const dd = term(page, "Share shift");
+  const { cagr_years: years, share_shift: shift } = overview.method;
+  const bound = (10 ** -shift.decimals).toFixed(shift.decimals);
+  await expect(dd).toContainText(`of the top ${overview.top_n} origins of ${overview.share_shift.year}`);
+  await expect(dd).toContainText(`${years} years before`);
+  await expect(dd).toContainText(`${overview.share_shift.base_year}`);
+  await expect(dd).toContainText("percentage points");
+  await expect(dd).toContainText(shift.change);
+  await expect(dd).toContainText(`(both rounded to ${shift.decimals} decimals)`);
+  await expect(dd).not.toContainText("as published");
+  await expect(dd).toContainText(`within ${bound} pp of the exact difference`);
+  await expect(dd).toContainText("sign never flips");
+  await expect(dd).toContainText("no figure in the base year is listed under the chart, not plotted");
+  await expect(dd).toContainText("series break");
+  expect(errors).toEqual([]);
+});
+
+test("methods: world change is defined, and the golden sentence states both tolerance rules", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const change = term(page, "World change");
+  await expect(change).toContainText("WD");
+  await expect(change).toContainText("ZZ");
+  await expect(change).toContainText("computed from WIPO's totals");
+  const { golden_tolerance_pct: pct, golden_growth_tolerance_pp: pp } = overview.method;
+  const sentence = page.locator("#cross-checks p", { hasText: "Headline figures from WIPO" });
+  await expect(sentence).toContainText(`every figure except growth within ${pct}% (relative)`);
+  await expect(sentence).toContainText(`growth figures within ${pp} percentage points (absolute)`);
+  // the checks list shows both growth figures, from the manifest
+  const growthIds: string[] = manifest.checks.golden_sources.map((source: Json) => source.id).filter((id: string) => id.includes("_growth_"));
+  expect(growthIds.length).toBe(2);
+  for (const id of growthIds) {
+    await expect(page.locator("#cross-checks .check-lines li", { hasText: id })).toHaveCount(1);
+    await expect(page.locator("#cross-checks .golden-sources li", { hasText: id })).toHaveCount(1);
+  }
+  expect(errors).toEqual([]);
+});
+
+test("methods: the treemap, share shift and growth tolerance are left out of data that lacks them, without error", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.route("**/data/overview.json", async (route) => {
+    const ov: Json = await (await route.fetch()).json();
+    delete ov.method.treemap;
+    delete ov.method.share_shift;
+    delete ov.method.golden_growth_tolerance_pp;
+    delete ov.treemap;
+    delete ov.share_shift;
+    await route.fulfill({ json: ov });
+  });
+  await page.goto("/methods.html#formulas");
+  await expect(page.locator("#formulas")).toBeVisible();
+  await expect(page.locator("#formulas dt", { hasText: /^Treemap$/ })).toHaveCount(0);
+  await expect(page.locator("#formulas dt", { hasText: /^Share shift$/ })).toHaveCount(0);
+  await expect(page.locator("#cross-checks")).not.toContainText("percentage points (absolute)");
+  expect(errors).toEqual([]);
+});
+
+test("methods: one voice and plain wording in the computed cases, checks, women and lede", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  // computed cases: a term list like the definitions, no bold labels
+  const cases = page.locator("#scale h3", { hasText: /^Computed cases$/ }).locator("xpath=following-sibling::*[1]");
+  await expect(cases).toHaveJSProperty("tagName", "DL");
+  await expect(cases).toHaveClass("terms");
+  await expect(cases.locator("dt")).toHaveText(["A country-year WIPO publishes no value for", "Regions and continents", "PCT per million", "No denominator"]);
+  await expect(cases.locator("strong")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("Our sum");
+  await expect(page.locator("#world-totals th", { hasText: "÷ WIPO total" })).toHaveText("Patent Atlas sum ÷ WIPO total, lowest");
+  await expect(page.locator("#cross-checks")).toContainText("The Patent Atlas sum of reporting entities against WIPO's totals");
+  await expect(page.locator("#check-golden")).toHaveText("Published WIPO figures (blocking)");
+  // the range as the methods page writes a signed whole percent (+x% above zero)
+  const [low, high] = overview.method.group_crosscheck_range.map((value: number) => `${Math.round(value * 100) > 0 ? "+" : ""}${Math.round(value * 100)}%`);
+  await expect(page.locator("#check-groups + p")).toHaveText(`Listed here: group cross-check gaps outside the expected range of ${low} to ${high}, ` +
+    "a negative band under the continents, and a PCT “Unknown” row that does not match the world total.");
+  await expect(page.locator("main")).not.toContainText("cannot be averaged");
+  const lede = page.locator(".page-intro .lede");
+  await expect(lede).toContainText("the checks run before each update against WIPO's published figures, World Bank and OECD data.");
+  await expect(lede).toContainText("World Development Indicators (WDI)");
+  expect(errors).toEqual([]);
+});
+
+test("methods: the dashboard section lists the tiles, the controls, the holds and ?rotate=", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/methods.html");
+  const section = page.locator("#dashboard");
+  await expect(section.locator("h2")).toHaveText("Dashboard");
+  await expect(page.locator('.toc a[href="#dashboard"]')).toHaveCount(1);
+  await expect(section).toContainText("?view=dashboard");
+  // one list entry per tile of the dashboard, in page order (dashboard.ts DASHBOARD_TILE_IDS, read from the source)
+  const tileIds = DASHBOARD_TILE_IDS;
+  await expect(section.locator(".dashboard-tiles li")).toHaveCount(tileIds.length);
+  expect(await section.locator(".dashboard-tiles li").evaluateAll((items) => items.map((item) => item.getAttribute("data-tile")))).toEqual(tileIds);
+  await expect(section).toContainText("Next to the world map, a carousel shows");
+  await expect(section).not.toContainText("Beside the key figures");
+  await expect(section).toContainText("links to its full chart on the overview");
+  await expect(section).toContainText(`${config.dashboard.slides.length} charts`);
+  await expect(section).toContainText(`${config.dashboard.seconds} seconds`);
+  for (const name of ["Play", "Pause", "Previous", "Next"]) await expect(section.locator("code", { hasText: new RegExp(`^${name}$`) })).toHaveCount(1);
+  const { resumeAfterSeconds, pauseMovePixels, minSeconds } = config.rotation;
+  const holds = section.locator("ul.carousel-holds li");
+  await expect(holds).toHaveCount(4);
+  await expect(holds.nth(0)).toContainText(`at least ${pauseMovePixels} pixels`);
+  await expect(holds.nth(0)).toContainText(`${resumeAfterSeconds} seconds without movement`);
+  await expect(holds.nth(1)).toContainText("Keyboard focus inside the carousel");
+  await expect(holds.nth(1)).toContainText("A mouse click on a button does not");
+  await expect(holds.nth(2)).toContainText("hidden browser tab");
+  await expect(holds.nth(3)).toContainText("open figures, cite or embed panel");
+  await expect(holds.nth(3)).toContainText("open sources and notes box");
+  await expect(section).toContainText("Play also ends a pointer hold");
+  await expect(section).toContainText("Pause stops it; only Play ends that pause.");
+  await expect(section).toContainText("it never starts by itself");
+  await expect(section).toContainText("even with reduced motion; reduced motion only turns off the fade between slides");
+  await expect(section).toContainText(`?rotate=<seconds>`);
+  await expect(section).toContainText(`at least ${minSeconds}`);
   expect(errors).toEqual([]);
 });

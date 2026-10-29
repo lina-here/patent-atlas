@@ -97,5 +97,27 @@
     "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
     "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf",
     "page": "p. 9 (PDF p. 10), text 'Spain (28.7%)' citing figure A25; also figure A25 (p. 29, PDF p. 30) value label"
+  },
+  {
+    "id": "world_patent_growth_2024",
+    "description": "Growth of patent applications worldwide, 2023 to 2024, percent, as printed (one decimal; WIPO computes it from its own world totals). Printed in table 'IP filing activity by origin', header 'Patents 2023 2024 Growth rate (%) Share of world total (%)', row 'Applications worldwide 3,552,300 3,725,000 4.9 100.0'. Compared with the year-on-year change of the published world series (overview world_yoy.world_office: Data Center office report, row World = WD); tolerance in percentage points (GOLDEN_GROWTH_TOLERANCE_PP, crosscheck.py).",
+    "value": 4.9,
+    "year": 2024,
+    "series": "world_office_yoy",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (WIPO) (2025). World Intellectual Property Indicators 2025. Geneva: WIPO. DOI: 10.34667/tind.58959",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-941-2025-en-world-intellectual-property-indicators-2025.pdf",
+    "page": "p. 7 (PDF p. 9), table 'IP filing activity by origin', section 'Patents', row 'Applications worldwide', column 'Growth rate (%)'"
+  },
+  {
+    "id": "pct_growth_2025",
+    "description": "Growth of PCT applications filed, all origins, 2024 to 2025, percent, as printed (one decimal; 2025 = WIPO estimate). Printed in table A9 'PCT applications for the top origins by region, 2023–2025', columns '2023 2024 2025 Regional share 2025 (%) Change from 2024 (%)', row 'Total 272,475 273,913 275,900 n.a. 0.7'; also p. 6 'Key numbers for 2025': '275,900 (+0.7%) PCT applications filed'. Compared with the year-on-year change of the published PCT world series (overview world_yoy.pct_world: Data Center PCT yearly report, origin Total = ZZ, receiving office Total); tolerance in percentage points (GOLDEN_GROWTH_TOLERANCE_PP, crosscheck.py).",
+    "value": 0.7,
+    "year": 2025,
+    "series": "pct_world_yoy",
+    "code_or_world": "world",
+    "citation": "World Intellectual Property Organization (WIPO) (2026). PCT Yearly Review 2026: The International Patent System. Geneva: WIPO. DOI: 10.34667/tind.59475",
+    "url": "https://www.wipo.int/edocs/pubdocs/en/wipo-pub-901-2026-en-patent-cooperation-treaty-yearly-review-2026.pdf",
+    "page": "p. 16 (PDF p. 17), table A9 row 'Total', column 'Change from 2024 (%)'; also p. 6 (PDF p. 7) key numbers"
   }
 ]

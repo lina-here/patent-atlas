@@ -344,10 +344,10 @@ test("navigation links carry only the theme; the picker's carry the theme and th
   await expect(page.locator(".site-nav a").first()).toBeVisible(); // evaluateAll does not wait: the header is drawn by script
   const hrefs = await page.locator(".brand, .site-nav a, .footer-links a").evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
   expect(hrefs.length).toBeGreaterThanOrEqual(5);
-  // the "Data versions" link names its page by `view`, the "Conference wallboard" link too; no figure state travels with any link
+  // the "Data versions", "Conference wallboard" and "Dashboard" links name their page by `view`; no figure state travels with any link
   for (const href of hrefs) {
     const keys = [...new URL(href, "http://x/").searchParams.keys()];
-    expect(keys, href).toEqual(/view=(releases|wallboard)/.test(href) ? ["theme", "view"] : ["theme"]);
+    expect(keys, href).toEqual(/view=(releases|wallboard|dashboard)/.test(href) ? ["theme", "view"] : ["theme"]);
   }
   await page.locator(".picker input").fill("Switzerland");
   const picked = await page.locator(".picker-option").first().getAttribute("data-href");
@@ -539,12 +539,21 @@ async function gotoWithRotationConfig(page: Page, path: string, override: Record
   await page.goto(path);
 }
 
+/** The light one-card rotation view, drawn, its clock then frozen: data loaded, the rotation timer can never fire mid-test
+ * (`location.replace` would swap the page under the next move). Time moves only by `page.clock.runFor`. */
+const ROTATING_CARD = `/?rotate=${minSeconds}&chart=world-trend`;
+async function frozenOnceReady(page: Page): Promise<void> {
+  await expect(page.locator("html")).toHaveClass(/view-ready/);
+  await page.clock.pauseAt(Date.now() + 1000);
+}
+
 const syntheticMove = (page: Page, movementX: number, movementY: number): Promise<void> =>
   page.evaluate(([x, y]) => { document.dispatchEvent(new PointerEvent("pointermove", { movementX: x, movementY: y, bubbles: true })); }, [movementX, movementY]);
 
 test("pauseMovePixels: movement under it does not pause; an invalid value is reported and any movement pauses", async ({ page }) => {
   await page.clock.install();
-  await page.goto(`/?rotate=${minSeconds}`);
+  await page.goto(ROTATING_CARD);
+  await frozenOnceReady(page);
   await expect(page.locator(".rotation-status")).toBeVisible();
   await syntheticMove(page, 1, 0);
   await expect(page.locator(".rotation-resume")).toBeHidden();
@@ -552,10 +561,24 @@ test("pauseMovePixels: movement under it does not pause; an invalid value is rep
   await expect(page.locator(".rotation-resume")).toBeVisible();
 });
 
+test("paused rotation: a pointermove without travel (layout shifted under a still pointer) does not restart the auto-resume wait", async ({ page }) => {
+  await page.clock.install();
+  await page.goto(ROTATING_CARD);
+  await frozenOnceReady(page);
+  await expect(page.locator(".rotation-status")).toBeVisible();
+  await syntheticMove(page, pauseMovePixels, 0);
+  await expect(page.locator(".rotation-resume")).toBeVisible();
+  await page.clock.runFor(IDLE_MS - 1000);
+  await syntheticMove(page, 0, 0);
+  await page.clock.runFor(1000);
+  await expect(page.locator(".rotation-resume")).toBeHidden();
+});
+
 for (const bad of [-1, "x", null]) {
   test(`an invalid pauseMovePixels in config (${JSON.stringify(bad)}): notice, any movement pauses`, async ({ page }) => {
     await page.clock.install();
-    await gotoWithRotationConfig(page, `/?rotate=${minSeconds}`, { pauseMovePixels: bad });
+    await gotoWithRotationConfig(page, ROTATING_CARD, { pauseMovePixels: bad });
+    await frozenOnceReady(page);
     await expect(page.locator("#notices")).toContainText("rotation.pauseMovePixels");
     await expect(page.locator(".rotation-status")).toBeVisible();
     await syntheticMove(page, Number.NaN, Number.NaN); // no usable travel: not use

@@ -33,6 +33,12 @@ v1 adds a **conference wallboard** (`index.html?view=wallboard`, footer link "Co
 
 New in v0.2 Stage W (women inventors, WIPO's shares by publication year): the page `index.html?view=women-inventors`; chart ids `women-world-trend`, `women-by-field`, `women-ranking`, `entity-women` (with `country=`), `group-women` (with `region=` or `continent=`) and the map metrics `metric=women_any`, `metric=women_share`; method in `methods.html#women-inventors`.
 
+v2a adds a **dashboard** (`index.html?view=dashboard`): key figures, the world map and a carousel of charts on one
+page. The carousel starts paused; add `&rotate=<seconds>` to play it on an office screen. New charts: a **treemap** of
+patent applications by origin in the latest year, grouped by continent, and **share shift**, the change in the top
+origins' shares of the world total, in percentage points. The map has a **PCT membership** layer: the Contracting
+States in each year, from WIPO's list. Methods: `methods.html#dashboard` and `methods.html#pct-membership`.
+
 ## Put a chart on another website
 
 Every chart has an **Embed** button. Click it, pick a theme, click **Copy code**, and paste the text into the page
@@ -52,7 +58,8 @@ source line and a link back to Patent Atlas; the source line cannot be removed. 
   figures and the larger themes (`atlas`, `paper`, `wallboard`) are taller: if the frame shows a scrollbar, give it
   more height.
 - `chart=` names the chart: `world-trend`, `pct-world-trend`, `top-origins`, `fastest-growers`, `rank-race`,
-  `continent-share`, `size-growth`, `pct-monthly`, `world-map` (whole world; the map also takes `metric=`, `map=`,
+  `continent-share`, `size-growth`, `pct-monthly`, `treemap`, `share-shift`, the key figures `key-world-patents`,
+  `key-world-pct`, `key-top-origin`, `key-top-grower`, `world-map` (whole world; the map also takes `metric=`, `map=`,
   `year=`), or `entity-tiles`, `origin-apps`, `office-apps`, `pct-origin` together with `country=<code>` or
   `office=<code>`, or `region-compare` with `country=<code>`, or `group-members`, `origin-apps`, `office-apps`,
   `pct-origin`, `world-map` with `region=<M49 code>` or `continent=<slug>`. Codes are WIPO's (CH, US, EP, ...). `theme=` is optional: `<embedTheme>` is the default here.
@@ -86,6 +93,36 @@ First version in a new repo or fresh history (e.g. the public repo): delete `sit
 `python3 -m pipeline.run` on committed code (first version `changed: ["all"]`, this repo's pipeline commit), run the
 gates, commit, then `python3 scripts/tag_data.py --remote origin`. `--bootstrap-version` refuses data whose manifest
 names a dirty sha or a commit this repo lacks.
+
+## Updating the PCT states list
+
+The map's PCT membership layer reads `pipeline/pct_states.json`, transcribed by hand from two WIPO documents; nothing
+parses them automatically (pipeline or CI).
+
+1. Rows: open WIPO's page [PCT Contracting States](https://www.wipo.int/pct/en/pct_contracting_states.html) and
+   re-transcribe each State's code, name (as printed, without footnote marks) and the date in the column "Date on
+   Which State Became Bound by the PCT" into `states`, sorted by code.
+2. Status date and count: download WIPO's list
+   [PCT Contracting States and Two-letter Codes](https://www.wipo.int/documents/d/pct-system/docs-en-list_states.pdf)
+   and take `status_on` and `count` from its heading; set `retrieved` to the day you read both.
+3. Territories: read the page's footnotes (and, for a past period, WIPO's PCT Notifications). For each territory the
+   PCT applies or applied to through a listed State, and only when its code is a country entity of the data
+   (`site/data/entities.json`), add `territories` {code, name as the source names it, `periods`}: one period per
+   State, sorted, not overlapping, each {`via` the State, `from` the source's date (none given: the State's date),
+   `to` the last day (null: still applies), `source` [{`document`, `url`, `text` verbatim}]}: the page's footnote to
+   that State, or the PCT Notifications for a past period. A footnote saying the PCT is not applicable adds nothing.
+4. Successor States: `successors` maps a predecessor to the listed States that succeeded it, from ISO 3166-3 (former
+   country codes): a former entity of the data (kind `historical`), or a listed State that continues, with
+   `own_dates` for successors that left it (ISO 3166-1 for the new code; each after `end`). Each entry: `name`,
+   `source` (the ISO entry), `codes`, `end` (the window's last day, not after `status_on`) with `end_source`, optional
+   `bound_on` (a listed State whose footnote says its date is the predecessor's; the window then starts on it), and
+   `note`, any departure from ISO 3166. The site shows no data for a successor in the window's years.
+5. In `pipeline/tests/test_pct_states.py`: add the new list's pinned pair (status date: count) to `PINNED_COUNTS`
+   (read by `test_count_matches_list`), and the codes the PDF prints to the hand-written list that
+   `test_page_codes_equal_pdf_codes` compares with the page. Update `TERRITORIES` and `SUCCESSORS` to match the
+   file; a country entity neither listed nor a territory goes into `REVIEWED_NON_MEMBERS`, a former entity without
+   successor States into `FORMER_WITHOUT_SUCCESSORS` (both fail until a new entity is reviewed).
+6. Run `python3 -m pytest pipeline/tests/test_pct_states.py`, then the normal data refresh above.
 
 ## Checks (gates)
 

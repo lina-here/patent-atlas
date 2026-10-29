@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import crosscheck, gender, groups, releases, run, scale, write
+from pipeline import crosscheck, gender, groups, m49, pct_states, releases, run, scale, write
 from pipeline.crosscheck import CheckError
 from pipeline.entities import iso3
 from pipeline.parse import SchemaError
@@ -15,7 +15,7 @@ from pipeline.tests.test_wdi import payload as denominator_payload
 from pipeline.wdi import WDI_ALL_URL, WDI_DENOMINATORS, WDI_WORLD
 from pipeline.wipo_client import WipoError
 from pipeline.tests.test_write import (
-    RELEASES, RETRIEVED, collected, gender_tables, make_data, wdi_denominators, wipo_ratios)
+    RELEASES, RETRIEVED, WD_2024, collected, gender_tables, make_data, treemap_data, wdi_denominators, wipo_ratios)
 from pipeline.tests.test_write import outputs as built_outputs
 
 
@@ -88,6 +88,36 @@ def test_run_errors_exit_2(fake_pipeline, monkeypatch, tmp_path, error):
     monkeypatch.setattr(run, "collect", boom)
     assert run.main(["--out", str(tmp_path)]) == 2
     assert list(tmp_path.iterdir()) == []
+
+
+def test_run_prints_pct_states_line(fake_pipeline, tmp_path, capsys):
+    """Report line, never blocking: count and status date of the list, its codes with no WIPO entity."""
+    assert run.main(["--out", str(tmp_path), "--dry-run"]) == 0
+    states = pct_states.load_pct_states()
+    codes = {entity["code"] for entity in built_outputs()[write.ENTITIES]}
+    missing = ", ".join(pct_states.unmatched(states, codes))
+    assert f"PCT states: {states.count} (status on {states.status_on.isoformat()}); no WIPO entity: {missing}\n" in (
+        capsys.readouterr().out)
+
+
+def test_pct_states_line_none():
+    block = {"status_on": "2026-10-01", "last_year": 2026, "count": {"2025": 158, "2026": 159}, "unmatched": []}
+    assert run.pct_states_line(block) == "PCT states: 159 (status on 2026-10-01); no WIPO entity: none"
+
+
+def test_run_bad_pct_states_blocks(fake_pipeline, monkeypatch, tmp_path, capsys):
+    content = json.loads(pct_states.PCT_STATES_PATH.read_text("utf-8"))
+    bad = tmp_path / "bad.json"
+    bad.write_text(json.dumps({**content, "count": content["count"] + 1}), "utf-8")
+    real = pct_states.load_pct_states
+    monkeypatch.setattr(pct_states, "load_pct_states", lambda: real(bad))
+    collected = []
+    monkeypatch.setattr(run, "collect", lambda client, today: collected.append(today))
+    out = tmp_path / "out"
+    assert run.main(["--out", str(out)]) == 2
+    assert not out.exists()
+    assert "FAILED (nothing written)" in capsys.readouterr().err
+    assert collected == []  # the list loads before any WIPO fetch
 
 
 def snapshot(root):
@@ -422,6 +452,36 @@ def test_run_checks_group_warnings_do_not_block(checks_env):
     assert failures == []
     assert any("negative" in line for line in summary["groups"])
     assert any("PCT unknown band" in line for line in summary["groups"])
+
+
+@pytest.mark.parametrize("excess, expected", [(0, []), (1, ["treemap 2024: not-attributable rest negative (-1)"])])
+def test_run_checks_negative_treemap_rest_blocks(checks_env, excess, expected):
+    """Spec 2a amendments: a negative not-attributable rest at the treemap year blocks the refresh (the band in other
+    years: warning only, groups.check_warnings); a rest of 0 passes. TW null: no unattributed origin to fit inside."""
+    data = treemap_data()
+    origin = data["origin_apps"].values
+    origin["TW"]["total"][2024] = None
+    grouped = sum(types["total"][2024] or 0 for code, types in origin.items() if m49.continent_of(code))
+    origin["JP"]["total"][2024] += WD_2024 - grouped + excess  # continents = WD + excess
+    outputs = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")
+    assert outputs[write.OVERVIEW]["treemap"]["residual"]["value"] == -excess
+    failures, _ = run_checks(data, outputs, FakeFetcher(data))
+    assert [line for line in failures if line.startswith("treemap")] == expected
+
+
+@pytest.mark.parametrize("excess", [0, 1])
+def test_run_checks_unattributed_outside_treemap_rest_blocks(checks_env, excess):
+    """Unattributed origins (no M49 continent) sit inside the not-attributable rest: their sum above it blocks (WD
+    below the origin sum); equal passes."""
+    data = treemap_data()
+    rest = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")[write.OVERVIEW]["treemap"]["residual"]
+    data["origin_apps"].values["TW"]["total"][2024] = rest["value"] + excess  # TW: the fixture's only unattributed
+    outputs = write.build_outputs(collected(data), RELEASES, RETRIEVED, "abc")
+    assert outputs[write.OVERVIEW]["treemap"]["residual"] == rest  # TW outside every continent: rest unchanged
+    failures, _ = run_checks(data, outputs, FakeFetcher(data))
+    value = rest["value"]
+    expected = [f"treemap 2024: unattributed origins exceed the not-attributable rest ({value + excess} > {value})"]
+    assert [line for line in failures if line.startswith("treemap")] == (expected if excess else [])
 
 
 def test_run_checks_wdi_mismatch_and_world_excess_block(checks_env):

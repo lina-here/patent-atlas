@@ -1,6 +1,6 @@
 // Source lines, citation text and the footer: provenance shown in every theme.
-import type { Config, Manifest, SourceBlock } from "./data";
-import { h } from "./dom";
+import { isListSource, type CardSource, type Config, type ListSource, type Manifest, type SourceBlock } from "./data";
+import { h, type Child } from "./dom";
 import { pageLink, viewLink, type Params } from "./params";
 
 /** How the site was made, verbatim (Lina, 2026-10-21): shown on the methods page. */
@@ -28,14 +28,27 @@ export function sourceLine(src: SourceBlock, m: Manifest): string {
   return `Source: ${src.name} (release ${releaseLabel(m.releases[src.tab])}, retrieved ${m.retrieved}${versionSuffix(m)}); analysis: Patent Atlas`;
 }
 
+/** "Source: WIPO, PCT Contracting States. 159 States on 2026-10-01 (retrieved ..., data version ...); analysis: Patent
+ * Atlas": the name links the list (never fetched by the site). `newTab`: compact card (embed iframe, wallboard), which a
+ * link must not navigate away. */
+export function listSourceLine(src: ListSource, m: Manifest, newTab = false): Child[] {
+  return ["Source: ", h("a", { href: src.url, rel: "noopener", ...(newTab ? { target: "_blank" } : {}) }, src.name),
+    `. ${src.status} (retrieved ${src.retrieved}${versionSuffix(m)}); analysis: Patent Atlas`];
+}
+
 /** APA-like plain text, naming the data version when the manifest has one. Year = retrieval year (the data snapshot the chart shows). Several sources (a card
- * mixing patent and PCT figures): each distinct source and release named once. `dataCredits`: other data sources'
+ * mixing patent and PCT figures): each distinct source and release named once. A published list (PCT Contracting States):
+ * its name, status, link and own retrieval date. `dataCredits`: other data sources'
  * credit lines (World Bank WDI, CC BY 4.0: attribution travels with the copied citation), each one sentence after. */
-export function citeText(cfg: Config, chartTitle: string, url: string, m: Manifest, src: SourceBlock | SourceBlock[],
+export function citeText(cfg: Config, chartTitle: string, url: string, m: Manifest, src: CardSource | CardSource[],
   dataCredits: string[] = []): string {
   const year = m.retrieved.slice(0, 4);
-  const data = [...new Set([src].flat().map((block) => `${block.name}, ${releaseLabel(m.releases[block.tab])}`))].join("; ");
-  return `${cfg.author} (${year}). ${chartTitle}. ${cfg.siteName}. ${url}. Data: ${data}, retrieved ${m.retrieved}${versionSuffix(m)}.` +
+  const sources = [src].flat();
+  const blocks = sources.filter((block): block is SourceBlock => !isListSource(block));
+  const tables = [...new Set(blocks.map((block) => `${block.name}, ${releaseLabel(m.releases[block.tab])}`))].join("; ");
+  const lists = sources.filter(isListSource).map((list) => `${list.name}, ${list.status} (${list.url}), retrieved ${list.retrieved}`);
+  const data = [...(tables ? [`${tables}, retrieved ${m.retrieved}`] : []), ...lists].join("; ");
+  return `${cfg.author} (${year}). ${chartTitle}. ${cfg.siteName}. ${url}. Data: ${data}${versionSuffix(m)}.` +
     dataCredits.map((line) => ` ${line}.`).join("");
 }
 
@@ -49,6 +62,7 @@ export function renderFooter(el: HTMLElement, cfg?: Config, params?: Params): vo
       h("nav", { class: "footer-links", "aria-label": "About this site" },
         h("a", { href: pageLink(cfg, params, "about.html") }, "About and citing"),
         h("a", { href: pageLink(cfg, params, "methods.html") }, "Methods and sources"),
+        h("a", { href: viewLink(cfg, params, "dashboard") }, "Dashboard"),
         h("a", { href: viewLink(cfg, params, "releases") }, "Data versions"),
         h("a", { href: viewLink(cfg, params, "wallboard") }, "Conference wallboard"),
       ),

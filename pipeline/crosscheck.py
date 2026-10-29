@@ -8,7 +8,9 @@ Blocking (failure -> run fails, last good data kept):
   patent release -> mismatches are warnings (WIPO revised past years, WDI not yet); same month or newer,
   or either date missing/unparseable -> mismatches block (`wdi_timing`). Fetch or shape error = blocking.
 - Golden: `golden.json` headline figures from WIPO publications vs the published value;
-  |live - published| <= `GOLDEN_TOLERANCE_PCT` % of published passes (noted), above fails.
+  |live - published| <= `GOLDEN_TOLERANCE_PCT` % of published passes (noted), above fails. Growth figures
+  (`GOLDEN_GROWTH_SERIES`: world change, percent as printed, one decimal, any sign) vs overview `world_yoy`:
+  |live - published| <= `GOLDEN_GROWTH_TOLERANCE_PP` percentage points (absolute) passes.
 - World totals: our sum of entities > WIPO's own total = data error, except `WORLD_OFFICE_EXCESS_YEARS`
   (warning). Sum < `WORLD_MIN_SUM_RATIO` of WIPO's total in a non-provisional year = warning.
 Warning only: OECD trend (PATSTAT, fractional counts): direction of yearly change of PCT applications
@@ -51,6 +53,12 @@ GOLDEN_PATH = Path(__file__).with_name("golden.json")
 GOLDEN_KEYS = {"id", "description", "value", "year", "series", "code_or_world", "citation", "url", "page"}
 GOLDEN_TOLERANCE_PCT = 1
 GOLDEN_SOURCE_KEYS = ("id", "citation", "url", "page")  # publication behind each figure, for the methods page
+# golden series id -> overview world key: world year-on-year change (overview `world_yoy`; write.py reads this dict)
+GOLDEN_GROWTH_SERIES: dict[str, str] = {"world_office_yoy": "world_office", "pct_world_yoy": "pct_world"}
+# One printed rounding unit: WIPO prints growth from its own counts, ours comes from the published WD / ZZ series.
+GOLDEN_GROWTH_TOLERANCE_PP = 0.1
+GOLDEN_GROWTH_DECIMALS = 1  # as printed; a value with more decimals is a typo (load_golden refuses it)
+# == derive.YOY_DECIMALS (test_crosscheck): live yoy on the printed grid, else the tolerance unit drifts
 
 # Live 2026-10-19: office sum exceeds WIPO's World (WD) by 0.06-2.0% in these years only (WD = WIPO
 # estimate; 1980-1984 WD blank). Reported as warnings; an excess in any other year blocks.
@@ -246,10 +254,16 @@ def load_golden(path: Path = GOLDEN_PATH) -> list[dict]:
         if not isinstance(entry, dict) or set(entry) != GOLDEN_KEYS:
             raise CheckError(f"golden entry keys {sorted(entry) if isinstance(entry, dict) else entry!r}, "
                              f"expected {sorted(GOLDEN_KEYS)}")
-        value = entry["value"]  # count (int) or a share / ratio as printed (float)
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0 \
+        value = entry["value"]  # count (int) or a share / ratio / growth as printed (float)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) \
                 or not isinstance(entry["year"], int):
-            raise CheckError(f"golden entry {entry['id']}: value must be a finite positive number, year an integer")
+            raise CheckError(f"golden entry {entry['id']}: value must be a finite number, year an integer")
+        if entry["series"] in GOLDEN_GROWTH_SERIES:  # change: negative or 0 allowed, one decimal as printed
+            if Decimal(repr(value)).as_tuple().exponent < -GOLDEN_GROWTH_DECIMALS:
+                raise CheckError(f"golden entry {entry['id']}: growth {value} has more than "
+                                 f"{GOLDEN_GROWTH_DECIMALS} decimal(s)")
+        elif value <= 0:
+            raise CheckError(f"golden entry {entry['id']}: value must be a finite positive number")
     return golden
 
 
@@ -260,8 +274,10 @@ def golden_sources(golden: list[dict]) -> list[dict]:
 
 def golden_compare(golden: list[dict], ours: Callable[[dict], int | float | None]) -> tuple[list[str], list[str]]:
     """(failures, notes): diff > GOLDEN_TOLERANCE_PCT % of the published value fails (relative: for a one-decimal
-    share, a fraction of a percentage point). Exact decimal test; a float live or published value (ratio, share; one
-    decimal) is taken as written (repr), never with float error."""
+    share, a fraction of a percentage point). Growth entries (GOLDEN_GROWTH_SERIES): |gap| >
+    GOLDEN_GROWTH_TOLERANCE_PP fails (absolute, no division: a printed 0.0 or a negative change works). Exact decimal
+    test; a float live or published value (ratio, share, growth; one decimal) is taken as written (repr), never with
+    float error."""
     failures, notes = [], []
     for entry in golden:
         live, published = ours(entry), Decimal(repr(entry["value"]))
@@ -270,6 +286,15 @@ def golden_compare(golden: list[dict], ours: Callable[[dict], int | float | None
             failures.append(f"{entry['id']}: no live value for {where}")
             continue
         gap = Decimal(repr(live)) - published
+        if entry["series"] in GOLDEN_GROWTH_SERIES:
+            tolerance = Decimal(repr(GOLDEN_GROWTH_TOLERANCE_PP))
+            shown = gap.quantize(Decimal(1).scaleb(-GOLDEN_GROWTH_DECIMALS), rounding=ROUND_HALF_UP)
+            text = f"{entry['id']}: live {live} vs published {entry['value']} ({shown:+} pp)"
+            if abs(gap) > tolerance:
+                failures.append(f"{text}, over {GOLDEN_GROWTH_TOLERANCE_PP} pp ({where})")
+            else:
+                notes.append(text)
+            continue
         diff = (gap * 100 / published).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         text = f"{entry['id']}: live {live} vs published {entry['value']} ({diff:+}%)"
         if abs(gap) * 100 > published * GOLDEN_TOLERANCE_PCT:

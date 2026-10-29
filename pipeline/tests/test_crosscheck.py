@@ -257,13 +257,14 @@ def test_golden_no_live_value_fails():
 
 def test_golden_file_valid():
     golden = load_golden()
-    assert len(golden) == 9
+    assert len(golden) == 11
     assert {entry["series"] for entry in golden} == {"office_apps", "origin_apps", "pct_origin", "per_gdp",
-                                                     "per_million", "women_any", "women_share"}
+                                                     "per_million", "women_any", "women_share", "world_office_yoy",
+                                                     "pct_world_yoy"}
     for entry in golden:
         assert set(entry) == crosscheck.GOLDEN_KEYS
         assert isinstance(entry["value"], (int, float)) and not isinstance(entry["value"], bool)
-        assert entry["value"] > 0
+        assert entry["series"] in crosscheck.GOLDEN_GROWTH_SERIES or entry["value"] > 0  # growth: any sign
         assert entry["url"].startswith("https://www.wipo.int/") and entry["page"]
 
 
@@ -316,6 +317,100 @@ def test_repo_golden_has_gender_figures(golden_id, value, series, code, page):
     assert entry["citation"] == pct_2025["citation"]
     assert entry["page"].startswith(page)
     assert "publication year" in entry["description"]
+
+
+@pytest.mark.parametrize("golden_id, value, year, series, same_publication_as, page", [
+    ("world_patent_growth_2024", 4.9, 2024, "world_office_yoy", "world_patent_applications_2024",
+     "p. 7 (PDF p. 9), table 'IP filing activity by origin'"),
+    ("pct_growth_2025", 0.7, 2025, "pct_world_yoy", "pct_applications_2025", "p. 16 (PDF p. 17), table A9"),
+])
+def test_repo_golden_has_growth_figures(golden_id, value, year, series, same_publication_as, page):
+    """Spec 2a amendments: world change on the key-figure tiles checked against WIPO's printed growth, same
+    publication (citation, URL) as the world count it grows from; description quotes the printed row."""
+    by_id = {item["id"]: item for item in load_golden()}
+    entry, count = by_id[golden_id], by_id[same_publication_as]
+    assert (entry["value"], entry["year"], entry["series"], entry["code_or_world"]) == (value, year, series, "world")
+    assert (entry["citation"], entry["url"]) == (count["citation"], count["url"])
+    assert entry["page"].startswith(page)
+    assert crosscheck.GOLDEN_GROWTH_SERIES[series] in ("world_office", "pct_world")
+
+
+GROWTH = {**GOLDEN[0], "id": "pct_growth_2025", "value": 0.7, "year": 2025, "series": "pct_world_yoy"}
+
+
+def write_golden(tmp_path, entries):
+    path = tmp_path / "golden.json"
+    path.write_text(json.dumps(entries), encoding="utf-8")
+    return path
+
+
+@pytest.mark.parametrize("value", [-3.7, 0, 0.0, -0.1, 12, 4.9])
+def test_golden_growth_negative_value_loads(tmp_path, value):
+    """A growth figure may be negative or zero (counts and shares stay positive)."""
+    assert load_golden(write_golden(tmp_path, [{**GROWTH, "value": value}]))[0]["value"] == value
+
+
+@pytest.mark.parametrize("value", [0.75, -3.75, 0.05, True, "0.7", float("nan"), float("inf")])
+def test_golden_growth_two_decimals_rejected(tmp_path, value):
+    """WIPO prints growth with one decimal: a second decimal (or a non-number) is a typo, never compared."""
+    with pytest.raises(CheckError, match="golden"):
+        load_golden(write_golden(tmp_path, [{**GROWTH, "value": value}]))
+
+
+def test_golden_growth_decimals_match_yoy_rounding():
+    """Live growth (derive.yoy_growth) sits on the printed one-decimal grid: tolerance = one printed unit."""
+    from pipeline import derive
+    assert crosscheck.GOLDEN_GROWTH_DECIMALS == derive.YOY_DECIMALS
+
+
+def test_golden_growth_within_tolerance_passes():
+    """|live - published| <= GOLDEN_GROWTH_TOLERANCE_PP (absolute pp, exact Decimal): one printed rounding unit."""
+    assert crosscheck.GOLDEN_GROWTH_TOLERANCE_PP == 0.1
+    for live in (0.6, 0.7, 0.8):
+        failures, notes = golden_compare([GROWTH], lambda entry: live)
+        assert failures == [] and len(notes) == 1, live
+    for live in (0.5, 0.9, -0.7):
+        failures, notes = golden_compare([GROWTH], lambda entry: live)
+        assert notes == [] and len(failures) == 1, live
+
+
+def test_golden_growth_negative_published():
+    entry = {**GROWTH, "value": -3.7}
+    assert golden_compare([entry], lambda entry: -3.6)[0] == []
+    assert golden_compare([entry], lambda entry: -3.8)[0] == []
+    assert len(golden_compare([entry], lambda entry: -3.9)[0]) == 1
+    assert len(golden_compare([entry], lambda entry: 3.7)[0]) == 1  # sign matters
+
+
+@pytest.mark.parametrize("published", [0, 0.0])
+def test_golden_growth_zero_published(published):
+    """Absolute tolerance: a printed 0.0 needs no division."""
+    entry = {**GROWTH, "value": published}
+    for live in (0.0, 0.1, -0.1):
+        failures, notes = golden_compare([entry], lambda entry: live)
+        assert failures == [] and len(notes) == 1, live
+    failures, notes = golden_compare([entry], lambda entry: 0.2)
+    assert notes == [] and len(failures) == 1
+
+
+def test_golden_growth_line_format():
+    failures, notes = golden_compare([GROWTH], lambda entry: 0.6)
+    assert notes == ["pct_growth_2025: live 0.6 vs published 0.7 (-0.1 pp)"]
+    failures, notes = golden_compare([GROWTH], lambda entry: 0.7)
+    assert notes == ["pct_growth_2025: live 0.7 vs published 0.7 (+0.0 pp)"]
+    failures, notes = golden_compare([GROWTH], lambda entry: 0.5)
+    assert failures == ["pct_growth_2025: live 0.5 vs published 0.7 (-0.2 pp), over 0.1 pp (pct_world_yoy world 2025)"]
+    failures, notes = golden_compare([GROWTH], lambda entry: None)
+    assert failures == ["pct_growth_2025: no live value for pct_world_yoy world 2025"]
+
+
+def test_golden_growth_and_count_entries_side_by_side():
+    """Other entries keep the relative tolerance (%), growth entries the absolute one (pp)."""
+    live = {"world_2024": 1010, "pct_growth_2025": 0.8}
+    failures, notes = golden_compare([GOLDEN[0], GROWTH], lambda entry: live[entry["id"]])
+    assert failures == []
+    assert notes == ["world_2024: live 1010 vs published 1000 (+1.00%)",
+                     "pct_growth_2025: live 0.8 vs published 0.7 (+0.1 pp)"]
 
 
 def test_golden_float_published():

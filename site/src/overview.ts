@@ -11,12 +11,16 @@ import { fixedPercent } from "./format";
 import { nullReasonText } from "./groupText";
 import { mapCard, mapOptions, type MapContext } from "./map";
 import { withParams, type Params } from "./params";
+import { shareShiftCard } from "./shareShift";
+import { treemapCard } from "./treemap";
 import { PCT_LATE_FILINGS, WORLD_TITLES, originAbroadNote, seriesBreakNotes } from "./methods";
 
 /** A card's content; `draw` makes its chart at a given width (first render and every resize). */
 export type CardContent = Omit<ChartSpec, "id" | "visual"> & {
   /** `height` = the room the chart may take (wallboard focus fit); charts that cannot shrink ignore it. */
   draw: (width: number, height?: number) => SVGElement | HTMLElement;
+  /** The least height (px) a fit may draw the chart at, for a chart that still reads below `minChartHeight` (default: that). */
+  minHeight?: (width: number) => number;
 };
 /** `build` returns null when the data for the card is missing (card left out); `wide` = spans the whole grid
  * row (class `chart-card--wide`). `params` = a card with its own state (map metric, year): the params its cite and
@@ -39,7 +43,7 @@ const RESIZE_SETTLE_MS = 150;
  * PCT sum). */
 const REPORTING: Record<WorldId, string> = { world_office: "offices", pct_world: "origins" };
 /** Series each world total sums (pipeline/worlds.py WORLD_SOURCES): the series its break notes look up. */
-const WORLD_SERIES: Record<WorldId, SeriesId> = { world_office: "office_apps", pct_world: "pct_origin" };
+export const WORLD_SERIES: Record<WorldId, SeriesId> = { world_office: "office_apps", pct_world: "pct_origin" };
 
 /** Years up to `lastYear`, ascending; later (provisional) years are left out, null stays null (gap). */
 function worldPoints(series: YearMap, lastYear: number): LinePoint[] {
@@ -213,7 +217,7 @@ function omissionReason(overview: Overview, series: SeriesId, year: number): str
   return reason ? `no data reported: ${nullReasonText(reason, overview)}` : "no data reported";
 }
 
-function continentShare(overview: Overview, groups: GroupItem[] | null): CardBuilder["build"] {
+function continentShare(overview: Overview, groups: GroupItem[] | null, idPrefix?: string): CardBuilder["build"] {
   return () => {
     const series: SeriesId = "origin_apps";
     const source = overview.sources[series];
@@ -249,7 +253,7 @@ function continentShare(overview: Overview, groups: GroupItem[] | null): CardBui
       title: `Continents' share of world patent applications by origin, ${shown[0]}–${years[years.length - 1]}`,
       note: `Each continent's applications as a share of the world total; the hatched band (“${block.unallocated_label}”) is the part of the ` +
         "world total no continent accounts for. Years left out are named under the chart.",
-      draw: (width, height) => shareAreaChart(layers, { years: chartYears, width, height, format: (share) => `${fixedPercent(share, decimals)}%` }),
+      draw: (width, height) => shareAreaChart(layers, { years: chartYears, width, height, format: (share) => `${fixedPercent(share, decimals)}%`, idPrefix }),
       table: {
         headers: ["Year", ...ids.map((id) => labels[id]), bandLabel, "In the chart"],
         rows: [...years].reverse().map((year) => [String(year), ...ids.map((id) => valueOf(id, year)), bandOf(year),
@@ -300,7 +304,7 @@ function sizeGrowth(overview: Overview, groups: GroupItem[] | null): CardBuilder
   };
 }
 
-function pctMonthly(overview: Overview): CardBuilder["build"] {
+function pctMonthly(overview: Overview, idPrefix?: string): CardBuilder["build"] {
   return () => {
     const source = overview.pct_monthly_source;
     const years = sortedYears(Object.keys(overview.pct_monthly ?? {}));
@@ -310,7 +314,7 @@ function pctMonthly(overview: Overview): CardBuilder["build"] {
     return {
       title: `PCT applications by month, ${years[0]}–${years[years.length - 1]}`,
       note: `WIPO's PCT total (all receiving offices) by filing month; colour runs from the lowest to the highest month, see legend. ${PCT_LATE_FILINGS}`,
-      draw: (width, height) => heatStripChart(cells, { years, width, height, noDataLabel: "no data reported", valueLabel: "PCT applications" }),
+      draw: (width, height) => heatStripChart(cells, { years, width, height, noDataLabel: "no data reported", valueLabel: "PCT applications", idPrefix }),
       table: {
         headers: ["Year", ...MONTH_LABELS],
         rows: [...years].reverse().map((year) => [String(year), ...overview.pct_monthly[String(year)]]),
@@ -323,22 +327,40 @@ function pctMonthly(overview: Overview): CardBuilder["build"] {
 
 type DrawnCard = { shell: HTMLElement; content: CardContent; width: number };
 
-/** Fit (wallboard, rotation focus, embed): the chart takes only the height its room has left once the text around it is laid
- * out (`room` = the slide's stage, else the viewport), so nothing scrolls. Measured, never a text budget: text wraps
- * differently in each fallback font. A chart shrinks to `draw`'s own height (never below `minChartHeight`); the map, drawn
- * by CSS, gets a maximum height instead (never below `minMapHeight`). */
-function fitToRoom(card: DrawnCard, room?: HTMLElement): void {
-  // a redrawn chart may not lose exactly the height asked (margins, rounding): measured again, a few tries at most
+/** Spare height in a card of fixed height (a slide's): the room its foot (`.chart-tools`, pushed down by an auto margin)
+ * leaves above it. 0 when the card's height follows its content (an open panel grows the stage) or it has no tools. */
+function spareHeight(shell: HTMLElement): number {
+  const tools = shell.querySelector<HTMLElement>(":scope > .chart-tools");
+  const above = tools?.previousElementSibling;
+  if (!tools || !above) return 0;
+  return Math.floor(tools.getBoundingClientRect().top - above.getBoundingClientRect().bottom - parseFloat(getComputedStyle(above).marginBottom));
+}
+
+/** Fit (wallboard, rotation focus, embed, dashboard carousel): the chart takes only the height its room has left once the
+ * text around it is laid out (`room` = the slide's stage, else the viewport), so nothing scrolls. Measured, never a text
+ * budget: text wraps differently in each fallback font. A chart shrinks to `draw`'s own height (never below
+ * `minChartHeight`); the map, drawn by CSS, gets a maximum height instead (never below `minMapHeight`). `fill` (carousel,
+ * a card as high as its stage): a chart also grows into the card's spare height, so no blank band sits above the tools. */
+function fitToRoom(card: DrawnCard, room?: HTMLElement, fill = false): void {
+  // a redrawn chart may not take exactly the height asked (margins, rounding): measured again, a few tries at most
   for (let attempt = 0; attempt < FIT_ATTEMPTS; attempt += 1) {
     const overflow = room
       ? Math.ceil(Math.max(room.scrollHeight - room.clientHeight, card.shell.getBoundingClientRect().bottom - room.getBoundingClientRect().bottom))
       : document.documentElement.scrollHeight - window.innerHeight;
-    if (overflow <= 0) return;
     const visual = card.shell.querySelector<HTMLElement | SVGElement>(".chart-figure > svg, .chart-figure .map-svg");
     if (!visual) return;
     const map = visual instanceof SVGElement && visual.classList.contains("map-svg");
     const current = visual.getBoundingClientRect().height;
-    const height = Math.max(map ? minMapHeight() : minChartHeight(), current - overflow);
+    if (overflow <= 0) {
+      // the last try is left for a shrink, should the grown chart overshoot
+      const spare = fill && !map && attempt < FIT_ATTEMPTS - 1 ? spareHeight(card.shell) : 0;
+      if (spare < 1) return;
+      const grown = card.content.draw(card.width, current + spare) as SVGElement;
+      replaceChart(card.shell, grown);
+      if (grown.getBoundingClientRect().height <= current) return; // drawn at its largest
+      continue;
+    }
+    const height = Math.max(map ? minMapHeight() : card.content.minHeight?.(card.width) ?? minChartHeight(), current - overflow);
     if (height >= current) return; // at its smallest
     if (map) visual.style.maxHeight = `${height}px`;
     else replaceChart(card.shell, card.content.draw(card.width, height) as SVGElement);
@@ -349,7 +371,7 @@ function fitToRoom(card: DrawnCard, room?: HTMLElement): void {
  * settles; open panels and theme choices stay as they are. `fit`: redraws on any resize and fits the room's height again
  * (`room` observed too; none = the viewport, and the body observed: text laid out after the fit, such as notices, grows
  * it). Returns the function that stops it. */
-function redrawOnResize(cards: DrawnCard[], fit: boolean, room?: HTMLElement): () => void {
+function redrawOnResize(cards: DrawnCard[], fit: boolean, room?: HTMLElement, fill = false): () => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const redraw = (): void => {
     clearTimeout(timer);
@@ -363,7 +385,7 @@ function redrawOnResize(cards: DrawnCard[], fit: boolean, room?: HTMLElement): (
         const several = card.shell.querySelector(`.chart-figure > [${REDRAW_ATTRIBUTE}]`);
         if (several) several.replaceWith(card.content.draw(width));
         else if (card.shell.querySelector(".chart-figure > svg")) replaceChart(card.shell, card.content.draw(width) as SVGElement);
-        if (fit) fitToRoom(card, room);
+        if (fit) fitToRoom(card, room, fill);
       }
     }, RESIZE_SETTLE_MS);
   };
@@ -404,11 +426,12 @@ function redrawOnState(shell: HTMLElement, builder: CardBuilder, ctx: CardContex
 }
 
 /** Fills `grid` with one card per builder, in order (overview, country and office pages); `opts.fit` = fitted to the
- * viewport height (rotation focus, embed), `opts.fitTo` = fitted to that element's height (a slide's stage). Cards
- * are placed first, so each chart is drawn at its card's real width; `?chart=<id>` scrolls to that card. Returns the
+ * viewport height (rotation focus, embed), `opts.fitTo` = fitted to that element's height (a slide's stage), `opts.fill` = with
+ * `fitTo`, the chart also grows into its card's spare height (fitToRoom). Cards
+ * are placed first, so each chart is drawn at its card's real width; `?chart=<id>` scrolls to that card (full page). Returns the
  * function that removes the resize observers and listeners. */
 export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: CardContext,
-  opts: { fit?: boolean; fitTo?: HTMLElement } = {}): () => void {
+  opts: { fit?: boolean; fitTo?: HTMLElement; fill?: boolean } = {}): () => void {
   const fit = Boolean(opts.fit || opts.fitTo);
   // classes set before placing, so each chart is measured at its final width
   const shells = builders.map((builder) => h("section", { class: `card chart-card${builder.wide ? " chart-card--wide" : ""}` }));
@@ -418,7 +441,7 @@ export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: Car
     const shell = shells[index];
     const content = builder.build();
     if (!content) {
-      if (builder.problem) renderProblemCard(shell, builder.id, builder.problem.title, builder.problem.message);
+      if (builder.problem) renderProblemCard(shell, builder.id, builder.problem.title, builder.problem.message, ctx.idPrefix);
       else shell.remove();
       return;
     }
@@ -428,12 +451,13 @@ export function renderCards(grid: HTMLElement, builders: CardBuilder[], ctx: Car
     renderChartCard(shell, { id: builder.id, ...rest, visual }, cardContext(builder, ctx));
     // charts only (fit: all): tiles, map scale by CSS; REDRAW_ATTRIBUTE = an HTML figure of several charts (women trend)
     if (visual instanceof SVGElement || visual.hasAttribute(REDRAW_ATTRIBUTE) || fit) cards.push({ shell, content, width });
-    if (fit) fitToRoom({ shell, content, width }, opts.fitTo);
+    if (fit) fitToRoom({ shell, content, width }, opts.fitTo, opts.fill);
     if (builder.params) redrawOnState(shell, builder, ctx);
   });
-  const stop = redrawOnResize(cards, fit, opts.fitTo);
-  // not in compact mode: scrollIntoView inside an iframe would scroll the host page
-  const wanted = ctx.compact ? undefined : ctx.params.chart;
+  const stop = redrawOnResize(cards, fit, opts.fitTo, opts.fill);
+  // not in compact mode: scrollIntoView inside an iframe would scroll the host page; not in a slide's stage (`fitTo`):
+  // its `chart` names the slide, and the page (dashboard) opens at its top
+  const wanted = ctx.compact || opts.fitTo ? undefined : ctx.params.chart;
   if (wanted) shells.find((shell) => shell.dataset.chart === wanted)?.scrollIntoView();
   return stop;
 }
@@ -451,9 +475,11 @@ export function worldCards(overview: Overview, atlas: Atlas | null, ctx: MapCont
     { id: "top-origins", build: topOrigins(overview) },
     { id: "fastest-growers", build: fastestGrowers(overview) },
     { id: "rank-race", build: rankRace(overview) },
-    { id: "continent-share", build: continentShare(overview, groups), problem: continentNamesProblem(overview, groups, "continent-share") },
+    { id: "continent-share", build: continentShare(overview, groups, ctx.idPrefix), problem: continentNamesProblem(overview, groups, "continent-share") },
+    treemapCard(overview, ctx.idPrefix),
+    shareShiftCard(overview),
     { id: "size-growth", build: sizeGrowth(overview, groups), problem: continentNamesProblem(overview, groups, "size-growth") },
-    { id: "pct-monthly", build: pctMonthly(overview) },
+    { id: "pct-monthly", build: pctMonthly(overview, ctx.idPrefix) },
   ];
 }
 

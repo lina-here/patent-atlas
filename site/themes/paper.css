@@ -61,6 +61,9 @@
   --toc-width: 12rem;
   --card-min: 28rem;
   --tile-min: 8rem;
+  --dashboard-key-min: 15rem;
+  --dashboard-stage-height: 40rem;
+  --dashboard-stage-phone-height: 48rem;
 
   --radius: 0;
   --rule-width: 1px;
@@ -91,12 +94,17 @@
   --chart-y-ticks: 5;
   --chart-x-tick-gap: 5rem;
   /* continent colours (overview share chart, size vs growth); shape also tells continents apart */
-  --continent-africa: #b5651d;
+  --continent-africa: #b0621c;
   --continent-asia: #1a1a1a;
   --continent-europe: #2b5e9e;
   --continent-latin-america-caribbean: #3d7a3d;
   --continent-northern-america: #a3282f;
   --continent-oceania: #8a8a8a;
+  /* treemap: solid plate under the label on the hatched not-attributable rectangle; label ink or surface >= 4.5:1 (wallboard 7:1) */
+  --treemap-residual: #e0e0e0;
+  /* treemap continent outline: kept thin so it never hides a small rectangle's fill (a stroke covers half its width on each side) */
+  --treemap-band-width: 1px;
+  --treemap-key-number-size: 0.85em;
   --map-bin-1: #f7e4e8;
   --map-bin-2: #eebcc7;
   --map-bin-3: #e08fa2;
@@ -117,6 +125,12 @@
   --map-hatch-width: 1.2px;
   --map-former: #e9e9ef;
   --map-former-line: #2f2f4f;
+  /* PCT membership: member fill >= 3:1 vs --surface; non-member dashes >= 3:1 vs their ground */
+  --map-member: #8c0f3a;
+  --map-nonmember: #f4f0e6;
+  --map-nonmember-mark: #6b5a2a;
+  --map-nonmember-gap: 3px;
+  --map-nonmember-mark-height: 1.4px;
   /* shape and heat-cell edge: >= 3:1 vs --surface (WCAG 1.4.11), so light bins and special states keep an edge */
   --map-edge: #8a8a8a;
   --map-edge-width: 1px;

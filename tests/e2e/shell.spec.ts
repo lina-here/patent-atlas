@@ -167,10 +167,10 @@ const overview = JSON.parse(readFileSync("site/data/overview.json", "utf8"));
 const entities: { label: string; kind: string }[] = JSON.parse(readFileSync("site/data/entities.json", "utf8"));
 
 test("methods page: constants and entity names come from data files", async ({ page }) => {
-  const { cagr_years: years, golden_tolerance_pct: tolerance, rounding } = overview.method;
+  const { cagr_years: years, golden_tolerance_pct: tolerance, golden_growth_tolerance_pp: growthTolerance, rounding } = overview.method;
   await page.goto("/methods.html");
   const main = page.locator("main");
-  await expect(main).toContainText(`within ${tolerance}%`);
+  await expect(main).toContainText(`every figure except growth within ${tolerance}% (relative), growth figures within ${growthTolerance} percentage points (absolute)`);
   await expect(main).toContainText(`${years}-year compound annual growth`);
   await expect(main).toContainText(`(1 ÷ ${years})`);
   await expect(main).toContainText(`rounded ${rounding.mode}`);

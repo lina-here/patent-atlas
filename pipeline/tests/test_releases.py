@@ -49,6 +49,13 @@ def test_map_file_is_its_metric(published):
     assert ids(root, new) == ["per_million"]
 
 
+def test_pct_member_map_file_is_its_id(published):
+    root, new = published
+    new[write.MAP_DIR / "pct_member.json"]["in_force"]["CH"] = "1978-01-25"
+    assert ids(root, new) == ["pct_member"]
+    assert "pct_member" in releases.KNOWN_IDS
+
+
 @pytest.mark.parametrize("block", ["series", "ratios", "gender", "sources"])
 def test_entity_blocks_by_id(published, block):
     root, new = published
@@ -75,11 +82,31 @@ def test_group_block_by_id(published):
 @pytest.mark.parametrize("key,expected", [
     ("pct_monthly", "pct_monthly"), ("pct_monthly_source", "pct_monthly"), ("method", "method"),
     ("top_n", "method"), ("top_origins", "origin_apps"), ("rank_race", "origin_apps"),
-    ("world_office", "office_apps"), ("pct_world", "pct_origin")])
+    ("top_grower", "origin_apps"), ("treemap", "origin_apps"), ("share_shift", "origin_apps"),
+    ("pct_membership", "pct_member"), ("world_office", "office_apps"),
+    ("pct_world", "pct_origin")])
 def test_overview_keys(published, key, expected):
     root, new = published
     new[write.OVERVIEW][key] = "edited"
     assert ids(root, new) == [expected]
+
+
+@pytest.mark.parametrize("world,expected", [("world_office", "office_apps"), ("pct_world", "pct_origin")])
+def test_overview_world_yoy_by_world(published, world, expected):
+    """world_yoy.<world key> names its series through KEY_ALIASES (world totals -> their series)."""
+    root, new = published
+    yoy = new[write.OVERVIEW]["world_yoy"][world]["yoy"]
+    yoy[sorted(yoy)[-1]] = 99.9
+    assert ids(root, new) == [expected]
+
+
+def test_overview_world_yoy_added_names_both_series(published):
+    """First refresh writing world_yoy (absent on disk): both world series, never the file stem."""
+    root, new = published
+    old = json.loads((root / write.OVERVIEW).read_text(encoding="utf-8"))
+    del old["world_yoy"]
+    write.write_file(root, write.OVERVIEW, old)
+    assert ids(root, new) == ["office_apps", "pct_origin"]
 
 
 def test_overview_id_keyed_blocks(published):
