@@ -1,6 +1,21 @@
 [
   {
     "changed": [
+      "pipeline"
+    ],
+    "pipeline_sha": "8dbc49da8f799a130ffb30c9429d6c197a668345",
+    "version": "2026-11-03",
+    "wdi_last_updated": {
+      "gdp_ppp": "2026-10-08",
+      "population": "2026-10-08"
+    },
+    "wipo_releases": {
+      "ips": "Last updated: May 2026",
+      "pmh": "Last updated: October 2026"
+    }
+  },
+  {
+    "changed": [
       "method",
       "office_apps",
       "origin_apps",
