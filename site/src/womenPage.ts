@@ -62,8 +62,8 @@ function trendCard(overview: Overview): CardBuilder["build"] {
     });
     return {
       title: `Women inventors in PCT applications, world, ${Math.min(...years)}–${Math.max(...years)}`,
-      note: `WIPO's world figures (code ZZ), shown as published (${GENDER_BASIS_LABEL.wipo}), by publication year. Two measures, one ` +
-        "chart each: they count different things and are never drawn on one axis.",
+      note: `WIPO's world figures (code ZZ), shown as published (${GENDER_BASIS_LABEL.wipo}), by publication year. The two measures ` +
+        "count different things, so each has its own chart and they never share an axis.",
       draw: (width) => h("div", { class: "women-trends", [REDRAW_ATTRIBUTE]: "" },
         MEASURES.map((measure) => {
           const svg = lineChart(points(measure), { width, format: (value) => formatShare(value, decimals), tick: (value) => formatShare(value, 0) });

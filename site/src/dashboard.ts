@@ -127,7 +127,7 @@ function topGrowerKey(overview: Overview, source: SourceBlock): CardBuilder["bui
     const grower = overview.top_grower ?? null;
     return keyContent({
       title: `Fastest grower among the top ${overview.top_n} origins, ${period}`,
-      note: `Compound annual growth over ${years} years; top ${overview.top_n} origins by applications in ${end} only (no small-base outliers).`,
+      note: `Compound annual growth over ${years} years, among the top ${overview.top_n} origins by applications in ${end} only, so small bases do not dominate.`,
       figures: [
         { id: "origin", label: `Origin, rank ${grower ? grower.rank : "–"} in ${end}`, value: grower?.label ?? "–",
           ...(grower ? {} : { reason: "No growth rate computable for the top origins in this data." }) },
