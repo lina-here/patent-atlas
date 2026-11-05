@@ -436,5 +436,1637 @@
       "text": "The EPO's page on fee support for micro-entities, SMEs, individuals, universities and public research organisations.",
       "url": "https://www.epo.org/en/applying/fees/fee-reductions-and-compensation"
     }
-  ]
+  ],
+  "pct": {
+    "checked_on": "2026-11-05",
+    "sources_note": "Primary sources only. PCT Regulations as in force from 1 January 2026; PCT Fee Tables (amounts on 1 October 2026); PCT Applicant's Guide annexes as printed 2026-11-05. Amounts change: name the table, do not copy amounts into living docs.",
+    "pct_international": [
+      {
+        "fee": "International filing fee (Schedule of Fees item 1, PCT Rule 15.2)",
+        "reduction": "Fixed reduction for electronic filing: CHF 100 (item 4(a): request not in character coded format), CHF 200 (item 4(b): request in character coded format), CHF 300 (item 4(c): request, description, claims and abstract in character coded format). Each receiving Office publishes the equivalent in its currency.",
+        "who_qualifies": "Any applicant filing in electronic form as provided for in the Administrative Instructions (e.g. ePCT) with a receiving Office that accepts electronic filing.",
+        "fee_table_or_item": "Schedule of Fees, item 4(a)-(c); PCT Fee Tables, Table I(a) column 'E-filing reductions'; PCT Applicant's Guide para. 5.189",
+        "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax"
+      },
+      {
+        "fee": "International filing fee incl. fee per sheet over 30 (item 1, after any item 4 reduction), supplementary search handling fee (item 2, PCT Rule 45bis.2), handling fee (item 3, PCT Rule 57.2)",
+        "reduction": "90%",
+        "who_qualifies": "Item 5(a): applicant who is a natural person and a national of and resident in a listed State (per capita GDP below USD 25,000 on the UN 10-year average at constant 2005 USD, and fewer than 10 international applications per year per million population or fewer than 50 per year in absolute numbers by its natural-person nationals and residents). Item 5(b): applicant, natural person or not, who is a national of and resident in a listed State classified by the UN as a least developed country. Several applicants: each must meet 5(a) or 5(b). No beneficial owner at filing who would not meet the criteria; 2017 PCT Assembly Understanding: applicants must be sole and true owners with no obligation to assign or license to an ineligible party. Lists of States: WIPO list applicable on or after 7 January 2025.",
+        "fee_table_or_item": "Schedule of Fees, item 5(a) and 5(b); PCT Fee Tables footnote 2; WIPO list 'Applicability of 90% Reduction in Certain PCT Fees (applicable on or after 7 January 2025)'",
+        "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax",
+        "list_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fee-reduction.pdf"
+      },
+      {
+        "fee": "Transmittal fee payable to the International Bureau as receiving Office (RO/IB)",
+        "reduction": "Exemption (fee not payable)",
+        "who_qualifies": "Applicants fulfilling the conditions for the 90% reduction indicated on the PCT fees page.",
+        "fee_table_or_item": "PCT Fee Tables, Table I(a) footnote 14 and introductory note",
+        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+      },
+      {
+        "fee": "Any international-phase fee",
+        "reduction": "No SME, startup or university reduction in the PCT Schedule of Fees. Universities qualify for the 90% reduction only under item 5(b) (least developed country applicants, natural person or not).",
+        "who_qualifies": "Not applicable",
+        "fee_table_or_item": "Schedule of Fees, items 1-5 (no further reduction items)",
+        "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax"
+      }
+    ],
+    "isa_ipea": [
+      {
+        "office": "USPTO (US)",
+        "role": "ISA",
+        "fee": "Search fee (PCT Rule 16)",
+        "category": "small entity",
+        "reduction_pct": 60,
+        "as_published": "Small entity rate in Table I(b) and Annex D(US); Annex US.19: 'reduction of 60% or 80%, respectively, in certain fees'",
+        "criteria": "Small entity status under 37 CFR 1.27 (persons, small business concerns, nonprofit organizations), established by written assertion.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+      },
+      {
+        "office": "USPTO (US)",
+        "role": "ISA",
+        "fee": "Search fee (PCT Rule 16)",
+        "category": "micro entity",
+        "reduction_pct": 80,
+        "as_published": "Micro entity rate in Table I(b) and Annex D(US)",
+        "criteria": "Micro entity status under 37 CFR 1.29, on the gross income basis or the institution of higher education basis; must also meet small entity requirements; certification required (Forms PTO/SB/15A, 15B).",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+      },
+      {
+        "office": "USPTO (US)",
+        "role": "IPEA",
+        "fee": "Preliminary examination fee (PCT Rule 58)",
+        "category": "small entity",
+        "reduction_pct": 60,
+        "as_published": "Small entity rate in Table II and Annex E(US), both for searches by the USPTO and by another ISA",
+        "criteria": "37 CFR 1.27",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+      },
+      {
+        "office": "USPTO (US)",
+        "role": "IPEA",
+        "fee": "Preliminary examination fee (PCT Rule 58)",
+        "category": "micro entity",
+        "reduction_pct": 80,
+        "as_published": "Micro entity rate in Table II and Annex E(US)",
+        "criteria": "37 CFR 1.29",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+      },
+      {
+        "office": "USPTO (US)",
+        "role": "RO",
+        "fee": "Transmittal fee; non-electronic filing fee",
+        "category": "small entity / micro entity",
+        "reduction_pct": null,
+        "as_published": "Transmittal fee: separate small entity and micro entity amounts in Annex C(US). Non-electronic filing fee: lower amount for small or micro entities (Table I(a) footnote 26).",
+        "criteria": "37 CFR 1.27 and 1.29",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+      },
+      {
+        "office": "JPO (JP)",
+        "role": "ISA",
+        "fee": "Search fee (PCT Rule 16)",
+        "category": "SME, micro enterprise, academic institution",
+        "reduction_pct": null,
+        "as_published": "'This fee is reduced for applications filed in Japanese, or for applications in respect of which a translation into Japanese has been furnished under PCT Rule 12.3, by applicants who are eligible for fee reductions, such as small or medium-sized enterprises, micro enterprises and academic institutions.' (Table I(b) footnote 34). No rate stated.",
+        "criteria": "Japanese-language filing (or Japanese translation under Rule 12.3); eligibility per JPO reduction scheme (JPO leaflet linked from the Guide).",
+        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+      },
+      {
+        "office": "JPO (JP)",
+        "role": "IPEA",
+        "fee": "Preliminary examination fee (PCT Rule 58)",
+        "category": "SME, micro enterprise, academic institution",
+        "reduction_pct": null,
+        "as_published": "Reduced for applications filed in Japanese or with a Japanese translation under Rule 12.3, by eligible applicants (Table II footnote 34; Annex E(JP)). No rate stated.",
+        "criteria": "As for the JPO search fee.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
+      },
+      {
+        "office": "JPO (JP)",
+        "role": "RO",
+        "fee": "Transmittal fee",
+        "category": "SME, micro enterprise, academic institution",
+        "reduction_pct": null,
+        "as_published": "Reduced if the application is filed in Japanese by eligible applicants (Table I(a) footnote 18; Annex C(JP)). No rate stated.",
+        "criteria": "Japanese-language filing; eligibility per JPO reduction scheme.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
+      },
+      {
+        "office": "EPO (EP)",
+        "role": "ISA, SISA, IPEA",
+        "fee": "International search fee, supplementary international search fee, international preliminary examination fee",
+        "category": "natural persons from low-income or lower-middle-income economies",
+        "reduction_pct": 75,
+        "as_published": "Reduced by 75% (Table I(b), I(c), II footnote 33; Annexes D(EP), E(EP); EPO list as of 1 July 2026)",
+        "criteria": "Natural person, national of and resident in a State listed by the World Bank as a low-income or lower-middle-income economy, on the filing date or the date of payment. Each applicant must qualify. Decision CA/D 13/19, in effect since 1 April 2020.",
+        "source_url": "https://link.epo.org/web/low_income_states_en.pdf"
+      },
+      {
+        "office": "EPO (EP)",
+        "role": "ISA, SISA, IPEA",
+        "fee": "International search fee, supplementary international search fee, international preliminary examination fee",
+        "category": "applicants from validation States",
+        "reduction_pct": 75,
+        "as_published": "Reduced by 75% (EPO list; validation States as of 1 June 2026: Cambodia, Morocco, Tunisia, Georgia, Lao People's Democratic Republic)",
+        "criteria": "Natural or legal person, national of and resident in a State with a validation agreement with the EPO in force. Each applicant must qualify.",
+        "source_url": "https://link.epo.org/web/low_income_states_en.pdf"
+      },
+      {
+        "office": "EPO (EP)",
+        "role": "ISA, IPEA",
+        "fee": "International-phase fees paid to the EPO",
+        "category": "micro entity",
+        "reduction_pct": null,
+        "as_published": "The EPO 30% micro-entity reduction applies to fees in the European phase (European and Euro-PCT applications), not to international-phase fees. On entry, the examination fee is further reduced by 30% of the search fee effectively paid, including the international search fee where the EPO was ISA (OJ EPO 2024, A8; Guide para. EP.14a).",
+        "criteria": "See national_phase EPO row.",
+        "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8.html"
+      },
+      {
+        "office": "KIPO / MOIP (KR)",
+        "role": "ISA",
+        "fee": "Search fee (PCT Rule 16)",
+        "category": "applicants from listed States",
+        "reduction_pct": 75,
+        "as_published": "Reduced by 75% (Table I(b) footnote 35; Annex D(KR))",
+        "criteria": "Each applicant a national of, and with residence or business domicile in, Cabo Verde, Cambodia, Colombia, Indonesia, Lao People's Democratic Republic, Malaysia, Mexico, Mongolia, Peru, the Philippines, Sri Lanka, Thailand or Viet Nam. No SME reduction shown in the fee tables or Annexes D/E(KR).",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
+      },
+      {
+        "office": "CNIPA (CN)",
+        "role": "ISA, IPEA",
+        "fee": "Search fee, preliminary examination fee",
+        "category": "none",
+        "reduction_pct": null,
+        "as_published": "No reduction shown in Table I(b), Table II or Annexes D/E(CN). CNIPA states that fees it collects for WIPO and other bodies follow the relevant agreements (Announcement No. 594, 2024).",
+        "criteria": "Not applicable",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en"
+      },
+      {
+        "office": "Indian Patent Office (IN), not IP5",
+        "role": "ISA, IPEA",
+        "fee": "Search fee; preliminary examination fee",
+        "category": "natural person, startup, small entity, educational institution",
+        "reduction_pct": 75,
+        "as_published": "Separate lower amount in Table I(b) and Table II (search: INR 2,500 instead of INR 10,000)",
+        "criteria": "Filing by a natural person, startup, small entity or educational institution (category definitions per Indian law, not checked).",
+        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+      },
+      {
+        "office": "IPOPHL (PH), not IP5",
+        "role": "ISA, IPEA",
+        "fee": "Search fee; preliminary examination fee",
+        "category": "small entity or government",
+        "reduction_pct": null,
+        "as_published": "Separate lower amount in Table I(b) and Table II (search: USD 200 instead of USD 600)",
+        "criteria": "Natural or juridical person with assets of not more than PHP 100 million, or a Philippine government entity, state university or college or government-run school (Table I(b) footnote 36).",
+        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+      }
+    ],
+    "national_phase": [
+      {
+        "office": "EPO (EP)",
+        "applies_on_entry": true,
+        "fees": "Filing fee; European or supplementary European search fee; examination fee (plus a further reduction of 30% of the search fee effectively paid, including the international search fee where the EPO was ISA); designation fee; fee for grant; renewal fees for the European patent application",
+        "category": "microenterprise, natural person, non-profit organisation, university, public research organisation",
+        "reduction_pct": 30,
+        "criteria": "Declaration under Rule 7b(1) EPC; microenterprise as defined in Commission Recommendation 2003/361/EC; any nationality or domicile; fewer than five applications (EP or Euro-PCT) in the five years before the relevant date (for Euro-PCT: date of entry into the European phase); each applicant must qualify. In force 1 April 2024 (CA/D 16/23; OJ EPO 2024, A3 and A8). Applies only from European phase entry (Rule 159 EPC acts), not to PCT international-phase fees.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en"
+      },
+      {
+        "office": "EPO (EP)",
+        "applies_on_entry": true,
+        "fees": "Examination fee (Euro-PCT, 'in certain cases'); filing fee and examination fee under the language scheme",
+        "category": "SME, microenterprise, natural person, non-profit organisation, university, public research organisation (language reduction, Rule 7a(1) EPC)",
+        "reduction_pct": 30,
+        "criteria": "Language-based reduction; conditions per OJ EPO 2024, A8 and Guide para. EP.14. Euro-PCT conditions not checked in detail.",
+        "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8.html"
+      },
+      {
+        "office": "USPTO (US)",
+        "applies_on_entry": true,
+        "fees": "Basic national fee, search fee, examination fee, application size fee, excess claims fees, and other 35 USC 371 fees listed with small and micro entity amounts",
+        "category": "small entity (60%), micro entity (80%)",
+        "reduction_pct": null,
+        "criteria": "Small entity: 37 CFR 1.27, written assertion (may be made on Form PTO-1390 or by paying the exact small entity basic national fee). Micro entity: 37 CFR 1.29, gross income or institution of higher education basis, certification required. Rates: Guide para. US.19.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+      },
+      {
+        "office": "JPO (JP)",
+        "applies_on_entry": true,
+        "fees": "Fee for request for examination; annual fees",
+        "category": "individuals, SMEs, micro enterprises, academic institutions and certain other entities",
+        "reduction_pct": null,
+        "criteria": "'Fee reductions may apply for certain applicants such as small and medium-sized enterprises, micro enterprises, and academic institutions' (Annex JP.I). Rates and thresholds in the JPO leaflet, not confirmed (JPO site not reachable).",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
+      },
+      {
+        "office": "KIPO / MOIP (KR)",
+        "applies_on_entry": true,
+        "fees": "Filing fee, fee for request for examination, annual fees for years 1 to 3, fee for request for scope confirmation trial",
+        "category": "natural person who is also the inventor",
+        "reduction_pct": 70,
+        "criteria": "Applicant is a natural person and the inventor; filing fee reduced by 30% only where the applicant files more than 20 applications per year (Annex KR national phase). Not an SME scheme.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
+      },
+      {
+        "office": "KIPO / MOIP (KR)",
+        "applies_on_entry": null,
+        "fees": "Not confirmed",
+        "category": "SME",
+        "reduction_pct": null,
+        "criteria": "No SME reduction listed in the PCT Applicant's Guide national phase summary for KR; MOIP fee page could not be read.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
+      },
+      {
+        "office": "CNIPA (CN)",
+        "applies_on_entry": true,
+        "fees": "Re-examination fee and annual fees only (per CNIPA reply of 21 August 2024 citing the Patent Examination Guidelines). Application fee and substantive examination fee are not reduced on this basis; they are exempted only where CNIPA acted as RO and ISA (application fee) or issued the ISR and IPRP (examination fee).",
+        "category": "individuals, enterprises, public institutions, social organisations, non-profit research institutions",
+        "reduction_pct": null,
+        "criteria": "Measures on Reduction of Patent Fees (Caishui [2016] No. 78): 85% for a single applicant, 70% for joint applicants. Thresholds per CNIPA Announcement No. 316 (from 1 July 2019): individuals with prior-year average monthly income below CNY 5,000 (CNY 60,000 a year); enterprises with prior-year taxable income below CNY 1 million. Prior fee-reduction registration (备案) required. Eligibility of foreign applicants not confirmed.",
+        "source_url": "https://www.cnipa.gov.cn/jact/front/mailpubdetail.do?transactId=472598&sysid=6"
+      }
+    ],
+    "pct_wide_sme": {
+      "status": "None. The PCT Schedule of Fees (Regulations as in force from 1 January 2026) has no reduction for SMEs, startups or universities; its only reductions are e-filing (item 4) and the 90% reduction for natural persons from listed States and applicants from least developed countries (item 5). A proposal by Brazil for university fee reductions was discussed in the PCT Working Group 2016-2019; at the 12th session (2019) the Chair noted wide support but that some Group B delegations could not agree at that stage. No later adoption found.",
+      "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax",
+      "wg_source_url": "https://www.wipo.int/edocs/mdocs/pct/en/pct_wg_12/pct_wg_12_25_prov.pdf"
+    }
+  },
+  "other_offices": {
+    "checked_on": "2026-11-05",
+    "source_index_url": "https://www.wipo.int/en/web/pct-system/guide/index",
+    "source_note": "Per-office pages: PCT Applicant's Guide eGuide (pctlegal.wipo.int), National Phase summary and chapter; source_date = the page's \"Last updated on\" date. IP5 offices excluded (covered elsewhere).",
+    "offices": [
+      {
+        "code": "CA",
+        "name": "Canadian Intellectual Property Office",
+        "guide_updated": "September 3, 2026",
+        "fee_reductions": [
+          {
+            "category": "small entity",
+            "reduction_pct": null,
+            "as_published": "Small entity fee level: basic national fee 241.24 CAD instead of 595.06 CAD; maintenance fee (2nd to 4th anniversary) 60.26 CAD instead of 134.02 CAD.",
+            "fees": "Basic national fee; maintenance fees; other fees in the small entity schedule",
+            "criteria": "Small entity under subsection 44(2) of the Canadian Patent Rules; signed small entity declaration (subsection 44(3)) filed within the national phase entry time limit.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CA&doc-lang=en",
+            "source_date": "September 3, 2026",
+            "category_group": [
+              "sme"
+            ]
+          },
+          {
+            "category": "small entity (definition)",
+            "reduction_pct": null,
+            "as_published": "Small entity: fewer than 100 employees, or a university; excludes entities controlled by, or that have licensed or transferred rights to, a non-university entity with 100 or more employees.",
+            "fees": "As above",
+            "criteria": "Definition from the CIPO small entity declaration tool page (date modified 2024-10-01).",
+            "source_url": "https://ised-isde.canada.ca/site/canadian-intellectual-property-office/en/patents/small-entity-declaration-tool",
+            "category_group": [
+              "sme"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "ElevateIP (ISED programme, not CIPO itself)",
+            "text": "Federal programme giving innovators and SMEs access to IP expertise and tools to understand, manage and use their IP.",
+            "url": "https://ised-isde.canada.ca/site/ised/en/programs-and-initiatives/elevateip"
+          }
+        ]
+      },
+      {
+        "code": "IN",
+        "name": "Indian Patent Office",
+        "guide_updated": "September 25, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons, startups, small entities, educational institutions",
+            "reduction_pct": null,
+            "as_published": "Filing fee (up to 30 sheets and 10 claims), electronic filing: 1,600 INR instead of 8,000 INR; same category split for additional sheets, claims and priorities (Annex IN.I).",
+            "fees": "Filing fee and other fees in Schedule 1",
+            "criteria": "Applicant is a natural person, startup, small entity or educational institution; the higher rate applies where any co-applicant is outside these categories.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IN&doc-lang=en",
+            "source_date": "September 25, 2026",
+            "category_group": [
+              "sme",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "Expedited examination (Rule 24C)",
+            "text": "Startups and small entities may request expedited examination on Form 18A.",
+            "url": "https://www.ipindia.gov.in/acts/patent-rules-2003/rule-24c"
+          }
+        ]
+      },
+      {
+        "code": "BR",
+        "name": "National Institute of Industrial Property (Brazil)",
+        "guide_updated": "October 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons, micro and small enterprises, individual micro-entrepreneurs, simple innovation companies, science and technology institutions, non-profits, public bodies",
+            "reduction_pct": 50,
+            "as_published": "National phase fees reduced by 50% under certain conditions (Guide); INPI Ordinance No. 10/2025 lists the eligible groups.",
+            "fees": "National phase entry fees (filing fee 260 BRL electronic) and other INPI fees marked as eligible",
+            "criteria": "Natural persons (only without a stake in a company in the same field); ME, MEI and EPP as defined in Complementary Law 123/2006; simple innovation companies (Complementary Law 167/2019); ICTs (Law 10.973/2004); non-profit entities; national public bodies. All co-applicants must qualify. Not every fee code is reduced.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=BR&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "sme",
+              "micro",
+              "individuals",
+              "universities",
+              "nonprofits"
+            ]
+          },
+          {
+            "category": "same, per INPI ordinance",
+            "reduction_pct": 50,
+            "as_published": "Reducao de 50% no valor de retribuicao (Portaria INPI No. 10 of 9 May 2025).",
+            "fees": "Fees marked as discounted in the INPI fee table",
+            "criteria": "As above; 100% discount for low-income natural persons and persons with disabilities on certain fees.",
+            "source_url": "https://www.gov.br/inpi/pt-br/central-de-conteudo/legislacao/arquivos/documentos/2025pr-10.pdf",
+            "category_group": [
+              "sme",
+              "micro",
+              "individuals",
+              "universities",
+              "nonprofits"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "Priority examination for small businesses and startups",
+            "text": "INPI priority examination modalities include individual micro-entrepreneurs, microenterprises and small companies (LC 123/2006) and startups.",
+            "url": "https://www.gov.br/inpi/pt-br/servicos/patentes/tramite-prioritario/modalidades-de-tramite-prioritario-de-patentes"
+          }
+        ]
+      },
+      {
+        "code": "IL",
+        "name": "Israel Patent Office",
+        "guide_updated": "June 11, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals; companies with turnover under ILS 10 million",
+            "reduction_pct": 40,
+            "as_published": "A 40% reduction in the filing fee (2,402 ILS) for applications first filed in Israel for an individual applicant or a corporate entity with turnover below ILS 10 million in the last calendar year.",
+            "fees": "Filing fee",
+            "criteria": "Individual applicant, or corporate entity with turnover below ILS 10 million in the last calendar year; the Guide limits it to applications first filed in Israel, so most PCT national phase entries from abroad would not qualify.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IL&doc-lang=en",
+            "source_date": "June 11, 2026",
+            "category_group": [
+              "sme",
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "MX",
+        "name": "Mexican Institute of Industrial Property",
+        "guide_updated": "December 4, 2025",
+        "fee_reductions": [
+          {
+            "category": "inventors, SMEs, higher education and public research institutions",
+            "reduction_pct": 50,
+            "as_published": "May pay 50% of the applicable fees (Title II of the Industrial Property Law) and 50% of fees for technical information.",
+            "fees": "Applicable fees (filing fee 3,147 MXN under Art. 22 entry)",
+            "criteria": "Applicant is the inventor, a small or medium-sized enterprise, a public or private institution of higher education, or a public sector scientific or technological institution.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=MX&doc-lang=en",
+            "source_date": "December 4, 2025",
+            "category_group": [
+              "sme",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "PH",
+        "name": "Intellectual Property Office of the Philippines",
+        "guide_updated": "May 12, 2026",
+        "fee_reductions": [
+          {
+            "category": "small entity",
+            "reduction_pct": null,
+            "as_published": "Filing fee 2,000 PHP instead of 4,320 PHP (patents); 1,720 PHP instead of 3,600 PHP (utility models).",
+            "fees": "Filing fee",
+            "criteria": "Natural or legal person with assets of 100 million PHP or less, or Philippine government units including state universities and colleges; applicants are presumed big entities unless a written statement is submitted at payment.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=PH&doc-lang=en",
+            "source_date": "May 12, 2026",
+            "category_group": [
+              "sme"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "Inventor Assistance Program (with WIPO)",
+            "text": "Matches Filipino inventors and small businesses with pro bono patent attorneys for drafting and filing.",
+            "url": "https://www.ipophil.gov.ph/inventor-assistance-program/iap-online-platform/"
+          }
+        ]
+      },
+      {
+        "code": "TR",
+        "name": "Turkish Patent and Trademark Office (TÜRKPATENT)",
+        "guide_updated": "September 21, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons and universities",
+            "reduction_pct": null,
+            "as_published": "Search and examination report fees 2,530 TRY instead of 5,180 TRY for up to 10 applications (natural persons) or up to 100 applications (universities).",
+            "fees": "Search report fee; examination report fee",
+            "criteria": "Natural persons (up to 10 applications) and universities (up to 100 applications).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=TR&doc-lang=en",
+            "source_date": "September 21, 2026",
+            "category_group": [
+              "individuals",
+              "universities"
+            ]
+          },
+          {
+            "category": "SMEs (KOBI), first applications",
+            "reduction_pct": null,
+            "as_published": "TURKPATENT fee page: search and examination report fees 1,295 TL instead of 5,180 TL; application fee 546.73 TL instead of 620 TL (totals incl. tax and duty).",
+            "fees": "Application fee; search report fee; examination report fee",
+            "criteria": "First applications of legal entities in the KOBI enterprise class holding a KOBI status certificate. Not in the WIPO Guide; whether it covers PCT national phase entries is not stated.",
+            "source_url": "https://www.turkpatent.gov.tr/patent-islem-ucretleri",
+            "category_group": [
+              "sme"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "TUBITAK 1602 Patent Support Programme (TUBITAK, not TURKPATENT)",
+            "text": "Grants for national and PCT patent filings; requests for WIPO filings go through TURKPATENT.",
+            "url": "https://tubitak.gov.tr/tr/destekler/sanayi/ulusal-destek-programlari/1602-tubitak-patent-destek-programi"
+          }
+        ]
+      },
+      {
+        "code": "NO",
+        "name": "Norwegian Industrial Property Office",
+        "guide_updated": "October 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons; entities with 20 or fewer employees",
+            "reduction_pct": null,
+            "as_published": "Basic fee including examination 1,100 NOK instead of 6,050 NOK.",
+            "fees": "Basic fee including examination fee",
+            "criteria": "Applicant is a natural person or a legal entity with 20 permanent employees or less.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=NO&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "Free guidance and preliminary searches",
+            "text": "Free guidance on rules and the application process; paid preliminary searches and tailored services.",
+            "url": "https://www.patentstyret.no/en/about-us/how-we-work/preliminary-searches-and-tailored-services"
+          }
+        ]
+      },
+      {
+        "code": "ES",
+        "name": "Spanish Patent and Trademark Office (OEPM)",
+        "guide_updated": "April 2, 2026",
+        "fee_reductions": [
+          {
+            "category": "Spanish public universities; entrepreneurs",
+            "reduction_pct": null,
+            "as_published": "Fee reductions are available to Spanish public universities and entrepreneurs (details on OEPM invention fees page).",
+            "fees": "Not specified in the Guide",
+            "criteria": "Spanish public universities and entrepreneurs; see https://www.oepm.es/en/tasas-y-precios-publicos/tasas-de-invenciones/",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=ES&doc-lang=en",
+            "source_date": "April 2, 2026",
+            "category_group": [
+              "universities"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "Servicio de Apoyo a la Empresa",
+            "text": "Second-level advice service for SMEs and entrepreneurs (registration, internationalisation, grants), by appointment, phone or email.",
+            "url": "https://www.oepm.es/export/sites/portal/comun/documentos_relacionados/PDF/Servicio_apoyo_empresa.pdf"
+          }
+        ]
+      },
+      {
+        "code": "IT",
+        "name": "Italian Patent and Trademark Office",
+        "guide_updated": "November 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "universities and public research institutions",
+            "reduction_pct": 100,
+            "as_published": "No filing fee is payable if the application is filed by universities, public research institutions, defence or agricultural, food or forestry policy administrations.",
+            "fees": "Filing fee",
+            "criteria": "Applicant is a university, public research institution or one of the listed administrations.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IT&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "EA",
+        "name": "Eurasian Patent Office (EAPO)",
+        "guide_updated": "October 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons from EAPC States",
+            "reduction_pct": 90,
+            "as_published": "Unitary procedural fee (70,000 RUB) reduced by 90%.",
+            "fees": "Unitary procedural fee",
+            "criteria": "Each applicant is a natural person who is a national or resident of a State party to the Eurasian Patent Convention.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EA&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "state science and education organizations from EAPC States",
+            "reduction_pct": 70,
+            "as_published": "Unitary procedural fee reduced by 70%.",
+            "fees": "Unitary procedural fee",
+            "criteria": "Each applicant is a state science or state educational organization of an EAPC State.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EA&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "universities"
+            ]
+          },
+          {
+            "category": "legal persons based in EAPC States",
+            "reduction_pct": 10,
+            "as_published": "Unitary procedural fee reduced by 10%.",
+            "fees": "Unitary procedural fee",
+            "criteria": "Each applicant is a legal person with principal place of business in an EAPC State.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EA&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "natural persons from listed States",
+            "reduction_pct": 50,
+            "as_published": "Unitary procedural fee reduced by 50%.",
+            "fees": "Unitary procedural fee",
+            "criteria": "Each applicant is a natural person who is a national or resident of a State on the list published on the EAPO website.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EA&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "MA",
+        "name": "Moroccan Office of Industrial and Commercial Property (OMPIC)",
+        "guide_updated": "October 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons; Moroccan micro, small and medium enterprises, self-employed, craftsmen, universities, R&D institutions",
+            "reduction_pct": null,
+            "as_published": "Filing fee 500 MAD (250 MAD online) instead of 1,000 MAD (750 MAD online).",
+            "fees": "Filing fee (fees subject to 20% VAT)",
+            "criteria": "Natural persons from countries benefiting from the PCT fee reduction, and national (MA) applicants that are very small, small or medium-sized enterprises under the SME charter, self-employed entrepreneurs, craftsmen, universities and educational establishments, or institutions with an R&D mission.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=MA&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "sme",
+              "micro",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": [
+          {
+            "name": "PAI Probono Maroc; value-added patent services",
+            "text": "Free patent help through partners for SMEs under the SME charter thresholds; patent information analyses for SMEs, start-ups and universities.",
+            "url": "http://www.ompic.ma/fr/content/innovation-valorisation"
+          }
+        ]
+      },
+      {
+        "code": "AM",
+        "name": "Intellectual Property Office of the Republic of Armenia",
+        "guide_updated": "November 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "natural persons; legal entities with under 25 employees",
+            "reduction_pct": 75,
+            "as_published": "National fees for obtaining and maintaining patents reduced by 75%.",
+            "fees": "National fees for obtaining and maintaining patents and short-term patents",
+            "criteria": "Physical person, or legal entity with fewer than 25 employees.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=AM&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "legal entities with 25 to 100 employees",
+            "reduction_pct": 50,
+            "as_published": "National fees reduced by 50%.",
+            "fees": "As above",
+            "criteria": "Legal entity with 25 to 100 employees.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=AM&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "sme"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "BG",
+        "name": "Patent Office of the Republic of Bulgaria",
+        "guide_updated": "July 3, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventors, state education and research bodies, SMEs",
+            "reduction_pct": 50,
+            "as_published": "Filing fee (20.45 EUR) reduced by 50%.",
+            "fees": "Filing fee (patents and utility models)",
+            "criteria": "Applicant is the inventor, a State educational institution, an academic research organization, a budgetary organization or a small or medium-sized enterprise.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=BG&doc-lang=en",
+            "source_date": "July 3, 2026",
+            "category_group": [
+              "sme",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "BW",
+        "name": "Companies and Intellectual Property Authority (CIPA) (Botswana)",
+        "guide_updated": "July 10, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals and small entities",
+            "reduction_pct": 50,
+            "as_published": "Application fee 150 BWP instead of 300 BWP; annual fees halved.",
+            "fees": "Application fee; annual fees",
+            "criteria": "Individual, or small entity with no more than 100 employees.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=BW&doc-lang=en",
+            "source_date": "July 10, 2026",
+            "category_group": [
+              "sme",
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "LS",
+        "name": "Registrar General's Office (Lesotho)",
+        "guide_updated": "November 20, 2025",
+        "fee_reductions": [
+          {
+            "category": "individuals and small entities",
+            "reduction_pct": null,
+            "as_published": "Application fee 100 LSL instead of 250 LSL; grant and maintenance fees also lower.",
+            "fees": "Application, grant and publication, annual maintenance fees",
+            "criteria": "Individual, or business with no more than 500 employees (including affiliates) that has not assigned or licensed the right; the Registrar decides eligibility.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=LS&doc-lang=en",
+            "source_date": "November 20, 2025",
+            "category_group": [
+              "sme",
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "GH",
+        "name": "Registrar General's Department (Ghana)",
+        "guide_updated": "November 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "individuals; entities with under 25 employees",
+            "reduction_pct": null,
+            "as_published": "National processing fee 50,000 GHS instead of 100,000 GHS; annual fees halved.",
+            "fees": "National processing fee; annual fees",
+            "criteria": "Individual, or entity employing fewer than 25 persons.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=GH&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "CR",
+        "name": "Registry of Intellectual Property (Costa Rica)",
+        "guide_updated": "July 2, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons, micro and small enterprises, public higher education and research institutes",
+            "reduction_pct": 70,
+            "as_published": "National fee reduced by 70%.",
+            "fees": "National fee (patents)",
+            "criteria": "Natural persons; micro or small enterprises under Law No. 8262; public higher education institutions; public scientific or technology research institutes. Sworn statement and ID or corporate card required; an assignee without entitlement pays the remaining 70%.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CR&doc-lang=en",
+            "source_date": "July 2, 2026",
+            "category_group": [
+              "sme",
+              "micro",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "EC",
+        "name": "National Service of Intellectual Rights (SENADI) (Ecuador)",
+        "guide_updated": "May 28, 2026",
+        "fee_reductions": [
+          {
+            "category": "micro, small and medium enterprises, national universities, independent researchers and others",
+            "reduction_pct": null,
+            "as_published": "Filing fee (495.33 USD) may be reduced by up to 90% (patents); up to 50% for utility models.",
+            "fees": "Filing fee and other fees",
+            "criteria": "Micro, small and medium enterprises; recognized national universities; independent researchers; public institutions; small and medium farmers; popular and solidarity economy enterprises.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EC&doc-lang=en",
+            "source_date": "May 28, 2026",
+            "category_group": [
+              "sme",
+              "micro",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "UY",
+        "name": "National Directorate of Industrial Property and Software Registry (DNPIRS) (Uruguay)",
+        "guide_updated": "April 14, 2026",
+        "fee_reductions": [
+          {
+            "category": "SMEs, public institutions, cooperatives, independent inventors, research centers",
+            "reduction_pct": null,
+            "as_published": "Fees reduced by up to 90% (Art. 338 of Law 19355).",
+            "fees": "Fees",
+            "criteria": "Public institutions, small and medium-sized companies, producer associations and groups, cooperatives, independent inventors, research centers.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=UY&doc-lang=en",
+            "source_date": "April 14, 2026",
+            "category_group": [
+              "sme",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "CU",
+        "name": "Cuban Industrial Property Office",
+        "guide_updated": "March 7, 2025",
+        "fee_reductions": [
+          {
+            "category": "natural persons and public universities",
+            "reduction_pct": 40,
+            "as_published": "Fees reduced by 40%; annual fees from the third annuity reduced by 50%.",
+            "fees": "Filing fee (11,040 CUP patents) and annual fees",
+            "criteria": "Applicant is a natural person or a public university.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CU&doc-lang=en",
+            "source_date": "March 7, 2025",
+            "category_group": [
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "OM",
+        "name": "National Intellectual Property Office (Ministry of Commerce, Industry and Investment Promotion) (Oman)",
+        "guide_updated": "October 26, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals",
+            "reduction_pct": null,
+            "as_published": "Filing fee 200 OMR instead of 300 OMR.",
+            "fees": "Filing fee",
+            "criteria": "Filing by an individual.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=OM&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "researchers and students",
+            "reduction_pct": 90,
+            "as_published": "Fees reduced by 90% for five years from filing.",
+            "fees": "Industrial property service fees",
+            "criteria": "Application filed by a researcher in a research center or a student (Ministerial Resolution No. 206/2018).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=OM&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "universities"
+            ]
+          },
+          {
+            "category": "small enterprises",
+            "reduction_pct": 50,
+            "as_published": "Fees reduced by 50% for five years from filing.",
+            "fees": "Industrial property service fees",
+            "criteria": "Application filed by a small enterprise (Ministerial Resolution No. 206/2018).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=OM&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "sme"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "SY",
+        "name": "Directorate of Commercial and Industrial Property Protection (Syrian Arab Republic)",
+        "guide_updated": "October 15, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": null,
+            "as_published": "Filing fee 250 SYP instead of 5,000 SYP; examination fee 2,000 SYP instead of 20,000 SYP.",
+            "fees": "Filing, annual, examination fees",
+            "criteria": "Filing by a natural person.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=SY&doc-lang=en",
+            "source_date": "October 15, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "students, microenterprises, small enterprises",
+            "reduction_pct": 90,
+            "as_published": "Annual fees reduced by 90% for students and microenterprises, 50% for small enterprises.",
+            "fees": "Annual fees",
+            "criteria": "Students and microenterprises (90%); small enterprises (50%).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=SY&doc-lang=en",
+            "source_date": "October 15, 2026",
+            "category_group": [
+              "sme",
+              "micro",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "DZ",
+        "name": "Algerian National Institute of Industrial Property",
+        "guide_updated": "June 24, 2026",
+        "fee_reductions": [
+          {
+            "category": "start-ups and natural persons; universities and research centers",
+            "reduction_pct": null,
+            "as_published": "Filing fee and 1st maintenance fee: 6,500 DZD (start-ups, natural persons), 7,000 DZD (universities, research centers), 15,000 DZD (companies).",
+            "fees": "Filing, priority, publication and maintenance fees (plus 19% VAT)",
+            "criteria": "Separate fee tiers for start-ups and natural persons, and for universities and research centers.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=DZ&doc-lang=en",
+            "source_date": "June 24, 2026",
+            "category_group": [
+              "sme",
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "AE",
+        "name": "International Center for Patent Registration, Ministry of Economy (United Arab Emirates)",
+        "guide_updated": "May 7, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": null,
+            "as_published": "Filing fee 1,000 AED instead of 2,000 AED.",
+            "fees": "Filing fee; appeal, publication, correction and annual fees",
+            "criteria": "Filing by a natural person.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=AE&doc-lang=en",
+            "source_date": "May 7, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "SA",
+        "name": "Saudi Authority for Intellectual Property (SAIP)",
+        "guide_updated": "October 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals",
+            "reduction_pct": null,
+            "as_published": "Filing fee 400 SAR instead of 800 SAR.",
+            "fees": "Filing fee",
+            "criteria": "Filing by individuals.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=SA&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "QA",
+        "name": "Intellectual Property Department (Qatar)",
+        "guide_updated": "October 26, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals",
+            "reduction_pct": null,
+            "as_published": "Filing and substantive examination fee 2,500 QAR instead of 5,000 QAR.",
+            "fees": "Filing and substantive examination fee",
+            "criteria": "Filing by individuals (companies, institutions and research entities pay the full fee).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=QA&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "BH",
+        "name": "Directorate of Foreign Trade & Industrial Property, National Patent Office (Bahrain)",
+        "guide_updated": "October 26, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals",
+            "reduction_pct": null,
+            "as_published": "Filing fee 40 BHD instead of 540 BHD; publication fee 50 BHD instead of 320 BHD.",
+            "fees": "Filing, annual and publication fees",
+            "criteria": "Filing by an individual.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=BH&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "JO",
+        "name": "Industrial Property Protection Directorate, Ministry of Industry, Trade and Supply (Jordan)",
+        "guide_updated": "May 28, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals",
+            "reduction_pct": null,
+            "as_published": "Filing fee 100 JOD instead of 200 JOD.",
+            "fees": "Filing fee",
+            "criteria": "Filing by an individual (companies and organizations pay 200 JOD).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JO&doc-lang=en",
+            "source_date": "May 28, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "KW",
+        "name": "Ministry of Commerce and Industry, Trademarks and Patent Department (Kuwait)",
+        "guide_updated": "March 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "individuals",
+            "reduction_pct": null,
+            "as_published": "Filing fee 40 KWD instead of 80 KWD.",
+            "fees": "Filing fee",
+            "criteria": "Filing by an individual (company pays 80 KWD).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KW&doc-lang=en",
+            "source_date": "March 13, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "students",
+            "reduction_pct": 50,
+            "as_published": "Filing fee reduced by 50%.",
+            "fees": "Filing fee",
+            "criteria": "Applicant is a student.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KW&doc-lang=en",
+            "source_date": "March 13, 2025",
+            "category_group": [
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "IR",
+        "name": "Intellectual Property Center (Islamic Republic of Iran)",
+        "guide_updated": "March 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": null,
+            "as_published": "Filing fee 500,000 IRR instead of 2,500,000 IRR; annual fees 1,000,000 IRR instead of 5,000,000 IRR.",
+            "fees": "Filing, amendment, grant and annual fees",
+            "criteria": "Filing by a natural person.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IR&doc-lang=en",
+            "source_date": "March 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "EG",
+        "name": "Egyptian Intellectual Property Authority",
+        "guide_updated": "July 23, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals and students",
+            "reduction_pct": null,
+            "as_published": "Filing fee 0 EGP for students (150 EGP standard); annual fees lower for individuals and students.",
+            "fees": "Filing fee; annual fees",
+            "criteria": "Filing by students or individuals.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EG&doc-lang=en",
+            "source_date": "July 23, 2026",
+            "category_group": [
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "LK",
+        "name": "National Intellectual Property Office of Sri Lanka",
+        "guide_updated": "June 4, 2026",
+        "fee_reductions": [
+          {
+            "category": "students and natural persons",
+            "reduction_pct": null,
+            "as_published": "Application fee 1,150 LKR (students), 2,875 LKR (natural persons), 6,900 LKR (others).",
+            "fees": "National application fee (plus 15% VAT)",
+            "criteria": "Students (school, technical college, university undergraduates) and natural persons.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=LK&doc-lang=en",
+            "source_date": "June 4, 2026",
+            "category_group": [
+              "individuals",
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "EE",
+        "name": "Estonian Patent Office",
+        "guide_updated": "March 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": null,
+            "as_published": "Basic fee 56 EUR instead of 225 EUR.",
+            "fees": "Basic fee and other fees in parentheses",
+            "criteria": "All applicants are natural persons.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EE&doc-lang=en",
+            "source_date": "March 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "AZ",
+        "name": "Intellectual Property Agency of the Republic of Azerbaijan",
+        "guide_updated": "October 26, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": null,
+            "as_published": "Annual fee for the 3rd year 10 AZN instead of 50 AZN.",
+            "fees": "Annual fee for the 3rd year",
+            "criteria": "All applicants are natural persons.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=AZ&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "GE",
+        "name": "National Intellectual Property Center of Georgia (SAKPATENTI)",
+        "guide_updated": "May 7, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventors, higher education and independent research units",
+            "reduction_pct": 70,
+            "as_published": "Fees reduced by 70%.",
+            "fees": "Fees (form examination and publication fee, equivalent of 100 USD)",
+            "criteria": "Applicant is the inventor, a higher educational institution or an independent scientific research unit.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=GE&doc-lang=en",
+            "source_date": "May 7, 2026",
+            "category_group": [
+              "individuals",
+              "universities"
+            ]
+          },
+          {
+            "category": "students, pupils, retirees",
+            "reduction_pct": 90,
+            "as_published": "Fees reduced by 90%.",
+            "fees": "Fees",
+            "criteria": "Applicant is a student, pupil or retiree.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=GE&doc-lang=en",
+            "source_date": "May 7, 2026",
+            "category_group": [
+              "universities"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "KG",
+        "name": "Ministry of Science, Higher Education and Innovation of the Kyrgyz Republic",
+        "guide_updated": "October 27, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons and non-commercial organizations",
+            "reduction_pct": 90,
+            "as_published": "Fees reduced by 90%.",
+            "fees": "Fees",
+            "criteria": "Applicant is a natural person or a non-commercial organization; some groups (war veterans, Group 1 disabilities) are exempt.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KG&doc-lang=en",
+            "source_date": "October 27, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "TM",
+        "name": "State Service for Intellectual Property of the Ministry of Finance and Economy of Turkmenistan",
+        "guide_updated": "July 31, 2026",
+        "fee_reductions": [
+          {
+            "category": "individuals resident in Turkmenistan",
+            "reduction_pct": 90,
+            "as_published": "Fees reduced by 90%.",
+            "fees": "Fees (filing fee 100 USD)",
+            "criteria": "Individuals permanently residing in Turkmenistan; further exemptions or 50% reductions on request for socially protected categories of citizens.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=TM&doc-lang=en",
+            "source_date": "July 31, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "UA",
+        "name": "State Organization “Ukrainian National Office for Intellectual Property and Innovations” (UANIPIO)",
+        "guide_updated": "November 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants",
+            "reduction_pct": 90,
+            "as_published": "All patent fees reduced by 90% (80% for utility models).",
+            "fees": "All fees",
+            "criteria": "All applicants are also inventors.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=UA&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          },
+          {
+            "category": "non-profit institutions",
+            "reduction_pct": 80,
+            "as_published": "All patent fees reduced by 80% (60% for utility models).",
+            "fees": "All fees",
+            "criteria": "All applicants are non-profit institutions or organizations; mixed inventor and non-profit applicants get 80% (patents).",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=UA&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "nonprofits"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "RS",
+        "name": "Intellectual Property Office (Serbia)",
+        "guide_updated": "July 13, 2026",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": 50,
+            "as_published": "Fees reduced by 50% (filing fee 10,320 RSD).",
+            "fees": "Filing, claim and other fees (Annex I)",
+            "criteria": "International application filed by a natural person.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=RS&doc-lang=en",
+            "source_date": "July 13, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "BA",
+        "name": "Institute for Intellectual Property of Bosnia and Herzegovina",
+        "guide_updated": "April 14, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants",
+            "reduction_pct": 50,
+            "as_published": "Filing fee (260 BAM) reduced by 50%.",
+            "fees": "Filing and publication fee",
+            "criteria": "Applicant is also the inventor.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=BA&doc-lang=en",
+            "source_date": "April 14, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "CZ",
+        "name": "Industrial Property Office of the Czech Republic",
+        "guide_updated": "April 30, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants",
+            "reduction_pct": 50,
+            "as_published": "Filing fee (1,200 CZK) reduced by 50%.",
+            "fees": "Filing fee",
+            "criteria": "Applicant is also the inventor.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CZ&doc-lang=en",
+            "source_date": "April 30, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "SK",
+        "name": "Industrial Property Office of the Slovak Republic",
+        "guide_updated": "June 11, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants",
+            "reduction_pct": 50,
+            "as_published": "Filing fee 50 EUR instead of 100 EUR.",
+            "fees": "Filing fee",
+            "criteria": "Application filed by the inventor or co-inventors.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=SK&doc-lang=en",
+            "source_date": "June 11, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "HR",
+        "name": "State Intellectual Property Office (Croatia)",
+        "guide_updated": "December 1, 2025",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants",
+            "reduction_pct": 50,
+            "as_published": "Filing, examination, publication and maintenance fees reduced by 50%.",
+            "fees": "Filing, examination, publication, maintenance fees",
+            "criteria": "Applicant is also the inventor.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=HR&doc-lang=en",
+            "source_date": "December 1, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "NI",
+        "name": "Registry of Intellectual Property (Nicaragua)",
+        "guide_updated": "November 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "natural persons",
+            "reduction_pct": 75,
+            "as_published": "National fee (200 NIO patents) reduced by 75%.",
+            "fees": "National fee",
+            "criteria": "Application filed by a natural person.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=NI&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "HN",
+        "name": "Directorate General of Intellectual Property (Honduras)",
+        "guide_updated": "June 11, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants with limited means",
+            "reduction_pct": 90,
+            "as_published": "Fees reduced by 90%.",
+            "fees": "Fees (filing fee 1,500 HNL)",
+            "criteria": "Applicant is the inventor and declares that their economic situation prevents paying the full fees.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=HN&doc-lang=en",
+            "source_date": "June 11, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "DO",
+        "name": "National Office of Industrial Property (Dominican Republic)",
+        "guide_updated": "February 5, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants with limited means",
+            "reduction_pct": null,
+            "as_published": "Fees reduced by up to 90%.",
+            "fees": "Fees (filing fee 13,225 DOP up to 30 sheets)",
+            "criteria": "Applicant is the inventor and declares that their economic situation prevents paying the full fees.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=DO&doc-lang=en",
+            "source_date": "February 5, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "CV",
+        "name": "Institute for Quality Management and Intellectual Property (IGQPI) (Cabo Verde)",
+        "guide_updated": "October 26, 2026",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants with limited means",
+            "reduction_pct": null,
+            "as_published": "Fees reduced by up to 90%.",
+            "fees": "Fees (filing fee 15,000 CVE)",
+            "criteria": "Applicant is the inventor and declares that their economic situation prevents paying the full fees.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CV&doc-lang=en",
+            "source_date": "October 26, 2026",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      },
+      {
+        "code": "PA",
+        "name": "Directorate General of the Industrial Property Registry (DIGERPI) (Panama)",
+        "guide_updated": "November 13, 2025",
+        "fee_reductions": [
+          {
+            "category": "inventor-applicants with limited means",
+            "reduction_pct": 90,
+            "as_published": "May pay only 10% of the filing fee.",
+            "fees": "Filing fee (128.50 USD patents)",
+            "criteria": "Applicant is the inventor and their economic situation prevents paying the full fee.",
+            "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=PA&doc-lang=en",
+            "source_date": "November 13, 2025",
+            "category_group": [
+              "individuals"
+            ]
+          }
+        ],
+        "support": []
+      }
+    ],
+    "no_reduction_listed": [
+      "AG",
+      "AL",
+      "AO",
+      "AP",
+      "AT",
+      "AU",
+      "BB",
+      "BN",
+      "BY",
+      "BZ",
+      "CH",
+      "CL",
+      "DE",
+      "DJ",
+      "DK",
+      "FI",
+      "GB",
+      "GM",
+      "GT",
+      "HU",
+      "ID",
+      "IQ",
+      "IS",
+      "JM",
+      "KE",
+      "KH",
+      "KN",
+      "KP",
+      "KZ",
+      "LA",
+      "LR",
+      "LU",
+      "MK",
+      "MN",
+      "MW",
+      "MY",
+      "NA",
+      "NG",
+      "NZ",
+      "OA",
+      "PE",
+      "PG",
+      "PL",
+      "PT",
+      "RO",
+      "RU",
+      "SC",
+      "SD",
+      "SE",
+      "SG",
+      "SL",
+      "SV",
+      "TH",
+      "TJ",
+      "TN",
+      "TT",
+      "TZ",
+      "UG",
+      "UZ",
+      "VC",
+      "VN",
+      "WS",
+      "ZA",
+      "ZM",
+      "ZW"
+    ],
+    "not_assessed": {
+      "ip5_excluded": [
+        "CN",
+        "EP",
+        "JP",
+        "KR",
+        "US"
+      ],
+      "guide_refers_to_office_or_not_by_applicant": [
+        "CO",
+        "MD",
+        "MG",
+        "MZ"
+      ],
+      "no_national_fee_section": [
+        "BE",
+        "BF",
+        "BJ",
+        "BS",
+        "CF",
+        "CG",
+        "CI",
+        "CM",
+        "CY",
+        "DM",
+        "FR",
+        "GA",
+        "GD",
+        "GN",
+        "GQ",
+        "GR",
+        "GW",
+        "IB",
+        "IE",
+        "KM",
+        "LC",
+        "LI",
+        "LT",
+        "LV",
+        "LY",
+        "MC",
+        "ME",
+        "ML",
+        "MR",
+        "MT",
+        "MU",
+        "NE",
+        "NL",
+        "RW",
+        "SI",
+        "SM",
+        "SN",
+        "ST",
+        "SZ",
+        "TD",
+        "TG",
+        "XN",
+        "XV"
+      ]
+    }
+  },
+  "allowed_hosts": [
+    "cnipa.gov.cn",
+    "epo.org",
+    "gov.br",
+    "ipindia.gov.in",
+    "ipophil.gov.ph",
+    "ised-isde.canada.ca",
+    "jpo.go.jp",
+    "kipo.go.kr",
+    "oepm.es",
+    "ompic.ma",
+    "patentstyret.no",
+    "tubitak.gov.tr",
+    "turkpatent.gov.tr",
+    "uspto.gov",
+    "wipo.int"
+  ],
+  "category_groups": {
+    "sme": "SMEs and small entities",
+    "micro": "Micro-entities",
+    "individuals": "Individuals and inventors",
+    "universities": "Universities, schools and research",
+    "nonprofits": "Non-profits and public bodies"
+  }
 }
