@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lina-here.github.io/patent-atlas/sitemap.xml

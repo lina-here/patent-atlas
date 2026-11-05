@@ -275,7 +275,7 @@ function womenCardContent(spec: CardSpec, overview: Overview): CardContent | nul
   const empty = spec.oneLineWhenEmpty && valued.length === 0;
   const { comparisons } = spec;
   const hasGroup = MEASURES.some((measure) => comparisons[measure].main?.group || comparisons[measure].beside?.group);
-  const basisNote = `${hasGroup ? "WIPO's shares and, for the group, values computed from them or printed by WIPO (see notes), by publication year." : "WIPO's figures, by publication year."} Two measures, one chart each: they count different things and are never drawn on one axis.`;
+  const basisNote = `${hasGroup ? "WIPO's shares and, for the group, values computed from them or printed by WIPO (see notes), by publication year." : "WIPO's figures, by publication year."} The two measures count different things, so each has its own chart and they never share an axis.`;
   if (empty) {
     return {
       title: `${CARD_TITLE}: ${label}`,

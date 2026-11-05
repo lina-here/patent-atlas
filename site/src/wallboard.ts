@@ -250,7 +250,7 @@ export function startWallboard(app: HTMLElement, cfg: Config, manifest: Manifest
   let ticker: number | undefined;
   /** The bar's progress from the deck's: stepped while running (the theme's transition smooths it), still while paused. */
   const syncProgress = (): void => {
-    const update = (): void => { fill.style.width = `${deck.progress() * 100}%`; };
+    const update = (): void => { fill.style.transform = `scaleX(${deck.progress()})`; };
     clearInterval(ticker);
     update();
     if (!deck.paused) ticker = window.setInterval(update, PROGRESS_STEP_MS);

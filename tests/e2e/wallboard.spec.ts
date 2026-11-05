@@ -33,6 +33,11 @@ function trackErrors(page: Page): string[] {
 const count = (page: Page) => page.locator(".board-count");
 const slot = (page: Page) => page.locator(".board-slot:not(.board-slot--pending)");
 const at = (page: Page, position: number, total: number) => expect(count(page)).toHaveText(`${position} / ${total}`);
+// progress fill: share of the slide shown, in percent, from its inline transform scaleX() (transform, not width: no layout per step)
+const fillPercent = (page: Page): Promise<number> => page.locator(".board-progress-fill").evaluate((element) => {
+  const match = /scaleX\(([^)]+)\)/.exec((element as HTMLElement).style.transform);
+  return match ? parseFloat(match[1]) * 100 : Number.NaN;
+});
 const ready = (page: Page, id: string) => expect(page.locator(`.board-slot[data-slide="${id}"]`)).toHaveAttribute("data-state", "ready");
 
 /** Width in px of an element's left border and its colour equals the element's text colour (an error mark beside the colour). */
@@ -183,17 +188,17 @@ test("live text: a key move announces the slide, pause and resume keys say Pause
 test("a pause mid-slide keeps the time left: the progress bar stands still while paused; resumed, the slide ends after the time left", async ({ page }) => {
   const errors = trackErrors(page);
   await openBoard(page);
-  const width = () => page.locator(".board-progress-fill").evaluate((element) => parseFloat((element as HTMLElement).style.width));
+  const fill = () => fillPercent(page);
   const pause = pressName(keysFor("pause")[0].key);
   await page.clock.runFor(SLIDE_MS / 2);
   await page.keyboard.press(pause);
   await expect(page.locator(".board-paused")).toBeVisible();
-  const frozen = await width();
+  const frozen = await fill();
   expect(frozen).toBeGreaterThan(40);
   expect(frozen).toBeLessThan(60);
   for (let interval = 0; interval < 3; interval += 1) {
     await page.clock.runFor(SLIDE_MS);
-    expect(await width()).toBe(frozen);
+    expect(await fill()).toBe(frozen);
     await at(page, 1, slides.length);
   }
   await page.keyboard.press(pause);
@@ -1177,15 +1182,17 @@ test("reduced motion: no transitions on the bar and controls, the progress bar s
   const transitions = await page.evaluate(() => [".board-progress-fill", ".board-controls"].map(
     (selector) => getComputedStyle(document.querySelector(selector)!).transitionDuration));
   expect(transitions.map((value) => value.split(",").every((part) => parseFloat(part) === 0))).toEqual([true, true]);
-  const width = () => page.locator(".board-progress-fill").evaluate((element) => (element as HTMLElement).style.width);
-  const before = await width();
+  const fill = () => fillPercent(page);
+  const before = await fill();
   await page.clock.runFor(STEP_MS * 3);
-  expect(await width()).not.toBe(before); // stepped by the ticker, not animated
+  expect(await fill()).not.toBe(before); // stepped by the ticker, not animated
 });
 
 test("with motion allowed the progress bar animates", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await openBoard(page);
-  const duration = await page.locator(".board-progress-fill").evaluate((element) => getComputedStyle(element).transitionDuration);
+  const [duration, property] = await page.locator(".board-progress-fill").evaluate((element) =>
+    [getComputedStyle(element).transitionDuration, getComputedStyle(element).transitionProperty]);
   expect(parseFloat(duration)).toBeGreaterThan(0);
+  expect(property).toBe("transform"); // compositor-only; width would re-lay out the bar every step
 });
