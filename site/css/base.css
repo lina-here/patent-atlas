@@ -876,7 +876,8 @@ html.board-mode .page { display: flex; flex-direction: column; min-height: 0; ma
 .board[data-idle] .board-controls { visibility: hidden; opacity: 0; }
 .board-button { font-size: var(--size-small); }
 .board-progress { height: var(--board-progress-height); background: var(--rule); }
-.board-progress-fill { width: 0; height: 100%; background: var(--accent); transition: width var(--board-progress-step) linear; }
+/* scaleX, not width: the step animates on the compositor, no layout */
+.board-progress-fill { height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--board-progress-step) linear; }
 .board-bar { font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
 .board-bar p { margin: 0; }
 .board-title { display: flex; align-items: baseline; gap: var(--space-4); color: var(--ink); }
