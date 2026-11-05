@@ -769,8 +769,11 @@ test("methods: the dashboard section lists the tiles, the controls, the holds an
   await expect(section).toContainText("?view=dashboard");
   // one list entry per tile of the dashboard, in page order (dashboard.ts DASHBOARD_TILE_IDS, read from the source)
   const tileIds = DASHBOARD_TILE_IDS;
-  await expect(section.locator(".dashboard-tiles li")).toHaveCount(tileIds.length);
-  expect(await section.locator(".dashboard-tiles li").evaluateAll((items) => items.map((item) => item.getAttribute("data-tile")))).toEqual(tileIds);
+  // then the SMEs panel (its own row, not a chart tile)
+  await expect(section.locator(".dashboard-tiles li")).toHaveCount(tileIds.length + 1);
+  expect(await section.locator(".dashboard-tiles li").evaluateAll((items) => items.map((item) => item.getAttribute("data-tile")))).toEqual([...tileIds, "smes"]);
+  await expect(section.locator('.dashboard-tiles li[data-tile="smes"]')).toContainText("SMEs and patents");
+  await expect(section.locator('.dashboard-tiles li[data-tile="smes"] a')).toHaveAttribute("href", /view=smes/);
   await expect(section).toContainText("Next to the world map, a carousel shows");
   await expect(section).not.toContainText("Beside the key figures");
   await expect(section).toContainText("links to its full chart on the overview");
@@ -794,4 +797,16 @@ test("methods: the dashboard section lists the tiles, the controls, the holds an
   await expect(section).toContainText(`?rotate=<seconds>`);
   await expect(section).toContainText(`at least ${minSeconds}`);
   expect(errors).toEqual([]);
+});
+
+test("methods.html#smes opens its box; the section names its sources and scope", async ({ page }) => {
+  await page.goto("/methods.html#smes");
+  const section = page.locator("details#box-smes section#smes");
+  await expect(section).toBeInViewport();
+  await expect(page.locator("details#box-smes")).toHaveAttribute("open", "");
+  await expect(section.locator("h2")).toHaveText("SMEs and patents");
+  await expect(section).toContainText("?view=smes");
+  await expect(section).toContainText("IP5");
+  // no figures or dates: the section reads no data file
+  await expect(section).not.toContainText(JSON.parse(readFileSync("site/sme/policies.json", "utf8")).checked_on);
 });

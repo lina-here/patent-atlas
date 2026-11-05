@@ -11,6 +11,7 @@ import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, continuingText,
 import { mapScale } from "./mapScale";
 import { isPauseMovePixels, isRotationSeconds, viewLink, type Params } from "./params";
 import { AI_METHODS_LINE, DISCLAIMER, sourceLine } from "./provenance";
+import { SME_TITLE, SME_VIEW } from "./smePage";
 import { BOARD_CONTRAST_COLOURS, BOARD_ESCAPE_NOTE, BOARD_MIN_CONTRAST, boardFacts, keyTableRows } from "./wallboard";
 import { RATIO_BASIS_LABEL, RATIO_TITLES, amountWords, decimalsWords, gdpBasisLabel, ratioNullText, thresholdWords, wdiCredit } from "./ratioText";
 
@@ -846,7 +847,7 @@ const DASHBOARD_TILE_TEXT: Record<DashboardTileId, string> = {
   "share-shift": "Share shift: who gained and lost ground, as on the overview.",
 };
 
-function dashboardSection({ cfg }: MethodsData): Section {
+function dashboardSection({ cfg, params }: MethodsData): Section {
   const { minSeconds, resumeAfterSeconds, pauseMovePixels } = cfg.rotation;
   const { seconds, slides } = cfg.dashboard;
   const moveText = isPauseMovePixels(pauseMovePixels) && pauseMovePixels > 0 ? `Pointer movement of at least ${pauseMovePixels} pixels in all` : "Pointer movement";
@@ -859,7 +860,10 @@ function dashboardSection({ cfg }: MethodsData): Section {
     body: [
       h("p", {}, "The dashboard (", h("code", {}, "?view=dashboard"), ", “Dashboard” in the header) shows the headline figures and charts on one page. ",
         "Each tile names its year and source and links to its full chart on the overview. A tile whose data is missing says so; it is never left blank or filled with 0. The tiles:"),
-      h("ul", { class: "dashboard-tiles" }, DASHBOARD_TILE_IDS.map((id) => h("li", { "data-tile": id }, DASHBOARD_TILE_TEXT[id]))),
+      h("ul", { class: "dashboard-tiles" }, DASHBOARD_TILE_IDS.map((id) => h("li", { "data-tile": id }, DASHBOARD_TILE_TEXT[id])),
+        // the SMEs panel: its own row after the tiles, not a chart card (no Cite or Embed), its figure the EPO's
+        h("li", { "data-tile": SME_VIEW }, `${SME_TITLE}: the EPO's figure for individual inventors and SMEs, with its scope, year and source, and a link to the `,
+          h("a", { href: viewLink(cfg, params, SME_VIEW) }, "SMEs page"), ". It has no figures table, Cite or Embed button.")),
       h("p", {}, `Next to the world map, a carousel shows ${slides.length} charts one at a time, each for ${seconds} seconds. `,
         "Its buttons are ", h("code", {}, "Play"), " and ", h("code", {}, "Pause"), " (one button that changes its name), ",
         h("code", {}, "Previous"), " and ", h("code", {}, "Next"), ". Without ", h("code", {}, "?rotate"), " it never starts by itself. ",
@@ -1057,6 +1061,31 @@ function womenSection(data: MethodsData): Section | null {
   };
 }
 
+/** The SMEs page: source rules and scope only; no figure or date (the page shows them from sme/policies.json). */
+function smeSection({ cfg, params }: MethodsData): Section {
+  return {
+    id: "smes",
+    title: SME_TITLE,
+    body: [
+      h("p", {}, "The ", h("a", { href: viewLink(cfg, params, SME_VIEW) }, "SMEs page"), " (", h("code", {}, `?view=${SME_VIEW}`), ") collects what the IP5 offices offer ",
+        "small and medium-sized enterprises (SMEs) and individual inventors: fee reductions, who qualifies, other support, resources, and two published ",
+        "breakdowns of who files patent applications. It covers the IP5 offices."),
+      h("p", {}, "Sources: each fact comes from a primary source, the office's own pages and publications, or WIPO's and the EPO's publications for the ",
+        "breakdowns and resources. Every entry links to its page. The file behind the page is kept by hand, not by the data pipeline, and one date on the page ",
+        "says when every entry was last checked. Wording from a page in Korean or Chinese is shown as published, marked with its language."),
+      h("p", {}, "Definitions: each office defines SMEs and its other categories its own way. The page shows each office's own categories and wording and ",
+        "never one shared definition; a fee row shows the definition with exactly the same category name, else a link to its source. Offices are listed in a ",
+        "fixed order and never ranked."),
+      h("p", {}, "Percentages: the reduction is the share of the standard fee the applicant does not pay. Where an office states the reduced fee as a fraction ",
+        "of the standard fee (for example, reduced to one third), the percentage is what is no longer paid (two thirds off). The office's own wording is shown ",
+        "beside every percentage; where no single percentage applies, only the wording is shown."),
+      h("p", {}, "Who files: WIPO's breakdown counts PCT applications from all origins by type of applicant. The EPO's ",
+        "breakdown covers applications from its member states by category of applicant. They count different applications, so they are shown apart and never ",
+        "on one chart. The dashboard's SMEs panel shows the EPO's figure."),
+    ],
+  };
+}
+
 function disclaimerSection(): Section {
   return {
     id: "disclaimer",
@@ -1082,6 +1111,8 @@ function methodsBoxes(data: MethodsData): Box[] {
       sections: [womenSection(data)] },
     { id: "box-views", title: "Dashboard and wallboard", line: "Dashboard tiles and carousel, the office and conference screens, keys and the slide picker.",
       sections: [dashboardSection(data), wallboardSection(data)] },
+    { id: "box-smes", title: SME_TITLE, line: "Sources and checks of the SMEs page, office definitions, how percentages are read, what it covers.",
+      sections: [smeSection(data)] },
   ];
 }
 
