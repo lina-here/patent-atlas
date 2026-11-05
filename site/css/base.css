@@ -732,6 +732,40 @@ input {
 .dashboard-sme { min-width: 0; }
 .dashboard-sme .tiles.key-figures { max-width: var(--measure); }
 .sme-tile-scope { max-width: var(--measure-wide); margin-top: var(--space-2); }
+/* PCT route: two columns, stacked below the breakpoint; each entry a short labelled list */
+.sme-pct-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: start; }
+.sme-pct-column { min-width: 0; overflow-wrap: break-word; }
+.sme-pct-column h3 { font-size: var(--size-h3); margin-bottom: var(--space-2); }
+.sme-pct-column h4 { margin: var(--space-4) 0 var(--space-2); }
+.sme-pct-column h5 { margin: var(--space-3) 0 var(--space-1); font-size: var(--size-base); }
+.sme-pct-wipo-item, .sme-pct-entry { border-top: var(--rule-width) solid var(--rule-strong); padding: var(--space-2) 0; font-family: var(--font-ui); font-size: var(--size-small); }
+.sme-entry-title { margin: 0 0 var(--space-1); }
+.sme-entry-details { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.sme-entry-details dt { color: var(--muted); }
+.sme-entry-details dd { margin: 0 0 var(--space-2); }
+.sme-pct-wide { margin-top: var(--space-4); font-family: var(--font-ui); font-size: var(--size-small); }
+/* other PCT offices: filter, table above the breakpoint, cards below */
+.sme-filter { border: var(--rule-width) solid var(--rule-strong); padding: var(--space-2) var(--space-3); margin: 0;
+  display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-family: var(--font-ui); font-size: var(--size-small); }
+.sme-filter legend { padding: 0 var(--space-1); font-weight: var(--weight-strong); }
+.sme-filter label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; }
+.sme-filter-status { font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
+.sme-other-table { margin: 0; }
+.sme-other-table tbody { border-top: var(--rule-width) solid var(--rule-strong); }
+.sme-other-table tbody[hidden], .sme-other-row[hidden], .sme-other-card[hidden], .sme-other-card-office[hidden] { display: none; }
+.sme-guide-updated, .sme-group-tags { display: block; color: var(--muted); }
+.sme-guide-updated { font-family: var(--font-ui); font-size: var(--size-small); font-weight: normal; }
+.sme-other-head strong { display: block; }
+.sme-other-support { font-family: var(--font-ui); font-size: var(--size-small); }
+.sme-other-support .sme-links { margin-top: var(--space-1); }
+.sme-other-cards { display: none; }
+.sme-other-card-office { border-top: var(--rule-width) solid var(--rule-strong); padding: var(--space-3) 0; overflow-wrap: break-word; }
+.sme-other-card-title { font-size: var(--size-base); margin-bottom: var(--space-2); }
+.sme-other-card { font-family: var(--font-ui); font-size: var(--size-small); padding-bottom: var(--space-2); }
+.sme-other-card + .sme-other-card { border-top: var(--rule-width) solid var(--rule); padding-top: var(--space-2); }
+.sme-other-card dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.sme-other-card dt { font-weight: var(--weight-strong); }
+.sme-other-card dd { margin: 0 0 var(--space-2); }
 
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
@@ -749,6 +783,9 @@ input {
   .data-table td { padding-right: var(--space-2); overflow-wrap: anywhere; hyphens: auto; }
   .sme-fee-table-wrap { display: none; }
   .sme-fee-cards { display: block; }
+  .sme-pct-columns { grid-template-columns: minmax(0, 1fr); }
+  .sme-other-table-wrap { display: none; }
+  .sme-other-cards { display: block; }
 }
 
 @media print {

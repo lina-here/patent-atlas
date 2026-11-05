@@ -807,7 +807,12 @@ test("methods.html#smes opens its box; the section names its sources and scope",
   await expect(section.locator("h2")).toHaveText("SMEs and patents");
   await expect(section).toContainText("?view=smes");
   await expect(section).toContainText("IP5");
-  await expect(section).toContainText("Other offices are not covered.");
+  await expect(section).toContainText("It also covers fee reductions along the PCT route and at PCT offices outside the IP5.");
+  await expect(section).toContainText("Every entry links to the page it comes from.");
+  await expect(section).not.toContainText("either the office's own pages");
+  // the PCT sources, each linked (smes.spec checks the URLs against the data)
+  await expect(section.getByRole("link", { name: "PCT Applicant's Guide" })).toHaveAttribute("href", /^https:\/\/www\.wipo\.int\//);
+  await expect(section.getByRole("link", { name: "PCT Schedule of Fees" })).toHaveAttribute("href", /^https:\/\/www\.wipo\.int\//);
   await expect(section).toContainText("What the office's page states is shown with every percentage");
   // scope of each share is the data's, shown on the page; no typed count of sources, no wrong owner of member states
   await expect(section).not.toContainText(/\b(two|three) published/i);

@@ -11,7 +11,7 @@ import { MAP_CREDIT, MAP_DISCLAIMER, MAP_STATE_LABELS, binLabel, continuingText,
 import { mapScale } from "./mapScale";
 import { isPauseMovePixels, isRotationSeconds, viewLink, type Params } from "./params";
 import { AI_METHODS_LINE, DISCLAIMER, sourceLine } from "./provenance";
-import { SME_TITLE, SME_VIEW } from "./smePage";
+import { PCT_GUIDE_URL, PCT_SCHEDULE_URL, SME_TITLE, SME_VIEW } from "./smePage";
 import { BOARD_CONTRAST_COLOURS, BOARD_ESCAPE_NOTE, BOARD_MIN_CONTRAST, boardFacts, keyTableRows } from "./wallboard";
 import { RATIO_BASIS_LABEL, RATIO_TITLES, amountWords, decimalsWords, gdpBasisLabel, ratioNullText, thresholdWords, wdiCredit } from "./ratioText";
 
@@ -1069,9 +1069,9 @@ function smeSection({ cfg, params }: MethodsData): Section {
     body: [
       h("p", {}, "The ", h("a", { href: viewLink(cfg, params, SME_VIEW) }, "SMEs page"), " (", h("code", {}, `?view=${SME_VIEW}`), ") collects what the IP5 offices offer ",
         "small and medium-sized enterprises (SMEs) and individual inventors: fee reductions, who qualifies, other support, resources, and published figures ",
-        "on who files patent applications. Other offices are not covered."),
-      h("p", {}, "Sources: each fact comes from a primary source, either the office's own pages and publications or, for the figures on who files and ",
-        "the resources, WIPO's and the EPO's publications. Every entry links to its page. The file behind the page is kept by hand, outside the data pipeline, ",
+        "on who files patent applications. It also covers fee reductions along the PCT route and at PCT offices outside the IP5."),
+      h("p", {}, "Sources: each fact comes from a primary source: an office's own pages and publications, or WIPO's and the EPO's publications ",
+        "(the PCT texts and the PCT Applicant's Guide, the figures on who files, the resources). Every entry links to the page it comes from. The file behind the page is kept by hand, outside the data pipeline, ",
         "and one date on the page says when every entry was last checked. Text from a Korean or Chinese page is shown as published, with its language named."),
       h("p", {}, "Definitions: each office defines SMEs and its other categories its own way, so the page shows each office's own categories with a summary ",
         "of its definitions and uses no shared definition. A fee row shows the definition with exactly the same category name, else a link to its source. ",
@@ -1079,6 +1079,11 @@ function smeSection({ cfg, params }: MethodsData): Section {
       h("p", {}, "Percentages: the reduction is the share of the standard fee the applicant does not pay. Where an office states the reduced fee as a fraction ",
         "of the standard fee (for example, reduced to one third), the percentage is the part no longer paid (two thirds off). What the office's page states is ",
         "shown with every percentage; where no single percentage applies, that text is shown alone."),
+      h("p", {}, "PCT route and other offices: these come from the national chapters of the ",
+        h("a", { href: PCT_GUIDE_URL, rel: "noopener" }, "PCT Applicant's Guide"), " and from the ",
+        h("a", { href: PCT_SCHEDULE_URL, rel: "noopener" }, "PCT Schedule of Fees"),
+        ", and from an office's own page where the Guide does not give the detail. The page counts the other offices from these sources: ",
+        "with a reduction for SMEs, with reductions only for other applicants, with none listed, and not assessed."),
       h("p", {}, "Who files: WIPO and the EPO each publish a breakdown of applications by type of applicant. They count different applications (each scope is ",
         "shown with it), so they are shown apart and never on one chart. The dashboard's SMEs panel shows the EPO's figure."),
     ],

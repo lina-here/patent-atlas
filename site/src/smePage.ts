@@ -1,7 +1,11 @@
 // SMEs and patents page (`?view=smes`) and the dashboard's SMEs panel. Every fact, figure, label, date and link is read
-// from sme/policies.json (hand-curated from the offices' and WIPO's own pages; data.ts SmePolicies); nothing is computed
-// or typed here. Offices in data order, never ranked; the two share sources shown apart, never on one chart.
-import { loadJson, type Config, type SmeFeeReduction, type SmeOffice, type SmePolicies, type SmeShare } from "./data";
+// from sme/policies.json (hand-curated from the offices' and WIPO's own pages; data.ts SmePolicies); nothing is typed
+// here, and the only computed figures are the other-offices counts (data list lengths). Offices in data order, never
+// ranked; the two share sources shown apart, never on one chart.
+import {
+  loadJson, type Config, type SmeFeeReduction, type SmeOffice, type SmeOtherOffice, type SmeOtherOffices, type SmeOtherReduction,
+  type SmePct, type SmePctAuthority, type SmePctInternational, type SmePctNational, type SmePolicies, type SmeShare,
+} from "./data";
 import { h, type Child } from "./dom";
 import { pageLink, viewLink, type Params } from "./params";
 
@@ -14,6 +18,13 @@ export const SME_TILE_ROW = "Individual inventors and SMEs";
 export const SME_TITLE = "SMEs and patents";
 const FEES_TITLE = "Fee reductions for SMEs at the IP5 offices";
 const COMPARE_TEXT = "Compare SME fee reductions at the IP5 offices";
+/** Sources named on the methods page, which reads no data file; e2e smes.spec checks them against policies.json
+ * (`other_offices.source_index_url`, `pct.pct_wide_sme.source_url`). */
+export const PCT_GUIDE_URL = "https://www.wipo.int/en/web/pct-system/guide/index";
+export const PCT_SCHEDULE_URL = "https://www.wipo.int/en/web/pct-system/texts/rules/rtax";
+const PCT_TITLE = "Fee reductions along the PCT route";
+const OTHER_TITLE = "Other PCT offices";
+const OTHER_TABLE_LABEL = "Fee reductions at other PCT offices";
 /** Visible marker for `as_published_lang` (the English `category` and `fees` carry the meaning). */
 const LANGUAGE_NAMES: Record<string, string> = { ko: "Korean", zh: "Chinese" };
 const FEE_HEADERS = ["Office", "Who qualifies", "Reduction (percent off the standard fee)", "Which fees", "Source"];
@@ -198,6 +209,224 @@ function resourcesSection(policies: SmePolicies): HTMLElement {
       h("a", { href: item.url, rel: "noopener" }, item.title), ` (${item.publisher})`, h("span", { class: "sme-item-text" }, item.text)))));
 }
 
+/** Label and value pairs as a `<dl>`; a null value drops its pair. */
+function details(entries: [string, Child[] | Child | null][]): HTMLElement {
+  return h("dl", { class: "sme-entry-details" }, entries.filter(([, value]) => value !== null)
+    .map(([label, value]) => [h("dt", {}, label), h("dd", {}, value)]));
+}
+
+/** Percentage (when the data has one) and what the source states. */
+function reductionWithText(reductionPct: number | null, published: string): Child[] {
+  return [typeof reductionPct === "number" ? h("span", { class: "sme-pct" }, percent(reductionPct)) : null,
+    h("span", { class: "sme-as-published", "data-published": "" }, withLang(published))];
+}
+
+/** Items grouped by `office`, in first-appearance order. */
+function byOffice<T extends { office: string }>(items: T[]): [string, T[]][] {
+  const groups = new Map<string, T[]>();
+  for (const item of items) groups.set(item.office, [...(groups.get(item.office) ?? []), item]);
+  return [...groups];
+}
+
+function wipoItem(item: SmePctInternational): HTMLElement {
+  return h("div", { class: "sme-pct-wipo-item" },
+    h("p", { class: "sme-entry-title" }, h("strong", {}, item.fee)),
+    details([
+      ["Reduction", item.reduction],
+      ["Who qualifies", item.who_qualifies],
+      ["Where it is set", item.fee_table_or_item],
+      ["Source", [sourceLink(item.source_url), item.list_url ? [", ", h("a", { href: item.list_url, rel: "noopener" }, "list of eligible States")] : null]],
+    ]));
+}
+
+function authorityEntry(item: SmePctAuthority): HTMLElement {
+  return h("div", { class: "sme-pct-entry" },
+    h("p", { class: "sme-entry-title" }, h("strong", {}, `${item.role}: ${item.fee}`)),
+    details([
+      ["Who qualifies", withLang(item.category)],
+      ["Reduction", reductionWithText(item.reduction_pct, item.as_published)],
+      ["Criteria", withLang(item.criteria)],
+      ["Source", sourceLink(item.source_url)],
+    ]));
+}
+
+/** Whether the office's reduction applies on entry: data true / false / null (not confirmed). */
+function entryStatus(value: boolean | null): string {
+  return value === null ? "Not confirmed" : value ? "Applies on entry" : "Does not apply on entry";
+}
+
+function nationalEntry(item: SmePctNational): HTMLElement {
+  return h("div", { class: "sme-pct-entry", "data-entry": item.applies_on_entry === null ? "unknown" : String(item.applies_on_entry) },
+    h("p", { class: "sme-entry-title" }, h("strong", { class: "sme-entry-status" }, entryStatus(item.applies_on_entry))),
+    details([
+      ["Who qualifies", withLang(item.category)],
+      ["Reduction", typeof item.reduction_pct === "number" ? h("span", { class: "sme-pct" }, percent(item.reduction_pct)) : null],
+      ["Which fees", withLang(item.fees)],
+      ["Criteria", withLang(item.criteria)],
+      ["Source", sourceLink(item.source_url)],
+    ]));
+}
+
+function pctSection(pct: SmePct | undefined): HTMLElement | null {
+  if (!pct) return null;
+  const wide = pct.pct_wide_sme;
+  const international = h("div", { class: "sme-pct-column", "data-phase": "international" },
+    h("h3", {}, "International phase"),
+    h("h4", {}, "Reductions of the fees paid to WIPO"),
+    h("p", {}, "Reductions in the PCT Schedule of Fees, open to any applicant who meets the conditions."),
+    list(pct.pct_international).map(wipoItem),
+    h("h4", {}, "Fees paid to the offices in the international phase"),
+    h("p", {}, "Each office sets its own fees for the work it does: the international search (ISA), the supplementary search (SISA) ",
+      "or the international preliminary examination (IPEA). RO is the receiving Office, where the application is filed."),
+    byOffice(list(pct.isa_ipea)).map(([office, items]) => h("div", { class: "sme-pct-office", "data-office": office },
+      h("h5", {}, office), items.map(authorityEntry))),
+    wide ? h("p", { class: "sme-pct-wide" }, h("strong", {}, "SME reductions in the PCT itself: "), wide.status, " Source: ", sourceLink(wide.source_url),
+      wide.wg_source_url ? [", ", h("a", { href: wide.wg_source_url, rel: "noopener" }, "PCT Working Group record")] : null, ".") : null);
+  const national = h("div", { class: "sme-pct-column", "data-phase": "national" },
+    h("h3", {}, "National or regional phase"),
+    h("p", {}, "Whether each IP5 office's reduction applies when a PCT application enters the national or regional phase there."),
+    byOffice(list(pct.national_phase)).map(([office, items]) => h("div", { class: "sme-pct-office", "data-office": office },
+      h("h4", {}, office), items.map(nationalEntry))));
+  return h("section", { id: "sme-pct", class: "sme-section" },
+    h("h2", {}, PCT_TITLE),
+    h("p", {}, "A PCT application goes through two phases. In the international phase the applicant pays WIPO's fees, the receiving Office's ",
+      "transmittal fee and the fees of the office that searches and examines the application. In the national or regional phase the applicant pays ",
+      "each office where it wants a patent."),
+    h("div", { class: "sme-pct-columns" }, international, national));
+}
+
+/** `not_assessed` key of the IP5 offices: its own sentence, not a reason. */
+const IP5_EXCLUDED = "ip5_excluded";
+/** Plain words after "<n> office(s)" for the other `not_assessed` reason keys; an unknown key reads "not assessed for another reason". */
+const NOT_ASSESSED_LABELS: Record<string, string> = {
+  guide_refers_to_office_or_not_by_applicant: "where the Guide refers applicants to the office, or the reduction does not depend on the type of applicant",
+  no_national_fee_section: "with no national fee section in the Guide, mostly because there is no national route and patents go through a regional office",
+};
+/** `category_groups` keys counted as SME-type in the counts line; `data-count` key of that count. */
+const SME_GROUPS = ["sme", "micro"];
+const SME_COUNT = "sme";
+/** Table headers; the reduction header is the IP5 table's. Cards use the short labels. */
+const OTHER_HEADERS = ["Who qualifies", FEE_HEADERS[2], "Which fees", "Criteria", "Source"];
+const OTHER_CARD_LABELS = ["Who qualifies", "Reduction", "Which fees", "Criteria", "Source"];
+const OTHER_CELL_CLASSES = ["sme-qualifies", "sme-reduction", "sme-fees", "sme-criteria", "sme-source"];
+
+const groupsOf = (office: SmeOtherOffice): Set<string> => new Set(list(office.fee_reductions).flatMap((fee) => list(fee.category_group)));
+const count = (key: string, value: number): HTMLElement => h("span", { "data-count": key }, String(value));
+const verb = (value: number, one: string, many: string): string => (value === 1 ? one : many);
+
+/** Counts from the data's lists: offices with an SME-type group, with other groups only, with none listed, the IP5, not assessed per reason. */
+function otherCounts(other: SmeOtherOffices): HTMLElement {
+  const offices = list(other.offices);
+  const withSme = offices.filter((office) => SME_GROUPS.some((key) => groupsOf(office).has(key))).length;
+  const otherOnly = offices.length - withSme;
+  const none = list(other.no_reduction_listed).length;
+  const notAssessed = other.not_assessed ?? {};
+  const ip5 = notAssessed[IP5_EXCLUDED];
+  const reasons = Object.entries(notAssessed).filter(([key]) => key !== IP5_EXCLUDED);
+  return h("p", { class: "sme-other-counts" },
+    count(SME_COUNT, withSme), ` ${verb(withSme, "office lists", "offices list")} a reduction for SMEs, small entities or micro-entities. `,
+    count("other", otherOnly), ` ${verb(otherOnly, "office lists", "offices list")} reductions only for other applicants, such as individual inventors or universities. `,
+    "For ", count("none", none), ` ${verb(none, "office", "offices")} the Guide lists no reduction by type of applicant.`,
+    ip5 ? [" The ", count(IP5_EXCLUDED, list(ip5).length), " IP5 offices are covered above."] : null,
+    reasons.length ? [" Not assessed: ", reasons.map(([key, codes], index) => {
+      const value = list(codes).length;
+      return [index ? "; " : "", count(key, value), ` ${verb(value, "office", "offices")} `, NOT_ASSESSED_LABELS[key] ?? "not assessed for another reason"];
+    }), "."] : null);
+}
+
+function otherWho(fee: SmeOtherReduction, groups: Record<string, string>): Child[] {
+  return [h("strong", {}, withLang(fee.category)),
+    h("span", { class: "sme-group-tags" }, "Shown under: ", list(fee.category_group).map((key) => groups[key] ?? key).join("; "))];
+}
+
+function otherValues(fee: SmeOtherReduction, groups: Record<string, string>): Child[][] {
+  return [otherWho(fee, groups), reductionWithText(fee.reduction_pct, fee.as_published), [withLang(fee.fees)], [withLang(fee.criteria)], [sourceLink(fee.source_url)]];
+}
+
+function otherSupport(office: SmeOtherOffice): HTMLElement | null {
+  const support = list(office.support);
+  return support.length === 0 ? null : h("div", { class: "sme-other-support" }, "Other support: ",
+    h("ul", { class: "sme-links" }, support.map((item) => h("li", {},
+      h("a", { href: item.url, rel: "noopener" }, withLang(item.name)), h("span", { class: "sme-item-text" }, withLang(item.text))))));
+}
+
+const officeHead = (office: SmeOtherOffice): Child[] =>
+  [h("strong", {}, office.name), h("span", { class: "sme-guide-updated" }, `Guide updated ${office.guide_updated}`)];
+
+function otherTable(offices: SmeOtherOffice[], groups: Record<string, string>): HTMLElement {
+  return h("div", { class: "sme-other-table-wrap" },
+    h("table", { class: "data-table sme-other-table", "aria-label": OTHER_TABLE_LABEL },
+      h("thead", {}, h("tr", {}, OTHER_HEADERS.map((text) => h("th", { scope: "col" }, text)))),
+      offices.map((office) => {
+        const support = otherSupport(office);
+        return h("tbody", { "data-office": office.code },
+          h("tr", { class: "sme-other-head" }, h("th", { scope: "rowgroup", colspan: String(OTHER_HEADERS.length), class: "sme-office" }, officeHead(office))),
+          list(office.fee_reductions).map((fee) => h("tr", { class: "sme-other-row", "data-groups": list(fee.category_group).join(" ") },
+            otherValues(fee, groups).map((value, index) => h("td", { class: OTHER_CELL_CLASSES[index] }, value)))),
+          support ? h("tr", { class: "sme-other-support-row" }, h("td", { colspan: String(OTHER_HEADERS.length) }, support)) : null);
+      })));
+}
+
+/** Phone layout: one block per office, one card per reduction (CSS shows these below its breakpoint). */
+function otherCards(offices: SmeOtherOffice[], groups: Record<string, string>): HTMLElement {
+  return h("div", { class: "sme-other-cards" }, offices.map((office) => h("div", { class: "sme-other-card-office", "data-office": office.code },
+    h("h3", { class: "sme-other-card-title" }, officeHead(office)),
+    list(office.fee_reductions).map((fee) => h("div", { class: "sme-other-card", "data-groups": list(fee.category_group).join(" ") },
+      h("dl", {}, otherValues(fee, groups).map((value, index) => [h("dt", {}, OTHER_CARD_LABELS[index]), h("dd", {}, value)])))),
+    otherSupport(office))));
+}
+
+/** Shows rows (and cards) with at least one ticked group; an office without one is hidden whole. The status names the
+ * offices shown and the rows hidden inside them; nothing ticked -> a hint. */
+function applyFilter(section: HTMLElement, status: HTMLElement, total: number): void {
+  const ticked = new Set([...section.querySelectorAll<HTMLInputElement>(".sme-filter input:checked")].map((box) => box.value));
+  const matches = (item: Element) => (item.getAttribute("data-groups") ?? "").split(" ").some((key) => ticked.has(key));
+  for (const item of section.querySelectorAll<HTMLElement>(".sme-other-row, .sme-other-card")) item.hidden = !matches(item);
+  let shown = 0;
+  let hiddenRows = 0;
+  for (const group of section.querySelectorAll<HTMLElement>(".sme-other-table tbody")) {
+    group.hidden = !group.querySelector(".sme-other-row:not([hidden])");
+    if (group.hidden) continue;
+    shown += 1;
+    hiddenRows += group.querySelectorAll(".sme-other-row[hidden]").length;
+  }
+  for (const block of section.querySelectorAll<HTMLElement>(".sme-other-card-office")) block.hidden = !block.querySelector(".sme-other-card:not([hidden])");
+  if (ticked.size === 0) {
+    status.textContent = "Tick at least one group to see offices.";
+    return;
+  }
+  status.textContent = `Showing ${shown} of ${total} offices` +
+    (hiddenRows ? `, with ${hiddenRows} ${verb(hiddenRows, "row", "rows")} hidden that ${verb(hiddenRows, "matches", "match")} no ticked group.` : ".");
+}
+
+function otherSection(policies: SmePolicies): HTMLElement | null {
+  const other = policies.other_offices;
+  if (!other) return null;
+  const groups = policies.category_groups ?? {};
+  const offices = list(other.offices);
+  const status = h("p", { class: "sme-filter-status", "aria-live": "polite" });
+  const filter = h("fieldset", { class: "sme-filter" },
+    h("legend", {}, "Show reductions for"),
+    Object.entries(groups).map(([key, label]) => {
+      const box = h("input", { type: "checkbox", value: key });
+      box.checked = true;
+      return h("label", {}, box, " ", label);
+    }));
+  const section = h("section", { id: "sme-other", class: "sme-section" },
+    h("h2", {}, OTHER_TITLE),
+    h("p", {}, "Fee reductions by type of applicant at PCT offices outside the IP5, mostly from the national chapters of the ",
+      h("a", { href: other.source_index_url, rel: "noopener" }, "PCT Applicant's Guide"),
+      ". These are national or regional phase fees. Each row links its source, and the criteria note any limits, such as a reduction only for ",
+      "applications first filed in that country."),
+    otherCounts(other),
+    filter, status,
+    otherTable(offices, groups),
+    otherCards(offices, groups));
+  filter.addEventListener("change", () => applyFilter(section, status, offices.length));
+  applyFilter(section, status, offices.length);
+  return section;
+}
+
 /** "A, B, C and D" */
 function joinNames(names: string[]): string {
   return names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
@@ -213,10 +442,11 @@ export async function renderSmePage(el: HTMLElement, ctx: SmeContext): Promise<v
     h("h1", {}, SME_TITLE),
     h("p", { class: "lede" },
       "What the IP5 offices offer small and medium-sized enterprises (SMEs) and individual inventors: fee reductions, other support and ",
-      "resources, with published figures on who files patent applications. ",
+      "resources, with published figures on who files patent applications. It also shows which reductions apply in each phase of a PCT ",
+      "application, and the reductions at other PCT offices. ",
       offices.length ? `IP5 is the forum in which the five largest intellectual property offices work together: ${joinNames(offices.map((office) => office.short))}. ` : "",
       "Each office defines SMEs its own way, so the page shows each office's own categories and definitions.",
-      policies ? ` Every fact links to the office's or WIPO's page it comes from; all were checked on ${policies.checked_on}.` : ""));
+      policies ? ` Every fact links to the page it comes from; all were checked on ${policies.checked_on}.` : ""));
   if (!policies) {
     el.replaceChildren(header, h("p", { class: "notice sme-missing" }, `The SMEs data could not be loaded: ${(loaded as Error).message}`));
     return;
@@ -225,9 +455,11 @@ export async function renderSmePage(el: HTMLElement, ctx: SmeContext): Promise<v
   el.replaceChildren(header,
     h("div", { class: "sme-page" },
       sharesSection(list(policies.shares)),
+      pctSection(policies.pct),
       feesSection(offices),
       definitionsSection(offices),
       supportSection(offices),
+      otherSection(policies),
       resourcesSection(policies),
       h("p", { class: "sme-checked" },
         `Fees and rules change, so the office's own page is the reference. Everything here was checked on ${policies.checked_on}. `,

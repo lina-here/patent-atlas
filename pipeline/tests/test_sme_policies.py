@@ -110,3 +110,75 @@ def test_on_host_rejects_lookalikes():
     assert not on_host("http://www.epo.org/x", ["epo.org"])
     assert not on_host("https://epo.org.example.com/x", ["epo.org"])
     assert not on_host("https://notepo.org/x", ["epo.org"])
+
+
+def urls_in(value, path=""):
+    """Every (path, url) under `value`: string values of keys `url` or ending in `_url`."""
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if isinstance(item, str) and (key == "url" or key.endswith("_url")):
+                yield f"{path}.{key}", item
+            else:
+                yield from urls_in(item, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from urls_in(item, f"{path}[{index}]")
+
+
+def on_allowed_host(url, hosts):
+    """https, and the host equals an entry or ends with "." + entry."""
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    return parsed.scheme == "https" and any(host == allowed or host.endswith(f".{allowed}") for allowed in hosts)
+
+
+def test_every_url_is_on_an_allowed_host(data):
+    hosts = data["allowed_hosts"]
+    assert hosts and all(text(host) for host in hosts)
+    found = list(urls_in(data))
+    assert found
+    outside = [(path, url) for path, url in found if not on_allowed_host(url, hosts)]
+    assert outside == []
+
+
+def test_pct_blocks(data):
+    pct = data["pct"]
+    date.fromisoformat(pct["checked_on"])
+    for key in ("pct_international", "isa_ipea", "national_phase"):
+        assert pct[key], key
+    for item in pct["pct_international"]:
+        assert text(item["fee"]) and text(item["reduction"]) and text(item["who_qualifies"]) and text(item["source_url"])
+    for item in pct["isa_ipea"]:
+        assert text(item["office"]) and text(item["role"]) and text(item["fee"]) and text(item["source_url"])
+    for item in pct["national_phase"]:
+        assert text(item["office"]) and text(item["source_url"])
+        assert item["applies_on_entry"] in (True, False, None), item
+    assert text(pct["pct_wide_sme"]["status"]) and text(pct["pct_wide_sme"]["source_url"])
+
+
+def test_other_offices(data):
+    other = data["other_offices"]
+    groups = data["category_groups"]
+    assert groups and all(text(label) for label in groups.values())
+    ip5 = {office["code"] for office in data["offices"]}
+    codes = [office["code"] for office in other["offices"]]
+    assert len(codes) == len(set(codes)) and not ip5 & set(codes)
+    for office in other["offices"]:
+        assert text(office["name"]) and text(office["guide_updated"])
+        assert office["fee_reductions"], office["code"]
+        for fee in office["fee_reductions"]:
+            assert text(fee["category"]) and text(fee["as_published"]) and text(fee["source_url"]), (office["code"], fee)
+            assert fee["category_group"] and set(fee["category_group"]) <= set(groups), (office["code"], fee["category_group"])
+            pct = fee["reduction_pct"]
+            assert pct is None or (isinstance(pct, (int, float)) and not isinstance(pct, bool) and 0 <= pct <= 100), fee
+        for entry in office.get("support", []):
+            assert text(entry["name"]) and text(entry["text"]) and text(entry["url"])
+    assert all(text(code) for code in other["no_reduction_listed"])
+    assert other["not_assessed"] and all(isinstance(listed, list) for listed in other["not_assessed"].values())
+
+
+def test_on_allowed_host_rejects_lookalikes():
+    assert on_allowed_host("https://pctlegal.wipo.int/x", ["wipo.int"])
+    assert not on_allowed_host("https://wipo.int.example.com/x", ["wipo.int"])
+    assert not on_allowed_host("https://notwipo.int/x", ["wipo.int"])
+    assert not on_allowed_host("http://pctlegal.wipo.int/x", ["wipo.int"])
