@@ -42,7 +42,8 @@ States in each year, from WIPO's list. Methods: `methods.html#dashboard` and `me
 
 The **SMEs page** (`index.html?view=smes`, "SMEs" in the header) compares fee reductions and other support for SMEs at
 the IP5 offices, each with that office's own definitions, and shows who files patent applications as WIPO and the EPO
-publish it. The facts come from `site/sme/policies.json`, kept by hand, each linked to its source. Method:
+publish it. It also shows which fee reductions apply in each phase of a PCT application and at other PCT offices, from
+the PCT Applicant's Guide and the PCT Schedule of Fees. The facts come from `site/sme/policies.json`, kept by hand, each linked to its source. Method:
 `methods.html#smes`.
 
 ## Put a chart on another website

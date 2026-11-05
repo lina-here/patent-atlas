@@ -412,7 +412,49 @@ export type SmeShare = {
   citation: string; page: string; url: string; note?: string;
 };
 export type SmeResource = { title: string; publisher: string; text: string; url: string };
-export type SmePolicies = { checked_on: string; offices: SmeOffice[]; shares: SmeShare[]; resources: SmeResource[] };
+/** PCT route: WIPO fees (Schedule of Fees), search/examination fees per office as ISA/IPEA, national phase entry. */
+export type SmePctInternational = {
+  fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; source_url: string;
+  /** WIPO's list of States for the 90% reduction, where the item has one. */
+  list_url?: string;
+};
+export type SmePctAuthority = {
+  office: string; role: string; fee: string; category: string; reduction_pct: number | null;
+  as_published: string; criteria: string; source_url: string;
+};
+export type SmePctNational = {
+  office: string;
+  /** The office's reduction applies on national/regional phase entry: true, false, or null = not confirmed. */
+  applies_on_entry: boolean | null;
+  fees: string; category: string; reduction_pct: number | null; criteria: string; source_url: string;
+};
+export type SmePct = {
+  checked_on: string; sources_note: string;
+  pct_international: SmePctInternational[]; isa_ipea: SmePctAuthority[]; national_phase: SmePctNational[];
+  /** No SME reduction in the PCT Schedule of Fees; `wg_source_url` = the Working Group record. */
+  pct_wide_sme: { status: string; source_url: string; wg_source_url?: string };
+};
+/** Non-IP5 offices from the PCT Applicant's Guide national chapters. `category_group`: keys of SmePolicies.category_groups. */
+export type SmeOtherReduction = {
+  category: string; reduction_pct: number | null; as_published: string; fees: string; criteria: string;
+  source_url: string; source_date?: string; category_group: string[];
+};
+export type SmeOtherOffice = { code: string; name: string; guide_updated: string; fee_reductions: SmeOtherReduction[]; support?: SmeSupport[] };
+export type SmeOtherOffices = {
+  checked_on: string; source_index_url: string; source_note: string; offices: SmeOtherOffice[];
+  /** Office codes whose Guide chapter lists no reduction by type of applicant. */
+  no_reduction_listed: string[];
+  /** Office codes not assessed, per reason key. */
+  not_assessed: Record<string, string[]>;
+};
+export type SmePolicies = {
+  checked_on: string; offices: SmeOffice[]; shares: SmeShare[]; resources: SmeResource[];
+  pct?: SmePct; other_offices?: SmeOtherOffices;
+  /** Hosts every URL in the file may link to (the data test's allowlist). */
+  allowed_hosts?: string[];
+  /** Filter groups for other offices: key -> visible label. */
+  category_groups?: Record<string, string>;
+};
 
 export type Manifest = {
   /** Data version id (YYYY-MM-DD, then .2, .3): cited with every figure. Absent in a manifest written before v1. */
