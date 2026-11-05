@@ -6,6 +6,8 @@
 <!-- CSP before any style or script (README "Security"). style 'unsafe-inline': Plot's per-chart style element, the noscript style. Meta CSP cannot set frame-ancestors: embed.html must stay framable anyway. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
 <title>Patent Atlas chart</title>
+<!-- website: confirm noindex a chart for other sites' iframes: kept out of search, the full page is the result -->
+<meta name="robots" content="noindex">
 <link rel="stylesheet" href="css/base.css">
 <link id="theme" rel="stylesheet">
 <noscript><style>body { visibility: visible; }</style></noscript>

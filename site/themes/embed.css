@@ -25,6 +25,7 @@
   --error-ink: #c2185b;
   --pass-ink: #2e7d32;
 
+  /* website: waive display-font the embed theme loads no web fonts, so a chart inside another site's iframe stays light and takes the host's system face */
   --font-display: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
   --font-body: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
   --font-ui: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
