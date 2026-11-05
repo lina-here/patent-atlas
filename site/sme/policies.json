@@ -1,0 +1,440 @@
+{
+  "checked_on": "2026-11-05",
+  "offices": [
+    {
+      "code": "US",
+      "name": "United States Patent and Trademark Office",
+      "short": "USPTO",
+      "definitions": [
+        {
+          "category": "Small entity",
+          "text": "Defined in 37 CFR 1.27(a) as a person, a small business concern or a nonprofit organization. Small business concerns follow SBA size standards (13 CFR 121.801 to 121.805).",
+          "source_url": "https://www.uspto.gov/web/offices/pac/mpep/s509.html"
+        },
+        {
+          "category": "Micro entity (gross income basis)",
+          "text": "Qualifies as a small entity, has been named as inventor on no more than four previously filed applications, and had prior-year gross income within the maximum qualifying gross income (three times the US median household income).",
+          "source_url": "https://www.uspto.gov/patents/laws/micro-entity-status"
+        },
+        {
+          "category": "Micro entity (institution of higher education basis)",
+          "text": "Qualifies as a small entity and either is mainly employed by a US institution of higher education or has assigned, or is obliged to assign, ownership to one.",
+          "source_url": "https://www.uspto.gov/patents/laws/micro-entity-status"
+        }
+      ],
+      "fee_reductions": [
+        {
+          "category": "Small entity",
+          "reduction_pct": 60,
+          "as_published": "the small entity discount was increased from 50 percent to 60 percent for most fees",
+          "fees": "Most patent fees (filing, search, examination, issue, maintenance and others; some fees such as document supply fees are not reduced)",
+          "since": "2022-12-29",
+          "source_url": "https://www.uspto.gov/web/offices/pac/mpep/s509.html"
+        },
+        {
+          "category": "Micro entity",
+          "reduction_pct": 80,
+          "as_published": "an 80% reduction on most fees charged by the United States Patent and Trademark Office",
+          "fees": "Most patent fees",
+          "since": "2022-12-29",
+          "source_url": "https://www.uspto.gov/patents/laws/micro-entity-status"
+        },
+        {
+          "category": "Small entity",
+          "reduction_pct": 60,
+          "as_published": "Small entity amounts listed in the USPTO fee schedule (e.g. transmittal fee $285.00, small entity $114.00)",
+          "fees": "PCT: international-stage transmittal, search, supplemental search and preliminary examination fees; national stage basic, search and examination fees",
+          "since": null,
+          "source_url": "https://www.uspto.gov/learning-and-resources/fees-and-payment/uspto-fee-schedule"
+        },
+        {
+          "category": "Micro entity",
+          "reduction_pct": 80,
+          "as_published": "Micro entity amounts listed in the USPTO fee schedule (e.g. transmittal fee $285.00, micro entity $57.00)",
+          "fees": "PCT: international-stage transmittal, search, supplemental search and preliminary examination fees; national stage basic, search and examination fees",
+          "since": null,
+          "source_url": "https://www.uspto.gov/learning-and-resources/fees-and-payment/uspto-fee-schedule"
+        }
+      ],
+      "support": [
+        {
+          "name": "Patent Pro Bono Program",
+          "text": "Connects inventors and small businesses with limited financial resources to volunteer patent attorneys and agents who help them file at no cost for legal services.",
+          "url": "https://www.uspto.gov/patents/basics/using-legal-services/pro-bono/patent-pro-bono-program"
+        },
+        {
+          "name": "Pro Se Assistance Program",
+          "text": "Gives procedural help, not legal advice, to independent inventors who file without a registered attorney or agent.",
+          "url": "https://www.uspto.gov/patents/basics/using-legal-services/pro-se-assistance-program"
+        },
+        {
+          "name": "Inventors Assistance Center",
+          "text": "Answers general questions on patent rules, forms, application formats and fees, and routes callers to the right USPTO staff.",
+          "url": "https://www.uspto.gov/learning-and-resources/support-centers/inventors-assistance-center-iac"
+        }
+      ]
+    },
+    {
+      "code": "EP",
+      "name": "European Patent Office",
+      "short": "EPO",
+      "definitions": [
+        {
+          "category": "Micro-entity",
+          "text": "Microenterprises (fewer than 10 staff and annual turnover or balance sheet total of no more than EUR 2 million), natural persons, non-profit organisations, universities and public research organisations, of any nationality or domicile, that filed fewer than five applications in the five years before the relevant date.",
+          "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8"
+        },
+        {
+          "category": "SME",
+          "text": "European Commission definition (Recommendation 2003/361/EC): an independent company with fewer than 250 staff and turnover below EUR 50 million and/or balance sheet below EUR 43 million.",
+          "source_url": "https://www.epo.org/en/about-us/statistics/technology-dashboard-2025/statistics-and-indicators/applicants/categories"
+        }
+      ],
+      "fee_reductions": [
+        {
+          "category": "Micro-entity",
+          "reduction_pct": 30,
+          "as_published": "a 30% reduction in all main fees in the patent grant procedure",
+          "fees": "Filing, search, examination, designation and grant fees, and renewal fees",
+          "since": "2024-04-01",
+          "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8"
+        },
+        {
+          "category": "Micro-entity",
+          "reduction_pct": 30,
+          "as_published": "30% of the relevant fee",
+          "fees": "PCT: Euro-PCT applications in the European phase, including the supplementary European search fee and the examination fee",
+          "since": "2024-04-01",
+          "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8"
+        },
+        {
+          "category": "SMEs, natural persons, non-profits, universities and public research organisations filing in a non-EPO language",
+          "reduction_pct": 30,
+          "as_published": "30% of the relevant fee",
+          "fees": "Filing fee and examination fee, when filed in an official language of the applicant's EPC state other than English, French or German",
+          "since": null,
+          "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8"
+        }
+      ],
+      "support": [
+        {
+          "name": "Unitary Patent compensation scheme",
+          "text": "A EUR 500 lump sum for translation costs to SMEs, natural persons, non-profits, universities and public research organisations based in an EU member state whose application was filed in an EU language other than English, French or German.",
+          "url": "https://www.epo.org/en/applying/european/unitary/unitary-patent/compensation"
+        }
+      ]
+    },
+    {
+      "code": "JP",
+      "name": "Japan Patent Office",
+      "short": "JPO",
+      "definitions": [
+        {
+          "category": "SME",
+          "text": "A company within the employee or capital limit for its industry (e.g. manufacturing up to 300 employees or JPY 300 million capital; retail up to 50 employees or JPY 50 million), not under the management of large enterprises. Foreign SMEs qualify on the same conditions.",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Micro enterprise",
+          "text": "A corporation with 20 employees or fewer (5 or fewer in commerce or services), not under the management of large enterprises.",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Small and medium startup",
+          "text": "A corporation established no more than 10 years ago with capital of no more than JPY 300 million, not under the management of large enterprises.",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Individuals",
+          "text": "Individuals on public assistance or exempt from municipal tax, income tax or enterprise tax.",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        }
+      ],
+      "fee_reductions": [
+        {
+          "category": "SME",
+          "reduction_pct": 50,
+          "as_published": "Reduced to 1/2",
+          "fees": "Request for examination fee; patent fees for years 1 to 10",
+          "since": "2019-04-01",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Micro enterprise / small and medium startup",
+          "reduction_pct": 66.7,
+          "as_published": "Reduced to 1/3",
+          "fees": "Request for examination fee; patent fees for years 1 to 10",
+          "since": "2019-04-01",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "SME",
+          "reduction_pct": 50,
+          "as_published": "Transmittal fee / Search fee: reduced to 1/2; Preliminary examination fee: reduced to 1/2; International filing fee and Handling fee: 1/2 supported",
+          "fees": "PCT: international applications filed in Japanese",
+          "since": "2019-04-01",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Micro enterprise / small and medium startup",
+          "reduction_pct": 66.7,
+          "as_published": "Transmittal fee / Search fee: reduced to 1/3; Preliminary examination fee: reduced to 1/3; International filing fee and Handling fee: 2/3 supported",
+          "fees": "PCT: international applications filed in Japanese",
+          "since": "2019-04-01",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Individuals exempt from income tax",
+          "reduction_pct": 50,
+          "as_published": "Reduced to 1/2",
+          "fees": "Request for examination fee; patent fees for years 1 to 10",
+          "since": "2019-04-01",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        },
+        {
+          "category": "Individuals on public assistance or exempt from municipal tax",
+          "reduction_pct": null,
+          "as_published": "Examination fees/Patent fees for year 1 to 3: Exempt; Patent fees for year 4 to 10: Reduced to 1/2",
+          "fees": "Request for examination fee and patent fees for years 1 to 3 (years 4 to 10 reduced by half)",
+          "since": "2019-04-01",
+          "source_url": "https://www.jpo.go.jp/system/process/tesuryo/genmen/genmen20190401/document/index/leaflet_e.pdf"
+        }
+      ],
+      "support": [
+        {
+          "name": "Accelerated examination for SMEs",
+          "text": "Applications by SMEs, individuals, universities and public research institutes can be examined ahead of the queue at no extra fee.",
+          "url": "https://www.jpo.go.jp/e/system/patent/shinsa/jp-soki/index.html"
+        },
+        {
+          "name": "Super-accelerated examination for startups",
+          "text": "Working-related applications filed by startups can get a faster track than accelerated examination, at no extra fee.",
+          "url": "https://www.jpo.go.jp/e/system/patent/shinsa/jp-super_soki/index.html"
+        }
+      ]
+    },
+    {
+      "code": "KR",
+      "name": "Ministry of Intellectual Property of the Republic of Korea (formerly the Korean Intellectual Property Office)",
+      "short": "MOIP (KIPO)",
+      "definitions": [
+        {
+          "category": "Individuals",
+          "text": "Natural persons (개인); a higher reduction applies to people aged 19 to 29 or 65 and over.",
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378"
+        },
+        {
+          "category": "SMEs and mid-sized enterprises",
+          "text": "SMEs (중소기업) and mid-sized enterprises (중견기업) are listed as separate categories; MOIP SME programmes refer to SMEs under Article 2 of the Framework Act on Small and Medium Enterprises.",
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200315"
+        },
+        {
+          "category": "Startup",
+          "text": "An SME within 3 years of starting business (스타트업 기업, 사업개시일 3년 이내 중소기업).",
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378"
+        }
+      ],
+      "fee_reductions": [
+        {
+          "category": "Individuals",
+          "reduction_pct": 70,
+          "as_published": "70% 감면 (연간 20건 초과시 출원료 30%감면)",
+          "fees": "Application fee, examination request fee, registration fees for the first 3 years (annual fees from year 4: 50% off)",
+          "since": null,
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378",
+          "as_published_lang": "ko"
+        },
+        {
+          "category": "Individuals aged 19 to 29 or 65 and over",
+          "reduction_pct": 85,
+          "as_published": "85% 감면 (연간20건 초과시 출원료 30%감면)",
+          "fees": "Application fee, examination request fee, registration fees for the first 3 years (annual fees from year 4: 50% off)",
+          "since": null,
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378",
+          "as_published_lang": "ko"
+        },
+        {
+          "category": "SMEs",
+          "reduction_pct": 70,
+          "as_published": "70% 감면",
+          "fees": "Application fee, examination request fee, registration fees for the first 3 years (annual fees from year 4: 50% off)",
+          "since": null,
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378",
+          "as_published_lang": "ko"
+        },
+        {
+          "category": "Mid-sized enterprises",
+          "reduction_pct": 30,
+          "as_published": "30% 감면",
+          "fees": "Application fee, examination request fee, registration fees for the first 3 years; annual fees for years 4 to 9",
+          "since": null,
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378",
+          "as_published_lang": "ko"
+        },
+        {
+          "category": "Startup",
+          "reduction_pct": 70,
+          "as_published": "우선심사신청료(70% 감면)(연간 10건에 한정)",
+          "fees": "Priority examination request fee, up to 10 applications a year",
+          "since": null,
+          "source_url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200378",
+          "as_published_lang": "ko"
+        }
+      ],
+      "support": [
+        {
+          "name": "Public-interest Patent Attorney Center (공익변리사 특허상담센터)",
+          "text": "Free attorney services for small businesses and other vulnerable groups, from consultation and drafting to trials and support with infringement litigation costs.",
+          "url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200363"
+        },
+        {
+          "name": "IP Narae programme (IP 나래 프로그램)",
+          "text": "Up to 100 days of IP strategy and management consulting for technology SMEs up to 7 years old (10 in new industries), 70% government funded.",
+          "url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200314"
+        },
+        {
+          "name": "Global IP Star Companies (글로벌 IP스타기업 육성)",
+          "text": "Three years of IP support for exporting SMEs, including part of the cost of PCT and foreign filings.",
+          "url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200315"
+        },
+        {
+          "name": "IP Didimdol programme (IP 디딤돌 프로그램)",
+          "text": "IP consulting for would-be founders, including most of the cost of filing a patent for the business idea.",
+          "url": "https://kipo.go.kr/ko/kpoContentView.do?menuCd=SCD0200313"
+        }
+      ]
+    },
+    {
+      "code": "CN",
+      "name": "China National Intellectual Property Administration",
+      "short": "CNIPA",
+      "definitions": [
+        {
+          "category": "Individuals",
+          "text": "Individuals whose average monthly income in the previous year was below RMB 5,000 (RMB 60,000 a year).",
+          "source_url": "https://www.cnipa.gov.cn/art/2019/8/5/art_74_27645.html"
+        },
+        {
+          "category": "Enterprises",
+          "text": "Enterprises whose taxable income in the previous year was below RMB 1 million.",
+          "source_url": "https://www.cnipa.gov.cn/art/2019/8/5/art_74_27645.html"
+        },
+        {
+          "category": "Public institutions and non-profits",
+          "text": "Public institutions, social organisations and non-profit research institutions (no income threshold).",
+          "source_url": "https://www.cnipa.gov.cn/art/2023/1/13/art_2468_181412.html"
+        }
+      ],
+      "fee_reductions": [
+        {
+          "category": "Single eligible applicant or patentee",
+          "reduction_pct": 85,
+          "as_published": "减缴85%",
+          "fees": "Application fee (excluding publication printing fee and surcharge), invention substantive examination fee, annual fees for 10 years from the year of grant, reexamination fee",
+          "since": "2016-09-01",
+          "source_url": "https://www.cnipa.gov.cn/art/2023/1/13/art_2468_181412.html",
+          "as_published_lang": "zh"
+        },
+        {
+          "category": "Two or more joint applicants or co-owners, each eligible",
+          "reduction_pct": 70,
+          "as_published": "减缴70%",
+          "fees": "Application fee (excluding publication printing fee and surcharge), invention substantive examination fee, annual fees for 10 years from the year of grant, reexamination fee",
+          "since": "2016-09-01",
+          "source_url": "https://www.cnipa.gov.cn/art/2023/1/13/art_2468_181412.html",
+          "as_published_lang": "zh"
+        }
+      ],
+      "support": [
+        {
+          "name": "SME IP Public Service Special Action 2026",
+          "text": "Joint CNIPA and MIIT action in which provincial IP offices give SMEs patent analysis, technology transfer help, infringement early warning, overseas rights protection support and training.",
+          "url": "https://www.cnipa.gov.cn/art/2026/4/22/art_75_205972.html"
+        }
+      ]
+    }
+  ],
+  "shares": [
+    {
+      "id": "pct_applicant_type",
+      "year": 2025,
+      "scope": "Published PCT applications, all origins, by applicant type",
+      "rows": [
+        {
+          "label": "Business sector",
+          "pct": 89.6
+        },
+        {
+          "label": "Universities",
+          "pct": 5.3
+        },
+        {
+          "label": "Individuals",
+          "pct": 3.5
+        },
+        {
+          "label": "Government and public research organizations",
+          "pct": 1.6
+        }
+      ],
+      "citation": "Patent Cooperation Treaty Yearly Review 2026: Executive Summary, WIPO, 2026",
+      "page": "Statistics on the international phase - PCT applications: The business sector accounted for the vast majority of PCT filing activity",
+      "url": "https://www.wipo.int/web-publications/executive-summary-patent-cooperation-treaty-yearly-review-2026-the-international-patent-system/en/patent-cooperation-treaty-yearly-review-2026-executive-summary.html",
+      "note": "WIPO reports PCT applicants by sector; it does not split the business sector by company size."
+    },
+    {
+      "id": "epo_applicant_category",
+      "year": 2025,
+      "scope": "Large representative sample of applications filed with the EPO in 2025 by applicants located in European Patent Organisation member states. SMEs follow the European Commission definition (2003/361/EC): independent companies with fewer than 250 staff and turnover below EUR 50 million and/or balance sheet below EUR 43 million. Universities and public research organisations include affiliated technology transfer offices.",
+      "rows": [
+        {
+          "label": "Large companies",
+          "pct": 67
+        },
+        {
+          "label": "Individual inventors and SMEs",
+          "pct": 26
+        },
+        {
+          "label": "Universities and public research organisations",
+          "pct": 7
+        }
+      ],
+      "citation": "EPO Technology Dashboard 2025, European Patent Office, 2026",
+      "page": "Statistics and indicators > Applicants > Categories (status 2 February 2026)",
+      "url": "https://www.epo.org/en/about-us/statistics/technology-dashboard-2025/statistics-and-indicators/applicants/categories"
+    }
+  ],
+  "resources": [
+    {
+      "title": "IP for Business",
+      "publisher": "WIPO",
+      "text": "WIPO's starting point for businesses on why IP matters and how to manage it.",
+      "url": "https://www.wipo.int/en/web/business"
+    },
+    {
+      "title": "WIPO IP Diagnostics",
+      "publisher": "WIPO",
+      "text": "A free online questionnaire that gives a business a report on its IP assets and next steps.",
+      "url": "https://www.wipo.int/en/web/wipo-ip-diagnostics"
+    },
+    {
+      "title": "IP Management Clinics for SMEs",
+      "publisher": "WIPO",
+      "text": "WIPO coaching programme in which IP experts work with selected SMEs on their IP strategy.",
+      "url": "https://www.wipo.int/en/web/business/ip-management-clinic"
+    },
+    {
+      "title": "PCT Newsletter: PCT SME Support Series",
+      "publisher": "WIPO",
+      "text": "A question-and-answer series in the PCT Newsletter for small businesses using the PCT, such as No. 3 on using the PCT timeline (June 2026) and No. 4 on deciding where to protect (September 2026).",
+      "url": "https://www.wipo.int/web/pct-system/newslett/index"
+    },
+    {
+      "title": "Fee reductions and compensation for smaller applicants",
+      "publisher": "European Patent Office",
+      "text": "The EPO's page on fee support for micro-entities, SMEs, individuals, universities and public research organisations.",
+      "url": "https://www.epo.org/en/applying/fees/fee-reductions-and-compensation"
+    }
+  ]
+}
