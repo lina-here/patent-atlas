@@ -65,6 +65,46 @@ test("intro names the IP5 offices from the data; headings never rank them", asyn
   await expect(page.locator("main")).not.toContainText("five largest offices");
 });
 
+test("wording claims no more than the data: no typed counts, no per-row definition or office-wording promise", async ({ page }) => {
+  await openSmes(page);
+  const main = page.locator("main");
+  // the number of share sources and of matched definitions follows the data
+  await expect(main).not.toContainText(/\b(two|three|four|five) published/i);
+  await expect(main).not.toContainText("each row shows that office's own");
+  await expect(main).not.toContainText("the office's own wording");
+  await expect(page.locator("#sme-fees > p")).toContainText("what the office's page states");
+  await expect(page.locator("#sme-definitions > p")).toContainText("Summarised from each office's own pages");
+  await expect(page.locator("#sme-support > p")).toHaveText("Other help each office lists for smaller applicants, beyond fee reductions.");
+});
+
+test("text in Korean or Chinese outside the published wording carries its lang", async ({ page }) => {
+  await openSmes(page);
+  const hangul = /[\uAC00-\uD7AF\u1100-\u11FF]/;
+  const han = /[\u3400-\u4DBF\u4E00-\u9FFF]/;
+  for (const office of policies.offices) {
+    for (const section of ["sme-definitions", "sme-support"]) {
+      const block = page.locator(`#${section} [data-office="${office.code}"]`);
+      const text = (await block.textContent()) ?? "";
+      if (hangul.test(text)) await expect(block.locator('[lang="ko"]').first(), `${section} ${office.code}`).toBeAttached();
+      if (han.test(text)) await expect(block.locator('[lang="zh"], [lang="ko"]').first(), `${section} ${office.code}`).toBeAttached();
+      // every Hangul or Han character sits inside an element with a lang
+      const bare = await block.evaluate((root) => {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const found: string[] = [];
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (/[\uAC00-\uD7AF\u1100-\u11FF\u3400-\u4DBF\u4E00-\u9FFF]/.test(node.textContent ?? "") && !node.parentElement?.closest("[lang]")) found.push(node.textContent ?? "");
+        }
+        return found;
+      });
+      expect(bare, `${section} ${office.code}`).toEqual([]);
+    }
+  }
+  const korean = page.locator('#sme-definitions [data-office="KR"] [lang="ko"]');
+  if (policies.offices.some((office) => office.code === "KR" && office.definitions.some((item) => /[\uAC00-\uD7AF]/.test(item.text)))) {
+    expect(await korean.count()).toBeGreaterThan(0);
+  }
+});
+
 test("header nav: SMEs follows Dashboard, is current on the page and keeps the theme", async ({ page }) => {
   await openSmes(page, "&theme=paper");
   const nav = page.locator(".site-nav a");
@@ -239,7 +279,7 @@ test("policies.json missing: the page says so, never a blank page", async ({ pag
   await expect(page.locator(".sme-missing")).toContainText("could not be loaded");
 });
 
-for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, height: 844 }, { width: 1000, height: 900 }, { width: 1440, height: 900 }]) {
   test(`?view=smes fits at ${size.width}x${size.height}: no sideways scroll${suffix}`, async ({ page }) => {
     if (wide) await useWideFonts(page);
     await page.setViewportSize(size);
@@ -255,6 +295,27 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, 
       }).map((el) => `${el.tagName}.${el.className}`);
     });
     expect(outside).toEqual([]);
+  });
+}
+
+for (const { wide, suffix } of FONT_VARIANTS) {
+  test(`?view=smes at 1000px: the fee table shows, inside the page, every column at least a few words wide${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width: 1000, height: 900 });
+    await openSmes(page);
+    if (wide) await expectWideFonts(page);
+    const table = page.locator(".sme-fee-table");
+    await expect(table).toBeVisible();
+    await expect(page.locator(".sme-fee-card").first()).toBeHidden();
+    const fit = await table.evaluate((element) => {
+      const em = parseFloat(getComputedStyle(element).fontSize);
+      const box = element.getBoundingClientRect();
+      const columns = [...element.querySelectorAll("thead th")].map((th) => th.getBoundingClientRect().width / em);
+      return { right: box.right, page: document.documentElement.clientWidth, columns };
+    });
+    expect(fit.right).toBeLessThanOrEqual(fit.page);
+    // narrowest column (Source: a host name) still holds a short word per line
+    for (const width of fit.columns) expect(width).toBeGreaterThanOrEqual(5);
   });
 }
 

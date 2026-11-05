@@ -807,6 +807,12 @@ test("methods.html#smes opens its box; the section names its sources and scope",
   await expect(section.locator("h2")).toHaveText("SMEs and patents");
   await expect(section).toContainText("?view=smes");
   await expect(section).toContainText("IP5");
+  await expect(section).toContainText("Other offices are not covered.");
+  await expect(section).toContainText("What the office's page states is shown with every percentage");
+  // scope of each share is the data's, shown on the page; no typed count of sources, no wrong owner of member states
+  await expect(section).not.toContainText(/\b(two|three) published/i);
+  await expect(section).not.toContainText("its member states");
+  await expect(section).not.toContainText("It covers the IP5 offices.");
   // no figures or dates: the section reads no data file
   await expect(section).not.toContainText(JSON.parse(readFileSync("site/sme/policies.json", "utf8")).checked_on);
 });

@@ -30,6 +30,24 @@ const hostOf = (url: string): string => {
 };
 const sourceLink = (url: string): HTMLElement => h("a", { href: url, rel: "noopener" }, hostOf(url));
 
+/** Runs of Hangul (ko) or Han (zh), spaces, digits and punctuation between them included. */
+const SCRIPT_RUN = /[\uAC00-\uD7AF\u1100-\u11FF\u3400-\u4DBF\u4E00-\u9FFF]+(?:[\s\d,.·]+[\uAC00-\uD7AF\u1100-\u11FF\u3400-\u4DBF\u4E00-\u9FFF]+)*/g;
+const HANGUL = /[\uAC00-\uD7AF\u1100-\u11FF]/;
+
+/** Text with each Korean or Chinese run in a `lang` span (markup only, text unchanged), so a screen reader switches voice. */
+function withLang(text: string): Child[] {
+  const parts: Child[] = [];
+  let last = 0;
+  for (const match of text.matchAll(SCRIPT_RUN)) {
+    const at = match.index ?? 0;
+    if (at > last) parts.push(text.slice(last, at));
+    parts.push(h("span", { lang: HANGUL.test(match[0]) ? "ko" : "zh" }, match[0]));
+    last = at + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
 /** The policies file; an Error when it cannot be loaded (the page and panel then say why). */
 export async function loadPolicies(): Promise<SmePolicies | Error> {
   try {
@@ -58,8 +76,8 @@ function officeCell(office: SmeOffice): Child[] {
 /** Category and its definition (exact `category` match), else a link to the row's source. */
 function qualifiesCell(office: SmeOffice, fee: SmeFeeReduction): Child[] {
   const definition = list(office.definitions).find((item) => item.category === fee.category);
-  return [h("strong", {}, fee.category),
-    definition ? h("span", { class: "sme-definition" }, definition.text)
+  return [h("strong", {}, withLang(fee.category)),
+    definition ? h("span", { class: "sme-definition" }, withLang(definition.text))
       : h("span", { class: "sme-definition" }, h("a", { href: fee.source_url, rel: "noopener" }, "See source"))];
 }
 
@@ -75,7 +93,7 @@ function reductionCell(fee: SmeFeeReduction): Child[] {
 }
 
 function feesCell(fee: SmeFeeReduction): Child[] {
-  return [fee.fees, fee.since ? h("span", { class: "sme-since" }, `Since ${fee.since}`) : null];
+  return [withLang(fee.fees), fee.since ? h("span", { class: "sme-since" }, `Since ${fee.since}`) : null];
 }
 
 /** One row group per office: its name heads every row of the group (`th scope=rowgroup`). */
@@ -108,9 +126,8 @@ function feeCards(offices: SmeOffice[]): HTMLElement {
 function feesSection(offices: SmeOffice[]): HTMLElement {
   return h("section", { id: "sme-fees", class: "sme-section" },
     h("h2", {}, FEES_TITLE),
-    h("p", {}, "One row per office and category of applicant. The reduction is the share of the standard fee that the applicant does not pay; ",
-      "the office's own wording is shown under it, and where no single percentage applies, only the wording is shown. ",
-      "Wording from a page in Korean or Chinese is shown as published and marked."),
+    h("p", {}, "The reduction is the share of the standard fee the applicant does not pay. Under it is what the office's page states; ",
+      "where no single percentage applies, that text is all the row shows. Text from a Korean or Chinese page is shown as published, with its language named."),
     h("div", { class: "sme-fee-table-wrap" },
       h("table", { class: "data-table sme-fee-table", "aria-label": FEES_TITLE },
         h("thead", {}, h("tr", {}, FEE_HEADERS.map((text) => h("th", { scope: "col" }, text)))),
@@ -139,7 +156,7 @@ function shareBlock(share: SmeShare): HTMLElement {
 function sharesSection(shares: SmeShare[]): HTMLElement {
   return h("section", { id: "sme-shares", class: "sme-section" },
     h("h2", {}, "Who files"),
-    h("p", {}, "Two published breakdowns of who files patent applications. They come from different sources and count different applications, so they are shown apart."),
+    h("p", {}, "Each source counts different applications, so each is shown on its own."),
     h("div", { class: "sme-shares" }, shares.map(shareBlock)));
 }
 
@@ -155,22 +172,22 @@ function perOffice(id: string, title: string, intro: string, offices: SmeOffice[
 
 function definitionsSection(offices: SmeOffice[]): HTMLElement {
   return perOffice("sme-definitions", "Who qualifies at each office",
-    "Each office's own categories and definitions, as its pages state them. They differ from office to office, so no single definition of an SME applies.",
+    "Summarised from each office's own pages. The definitions differ between offices, so no single definition of an SME applies.",
     offices, (office) => {
       const definitions = list(office.definitions);
       return definitions.length === 0 ? null : h("dl", { class: "sme-definitions" }, definitions.flatMap((item) => [
-        h("dt", {}, item.category),
-        h("dd", {}, item.text, " ", h("span", { class: "sme-cite" }, "Source: ", sourceLink(item.source_url))),
+        h("dt", {}, withLang(item.category)),
+        h("dd", {}, withLang(item.text), " ", h("span", { class: "sme-cite" }, "Source: ", sourceLink(item.source_url))),
       ]));
     });
 }
 
 function supportSection(offices: SmeOffice[]): HTMLElement {
-  return perOffice("sme-support", "Other support", "Help beyond fees that each office offers smaller applicants: advice, programmes and faster examination.",
+  return perOffice("sme-support", "Other support", "Other help each office lists for smaller applicants, beyond fee reductions.",
     offices, (office) => {
       const support = list(office.support);
       return support.length === 0 ? null : h("ul", { class: "sme-links" }, support.map((item) => h("li", {},
-        h("a", { href: item.url, rel: "noopener" }, item.name), h("span", { class: "sme-item-text" }, item.text))));
+        h("a", { href: item.url, rel: "noopener" }, withLang(item.name)), h("span", { class: "sme-item-text" }, withLang(item.text)))));
     });
 }
 
@@ -196,10 +213,10 @@ export async function renderSmePage(el: HTMLElement, ctx: SmeContext): Promise<v
     h("h1", {}, SME_TITLE),
     h("p", { class: "lede" },
       "What the IP5 offices offer small and medium-sized enterprises (SMEs) and individual inventors: fee reductions, other support and ",
-      "resources, with two published breakdowns of who files patent applications. ",
+      "resources, with published figures on who files patent applications. ",
       offices.length ? `IP5 is the forum in which the five largest intellectual property offices work together: ${joinNames(offices.map((office) => office.short))}. ` : "",
-      "Each office defines SMEs its own way, so each row shows that office's own categories and definitions.",
-      policies ? ` The facts were checked on ${policies.checked_on} on the offices' and WIPO's own pages, and each one is linked.` : ""));
+      "Each office defines SMEs its own way, so the page shows each office's own categories and definitions.",
+      policies ? ` Every fact links to the office's or WIPO's page it comes from; all were checked on ${policies.checked_on}.` : ""));
   if (!policies) {
     el.replaceChildren(header, h("p", { class: "notice sme-missing" }, `The SMEs data could not be loaded: ${(loaded as Error).message}`));
     return;
@@ -213,7 +230,7 @@ export async function renderSmePage(el: HTMLElement, ctx: SmeContext): Promise<v
       supportSection(offices),
       resourcesSection(policies),
       h("p", { class: "sme-checked" },
-        `Fees and rules change. Everything on this page was checked on ${policies.checked_on}; each office's own page is the reference. `,
+        `Fees and rules change, so the office's own page is the reference. Everything here was checked on ${policies.checked_on}. `,
         "Sources and method: ", h("a", { href: methodsLink }, "SMEs and patents on the methods page"), ".")));
 }
 

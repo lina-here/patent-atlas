@@ -2,8 +2,9 @@
 
 Patent and PCT statistics from the WIPO Statistics Database, with our own analysis: growth, world shares, ranks and
 comparisons between countries and offices. Every figure shows its source, WIPO release and retrieval date, and has
-text to cite it; the SMEs page links each fact to the office's or WIPO's own page. Made for patent office staff, researchers and students. By Lina
-([lina-here](https://github.com/lina-here)). Sources, formulas and checks: the site's methods page and `docs/research/`.
+text to cite it; the SMEs page links each fact to the office's or WIPO's own page. Made for patent office staff,
+researchers and students. By Lina ([lina-here](https://github.com/lina-here)). Sources, formulas and checks: the
+site's methods page and `docs/research/`.
 
 ## Preview the site
 
@@ -41,7 +42,8 @@ States in each year, from WIPO's list. Methods: `methods.html#dashboard` and `me
 
 The **SMEs page** (`index.html?view=smes`, "SMEs" in the header) compares fee reductions and other support for SMEs at
 the IP5 offices, each with that office's own definitions, and shows who files patent applications as WIPO and the EPO
-publish it; facts from `site/sme/policies.json`, kept by hand, each linked to its source. Method: `methods.html#smes`.
+publish it. The facts come from `site/sme/policies.json`, kept by hand, each linked to its source. Method:
+`methods.html#smes`.
 
 ## Put a chart on another website
 
