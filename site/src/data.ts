@@ -429,7 +429,7 @@ export type SmePctNational = {
   fees: string; category: string; reduction_pct: number | null; criteria: string; source_url: string;
 };
 export type SmePct = {
-  checked_on: string; sources_note: string;
+  checked_on: string;
   pct_international: SmePctInternational[]; isa_ipea: SmePctAuthority[]; national_phase: SmePctNational[];
   /** No SME reduction in the PCT Schedule of Fees; `wg_source_url` = the Working Group record. */
   pct_wide_sme: { status: string; source_url: string; wg_source_url?: string };
@@ -441,7 +441,7 @@ export type SmeOtherReduction = {
 };
 export type SmeOtherOffice = { code: string; name: string; guide_updated: string; fee_reductions: SmeOtherReduction[]; support?: SmeSupport[] };
 export type SmeOtherOffices = {
-  checked_on: string; source_index_url: string; source_note: string; offices: SmeOtherOffice[];
+  checked_on: string; source_index_url: string; offices: SmeOtherOffice[];
   /** Office codes whose Guide chapter lists no reduction by type of applicant. */
   no_reduction_listed: string[];
   /** Office codes not assessed, per reason key. */

@@ -272,10 +272,10 @@ function pctSection(pct: SmePct | undefined): HTMLElement | null {
   const wide = pct.pct_wide_sme;
   const international = h("div", { class: "sme-pct-column", "data-phase": "international" },
     h("h3", {}, "International phase"),
-    h("h4", {}, "WIPO fees"),
+    h("h4", {}, "Reductions of the fees paid to WIPO"),
     h("p", {}, "Reductions in the PCT Schedule of Fees, open to any applicant who meets the conditions."),
     list(pct.pct_international).map(wipoItem),
-    h("h4", {}, "Search and examination fees"),
+    h("h4", {}, "Fees paid to the offices in the international phase"),
     h("p", {}, "Each office sets its own fees for the work it does: the international search (ISA), the supplementary search (SISA) ",
       "or the international preliminary examination (IPEA). RO is the receiving Office, where the application is filed."),
     byOffice(list(pct.isa_ipea)).map(([office, items]) => h("div", { class: "sme-pct-office", "data-office": office },
@@ -289,38 +289,49 @@ function pctSection(pct: SmePct | undefined): HTMLElement | null {
       h("h4", {}, office), items.map(nationalEntry))));
   return h("section", { id: "sme-pct", class: "sme-section" },
     h("h2", {}, PCT_TITLE),
-    h("p", {}, "A PCT application goes through two phases. In the international phase the applicant pays WIPO's fees and the fees of the office ",
-      "that searches and examines the application. In the national or regional phase the applicant pays each office where it wants a patent."),
+    h("p", {}, "A PCT application goes through two phases. In the international phase the applicant pays WIPO's fees, the receiving Office's ",
+      "transmittal fee and the fees of the office that searches and examines the application. In the national or regional phase the applicant pays ",
+      "each office where it wants a patent."),
     h("div", { class: "sme-pct-columns" }, international, national));
 }
 
-/** Plain names of the `not_assessed` reason keys; an unknown key shows as "for another reason". */
+/** `not_assessed` key of the IP5 offices: its own sentence, not a reason. */
+const IP5_EXCLUDED = "ip5_excluded";
+/** Plain words after "<n> office(s)" for the other `not_assessed` reason keys; an unknown key reads "not assessed for another reason". */
 const NOT_ASSESSED_LABELS: Record<string, string> = {
-  ip5_excluded: "the IP5 offices, covered above",
   guide_refers_to_office_or_not_by_applicant: "where the Guide refers applicants to the office, or the reduction does not depend on the type of applicant",
   no_national_fee_section: "with no national fee section in the Guide, mostly because there is no national route and patents go through a regional office",
 };
-const SME_GROUP = "sme";
-const OTHER_HEADERS = ["Who qualifies", "Reduction", "Which fees", "Criteria", "Source"];
+/** `category_groups` keys counted as SME-type in the counts line; `data-count` key of that count. */
+const SME_GROUPS = ["sme", "micro"];
+const SME_COUNT = "sme";
+/** Table headers; the reduction header is the IP5 table's. Cards use the short labels. */
+const OTHER_HEADERS = ["Who qualifies", FEE_HEADERS[2], "Which fees", "Criteria", "Source"];
+const OTHER_CARD_LABELS = ["Who qualifies", "Reduction", "Which fees", "Criteria", "Source"];
 const OTHER_CELL_CLASSES = ["sme-qualifies", "sme-reduction", "sme-fees", "sme-criteria", "sme-source"];
 
 const groupsOf = (office: SmeOtherOffice): Set<string> => new Set(list(office.fee_reductions).flatMap((fee) => list(fee.category_group)));
 const count = (key: string, value: number): HTMLElement => h("span", { "data-count": key }, String(value));
 const verb = (value: number, one: string, many: string): string => (value === 1 ? one : many);
 
-/** Counts from the data's lists: offices with an SME group, with other groups only, with none listed, not assessed per reason. */
+/** Counts from the data's lists: offices with an SME-type group, with other groups only, with none listed, the IP5, not assessed per reason. */
 function otherCounts(other: SmeOtherOffices): HTMLElement {
   const offices = list(other.offices);
-  const withSme = offices.filter((office) => groupsOf(office).has(SME_GROUP)).length;
+  const withSme = offices.filter((office) => SME_GROUPS.some((key) => groupsOf(office).has(key))).length;
   const otherOnly = offices.length - withSme;
   const none = list(other.no_reduction_listed).length;
-  const reasons = Object.entries(other.not_assessed ?? {});
+  const notAssessed = other.not_assessed ?? {};
+  const ip5 = notAssessed[IP5_EXCLUDED];
+  const reasons = Object.entries(notAssessed).filter(([key]) => key !== IP5_EXCLUDED);
   return h("p", { class: "sme-other-counts" },
-    count(SME_GROUP, withSme), ` ${verb(withSme, "office lists", "offices list")} a reduction for SMEs or small entities. `,
-    count("other", otherOnly), ` ${verb(otherOnly, "lists", "list")} reductions only for other applicants, such as individual inventors or universities. `,
+    count(SME_COUNT, withSme), ` ${verb(withSme, "office lists", "offices list")} a reduction for SMEs, small entities or micro-entities. `,
+    count("other", otherOnly), ` ${verb(otherOnly, "office lists", "offices list")} reductions only for other applicants, such as individual inventors or universities. `,
     "For ", count("none", none), ` ${verb(none, "office", "offices")} the Guide lists no reduction by type of applicant.`,
-    reasons.length ? [" Not assessed: ", reasons.map(([key, codes], index) => [index ? "; " : "", count(key, list(codes).length), " ",
-      NOT_ASSESSED_LABELS[key] ?? "for another reason"]), "."] : null);
+    ip5 ? [" The ", count(IP5_EXCLUDED, list(ip5).length), " IP5 offices are covered above."] : null,
+    reasons.length ? [" Not assessed: ", reasons.map(([key, codes], index) => {
+      const value = list(codes).length;
+      return [index ? "; " : "", count(key, value), ` ${verb(value, "office", "offices")} `, NOT_ASSESSED_LABELS[key] ?? "not assessed for another reason"];
+    }), "."] : null);
 }
 
 function otherWho(fee: SmeOtherReduction, groups: Record<string, string>): Child[] {
@@ -361,22 +372,31 @@ function otherCards(offices: SmeOtherOffice[], groups: Record<string, string>): 
   return h("div", { class: "sme-other-cards" }, offices.map((office) => h("div", { class: "sme-other-card-office", "data-office": office.code },
     h("h3", { class: "sme-other-card-title" }, officeHead(office)),
     list(office.fee_reductions).map((fee) => h("div", { class: "sme-other-card", "data-groups": list(fee.category_group).join(" ") },
-      h("dl", {}, otherValues(fee, groups).map((value, index) => [h("dt", {}, OTHER_HEADERS[index]), h("dd", {}, value)])))),
+      h("dl", {}, otherValues(fee, groups).map((value, index) => [h("dt", {}, OTHER_CARD_LABELS[index]), h("dd", {}, value)])))),
     otherSupport(office))));
 }
 
-/** Shows rows (and cards) with at least one ticked group; an office without one is hidden whole. */
+/** Shows rows (and cards) with at least one ticked group; an office without one is hidden whole. The status names the
+ * offices shown and the rows hidden inside them; nothing ticked -> a hint. */
 function applyFilter(section: HTMLElement, status: HTMLElement, total: number): void {
   const ticked = new Set([...section.querySelectorAll<HTMLInputElement>(".sme-filter input:checked")].map((box) => box.value));
   const matches = (item: Element) => (item.getAttribute("data-groups") ?? "").split(" ").some((key) => ticked.has(key));
   for (const item of section.querySelectorAll<HTMLElement>(".sme-other-row, .sme-other-card")) item.hidden = !matches(item);
   let shown = 0;
+  let hiddenRows = 0;
   for (const group of section.querySelectorAll<HTMLElement>(".sme-other-table tbody")) {
     group.hidden = !group.querySelector(".sme-other-row:not([hidden])");
-    if (!group.hidden) shown += 1;
+    if (group.hidden) continue;
+    shown += 1;
+    hiddenRows += group.querySelectorAll(".sme-other-row[hidden]").length;
   }
   for (const block of section.querySelectorAll<HTMLElement>(".sme-other-card-office")) block.hidden = !block.querySelector(".sme-other-card:not([hidden])");
-  status.textContent = `Showing ${shown} of ${total} offices.`;
+  if (ticked.size === 0) {
+    status.textContent = "Tick at least one group to see offices.";
+    return;
+  }
+  status.textContent = `Showing ${shown} of ${total} offices` +
+    (hiddenRows ? `, with ${hiddenRows} ${verb(hiddenRows, "row", "rows")} hidden that ${verb(hiddenRows, "matches", "match")} no ticked group.` : ".");
 }
 
 function otherSection(policies: SmePolicies): HTMLElement | null {
@@ -426,7 +446,7 @@ export async function renderSmePage(el: HTMLElement, ctx: SmeContext): Promise<v
       "application, and the reductions at other PCT offices. ",
       offices.length ? `IP5 is the forum in which the five largest intellectual property offices work together: ${joinNames(offices.map((office) => office.short))}. ` : "",
       "Each office defines SMEs its own way, so the page shows each office's own categories and definitions.",
-      policies ? ` Every fact links to the office's or WIPO's page it comes from; all were checked on ${policies.checked_on}.` : ""));
+      policies ? ` Every fact links to the page it comes from; all were checked on ${policies.checked_on}.` : ""));
   if (!policies) {
     el.replaceChildren(header, h("p", { class: "notice sme-missing" }, `The SMEs data could not be loaded: ${(loaded as Error).message}`));
     return;

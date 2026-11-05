@@ -126,9 +126,10 @@ def urls_in(value, path=""):
 
 
 def on_allowed_host(url, hosts):
-    """Host only (the page links each URL as published): host equals an entry or ends with "." + entry."""
-    host = urlparse(url).hostname or ""
-    return any(host == allowed or host.endswith(f".{allowed}") for allowed in hosts)
+    """https, and the host equals an entry or ends with "." + entry."""
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    return parsed.scheme == "https" and any(host == allowed or host.endswith(f".{allowed}") for allowed in hosts)
 
 
 def test_every_url_is_on_an_allowed_host(data):
@@ -180,3 +181,4 @@ def test_on_allowed_host_rejects_lookalikes():
     assert on_allowed_host("https://pctlegal.wipo.int/x", ["wipo.int"])
     assert not on_allowed_host("https://wipo.int.example.com/x", ["wipo.int"])
     assert not on_allowed_host("https://notwipo.int/x", ["wipo.int"])
+    assert not on_allowed_host("http://pctlegal.wipo.int/x", ["wipo.int"])

@@ -74,6 +74,8 @@ test("intro names the IP5 offices from the data; headings never rank them", asyn
   await openSmes(page);
   const lede = page.locator(".page-intro .lede");
   await expect(lede).toContainText("IP5");
+  await expect(lede).toContainText("Every fact links to the page it comes from");
+  await expect(lede).not.toContainText("office's or WIPO's page");
   for (const office of policies.offices) await expect(lede).toContainText(office.short);
   await expect(page.locator("#sme-fees > h2")).toHaveText("Fee reductions for SMEs at the IP5 offices");
   await expect(page.locator("main")).not.toContainText("five largest offices");
@@ -373,6 +375,8 @@ const GROUP_KEYS = Object.keys(policies.category_groups);
 /** Offices in first-appearance order. */
 const officesOf = (items: { office: string }[]): string[] => [...new Set(items.map((item) => item.office))];
 const officeGroups = (office: OtherOffice): Set<string> => new Set(office.fee_reductions.flatMap((fee) => fee.category_group));
+/** Groups counted as SME-type in the counts line. */
+const SME_GROUPS = ["sme", "micro"];
 const ENTRY_STATUS = (value: boolean | null): string => (value === null ? "Not confirmed" : value ? "Applies on entry" : "Does not apply on entry");
 
 test("section order: who files, the PCT route, the IP5 sections, other PCT offices, resources", async ({ page }) => {
@@ -387,6 +391,8 @@ test("PCT route: international phase items, search and examination by office, th
   await expect(section.locator("> h2")).toHaveText("Fee reductions along the PCT route");
   const international = section.locator('.sme-pct-column[data-phase="international"]');
   await expect(international.locator("h3").first()).toHaveText("International phase");
+  expect(await international.locator("h4").allTextContents()).toEqual(["Reductions of the fees paid to WIPO", "Fees paid to the offices in the international phase"]);
+  await expect(section.locator("> p").first()).toContainText("receiving Office");
   const items = international.locator(".sme-pct-wipo-item");
   await expect(items).toHaveCount(pctData.pct_international.length);
   for (const [index, item] of pctData.pct_international.entries()) {
@@ -466,7 +472,7 @@ test("PCT route: two columns side by side on wide screens, stacked on phones", a
 test("other PCT offices: the counts line equals the counts from the data, each not-assessed reason named", async ({ page }) => {
   await openSmes(page);
   const counts = page.locator("#sme-other .sme-other-counts");
-  const withSme = other.offices.filter((office) => officeGroups(office).has("sme")).length;
+  const withSme = other.offices.filter((office) => SME_GROUPS.some((key) => officeGroups(office).has(key))).length;
   const expected: Record<string, number> = {
     sme: withSme, other: other.offices.length - withSme, none: other.no_reduction_listed.length,
     ...Object.fromEntries(Object.entries(other.not_assessed).map(([key, codes]) => [key, codes.length])),
@@ -474,6 +480,12 @@ test("other PCT offices: the counts line equals the counts from the data, each n
   for (const [key, value] of Object.entries(expected)) await expect(counts.locator(`[data-count="${key}"]`), key).toHaveText(String(value));
   await expect(counts.locator("[data-count]")).toHaveCount(Object.keys(expected).length);
   await expect(counts).not.toContainText("_");
+  // the IP5 offices: their own sentence; every other reason a noun phrase with "office(s)"
+  const ip5 = other.not_assessed.ip5_excluded?.length;
+  if (ip5 !== undefined) await expect(counts).toContainText(`The ${ip5} IP5 offices are covered above.`);
+  for (const [key, codes] of Object.entries(other.not_assessed).filter(([key]) => key !== "ip5_excluded")) {
+    await expect(counts, key).toContainText(`${codes.length} ${codes.length === 1 ? "office" : "offices"} `);
+  }
 });
 
 test("other PCT offices (wide): one row group per office in data order, every row's values and links from the data", async ({ page }) => {
@@ -481,6 +493,8 @@ test("other PCT offices (wide): one row group per office in data order, every ro
   await openSmes(page);
   const table = page.getByRole("table", { name: "Fee reductions at other PCT offices" });
   await expect(table).toBeVisible();
+  // same reduction header as the IP5 table
+  expect(await table.locator("thead th").allTextContents()).toContain(await page.locator(".sme-fee-table thead th").nth(2).textContent());
   expect(await table.locator("tbody").evaluateAll((groups) => groups.map((group) => group.getAttribute("data-office"))))
     .toEqual(other.offices.map((office) => office.code));
   for (const office of other.offices) {
@@ -531,7 +545,16 @@ test("other PCT offices: the filter is native checkboxes, keyboard operable, and
   await expect(rows.locator("visible=true")).toHaveCount(shown.length);
   const shownOffices = other.offices.filter((office) => office.fee_reductions.some((fee) => fee.category_group.includes(keep)));
   await expect(groups.locator("visible=true")).toHaveCount(shownOffices.length);
-  await expect(page.locator("#sme-other .sme-filter-status")).toContainText(String(shownOffices.length));
+  const status = page.locator("#sme-other .sme-filter-status");
+  await expect(status).toContainText(`Showing ${shownOffices.length} of ${other.offices.length} offices`);
+  const hiddenRows = shownOffices.flatMap((office) => office.fee_reductions).filter((fee) => !fee.category_group.includes(keep)).length;
+  if (hiddenRows > 0) await expect(status).toContainText(`with ${hiddenRows} ${hiddenRows === 1 ? "row" : "rows"} hidden`);
+  else await expect(status).not.toContainText("hidden");
+  // nothing ticked: no rows, a hint instead
+  await filter.getByRole("checkbox", { name: policies.category_groups[keep], exact: true }).uncheck();
+  await expect(rows.locator("visible=true")).toHaveCount(0);
+  await expect(status).toHaveText("Tick at least one group to see offices.");
+  await filter.getByRole("checkbox", { name: policies.category_groups[keep], exact: true }).check();
   // Tab reaches the boxes in order
   await filter.getByRole("checkbox").first().focus();
   await page.keyboard.press("Tab");
@@ -583,4 +606,15 @@ for (const { wide, suffix } of FONT_VARIANTS) {
 test("the methods page's PCT source links are the data's URLs", async () => {
   expect(/^export const PCT_GUIDE_URL = "([^"]+)";/m.exec(smeSource)![1]).toBe(other.source_index_url);
   expect(/^export const PCT_SCHEDULE_URL = "([^"]+)";/m.exec(smeSource)![1]).toBe(pctData.pct_wide_sme.source_url);
+});
+
+test("other PCT offices: an office with micro-entity reductions only counts with the SME-type offices", async ({ page }) => {
+  const data = clone();
+  const office = data.other_offices.offices.find((item) => !item.fee_reductions.some((fee) => fee.category_group.includes("sme")))!;
+  for (const fee of office.fee_reductions) fee.category_group = ["micro"];
+  const withSme = data.other_offices.offices.filter((item) => item.fee_reductions.some((fee) => fee.category_group.some((key) => SME_GROUPS.includes(key)))).length;
+  await servePolicies(page, data);
+  await openSmes(page);
+  await expect(page.locator('#sme-other .sme-other-counts [data-count="sme"]')).toHaveText(String(withSme));
+  await expect(page.locator('#sme-other .sme-other-counts [data-count="other"]')).toHaveText(String(data.other_offices.offices.length - withSme));
 });
