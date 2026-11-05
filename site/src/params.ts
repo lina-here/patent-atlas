@@ -12,7 +12,7 @@ export type Params = {
 };
 
 /** Values of `?view=` (a named page of the overview family); index.html shows the overview for any other. */
-export const VIEWS = ["women-inventors", "releases", "wallboard", "dashboard"] as const;
+export const VIEWS = ["women-inventors", "releases", "wallboard", "dashboard", "smes"] as const;
 /** Keys that name a page of their own: they win over `view`. */
 const ENTITY_PAGE_KEYS = ["country", "office", "region", "continent"] as const;
 
@@ -45,9 +45,9 @@ export function pageLink(cfg: Config | undefined, params: Params | undefined, pa
   return withParams({ ...PAGE_PARAMS, theme }, page);
 }
 
-/** Link to a view of the full site (`?view=releases`, `?view=wallboard`, `?view=dashboard`): theme only, as `pageLink` (the
+/** Link to a view of the full site (`?view=releases`, `?view=wallboard`, `?view=dashboard`, `?view=smes`): theme only, as `pageLink` (the
  * wallboard draws in its own theme). */
-export function viewLink(cfg: Config | undefined, params: Params | undefined, view: "releases" | "wallboard" | "dashboard"): string {
+export function viewLink(cfg: Config | undefined, params: Params | undefined, view: "releases" | "wallboard" | "dashboard" | "smes"): string {
   const theme = cfg && params && params.theme !== cfg.defaultTheme ? params.theme : undefined;
   return withParams({ ...PAGE_PARAMS, theme, view }, "./");
 }

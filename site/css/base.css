@@ -689,6 +689,50 @@ input {
   .carousel-slot[data-state="ready"] { animation: none; }
 }
 
+/* SMEs page (smePage.ts) and the dashboard's SMEs panel. The fee table shows above the small-screen breakpoint, one card per
+   row (a <dl> with visible labels) below it: restyling table cells as blocks would drop their table roles. */
+.sme-page { display: grid; gap: var(--space-5); }
+.sme-section > h2 { margin-bottom: var(--space-3); }
+.sme-section > p { max-width: var(--measure-wide); }
+.sme-shares {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min)), 1fr));
+}
+.sme-share-table { margin: 0; }
+.sme-share-table caption,
+.sme-fee-table caption { text-align: left; padding-bottom: var(--space-2); color: var(--ink); }
+.sme-share-cell { width: 50%; }
+.sme-share-value { display: block; text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.sme-bar { display: block; height: var(--space-2); margin-top: var(--space-1); background: var(--rule); }
+.sme-bar-fill { display: block; height: 100%; background: var(--chart-1); }
+.sme-share-note { margin: var(--space-3) 0 0; font-family: var(--font-ui); font-size: var(--size-small); }
+.sme-fee-table { margin: 0; }
+.sme-fee-table tbody { border-top: var(--rule-width) solid var(--rule-strong); }
+.sme-office strong, .sme-qualifies strong, .sme-fee-card strong { display: block; }
+.sme-office-name, .sme-definition, .sme-since, .sme-item-text { display: block; }
+.sme-office-name, .sme-since, .sme-as-published, .sme-cite { color: var(--muted); }
+.sme-office { font-weight: normal; }
+.sme-pct { display: block; font-family: var(--font-data); font-size: var(--size-base); font-weight: var(--weight-strong); }
+.sme-as-published { display: block; }
+.sme-fee-cards { display: none; }
+.sme-fee-card { border-top: var(--rule-width) solid var(--rule-strong); padding: var(--space-3) 0; font-family: var(--font-ui); font-size: var(--size-small); }
+.sme-fee-card dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.sme-fee-card dt { font-weight: var(--weight-strong); }
+.sme-fee-card dd { margin: 0 0 var(--space-2); }
+.sme-office-block + .sme-office-block { margin-top: var(--space-4); }
+.sme-office-block h3 { font-size: var(--size-h3); margin-bottom: var(--space-2); }
+.sme-definitions dt { font-weight: var(--weight-strong); }
+.sme-definitions dd { margin: 0 0 var(--space-2); }
+.sme-links { padding-left: var(--space-4); margin: 0; }
+.sme-definitions, .sme-links { max-width: var(--measure-wide); }
+.sme-links li { margin-bottom: var(--space-2); }
+.sme-page, .sme-fee-card, .sme-definitions { overflow-wrap: break-word; }
+.sme-checked { font-family: var(--font-ui); font-size: var(--size-small); color: var(--muted); }
+.dashboard-sme { min-width: 0; }
+.dashboard-sme .tiles.key-figures { max-width: var(--measure); }
+.sme-tile-scope { max-width: var(--measure-wide); margin-top: var(--space-2); }
+
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
 @media (max-width: 720px) {
@@ -703,6 +747,8 @@ input {
   .dashboard-stage { height: var(--dashboard-stage-phone-height); }
   .data-table th,
   .data-table td { padding-right: var(--space-2); overflow-wrap: anywhere; hyphens: auto; }
+  .sme-fee-table-wrap { display: none; }
+  .sme-fee-cards { display: block; }
 }
 
 @media print {
