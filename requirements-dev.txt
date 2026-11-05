@@ -2,9 +2,9 @@
 # `pip install --require-hashes -r requirements-dev.txt` (ci.yml, refresh-data.yml). pytest and its dependency closure
 # on the workflows' Python (setup-python python-version); sha256 of each release's pure-Python wheel and sdist, from PyPI's JSON API.
 # To update: bump a version, take both sha256 from https://pypi.org/pypi/<name>/<version>/json, run pytest.
-pytest==9.1.1 \
-    --hash=sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c \
-    --hash=sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313
+pytest==9.2.0 \
+    --hash=sha256:07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588 \
+    --hash=sha256:97c4f3b1f3c7414aa36465e09b8220f1d03627993bd51b1282e193753c80557b
 exceptiongroup==1.3.1 ; python_version < "3.11" \
     --hash=sha256:a7a39a3bd276781e98394987d3a5701d0c4edffb633bb7a5144577f82c773598 \
     --hash=sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219
