@@ -3,8 +3,8 @@ import { isListSource, type CardSource, type Config, type ListSource, type Manif
 import { h, type Child } from "./dom";
 import { pageLink, viewLink, type Params } from "./params";
 
-/** How the site was made, verbatim (Lina, 2026-10-21): shown on the methods page. */
-export const AI_METHODS_LINE = "Built with the help of AI coding tools. No AI runs on this site or produces its figures; every figure comes from WIPO or the World Bank and is checked against WIPO's published values.";
+/** How the site was made, verbatim (Lina, 2026-10-21; sources widened for the SMEs page 2026-11-05): shown on the methods page. */
+export const AI_METHODS_LINE = "Built with the help of AI coding tools. No AI runs on this site or produces its figures; every figure comes from WIPO, the World Bank or a patent office's own publication, is linked to its source, and the WIPO figures are checked against WIPO's published values.";
 
 // WIPO terms of use: verbatim on every derived work.
 export const DISCLAIMER =

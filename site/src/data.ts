@@ -388,6 +388,32 @@ export type Release = {
   changed: string[];
 };
 
+/** site/sme/policies.json: hand-curated SME facts from the offices' and WIPO's own pages (not pipeline output). One
+ * `checked_on` (YYYY-MM-DD) for every entry. Definitions and fee rows join on the exact `category` string. */
+export type SmeDefinition = { category: string; text: string; source_url: string };
+export type SmeFeeReduction = {
+  category: string;
+  /** Percent off the standard fee, as the data holds it; null = no single percentage (the wording only). */
+  reduction_pct: number | null;
+  as_published: string;
+  fees: string;
+  since: string | null;
+  source_url: string;
+  /** Language of `as_published` when the source page is not in English ("ko", "zh"). */
+  as_published_lang?: string;
+};
+export type SmeSupport = { name: string; text: string; url: string };
+export type SmeOffice = {
+  code: string; name: string; short: string;
+  definitions: SmeDefinition[]; fee_reductions: SmeFeeReduction[]; support: SmeSupport[];
+};
+export type SmeShare = {
+  id: string; year: number; scope: string; rows: { label: string; pct: number }[];
+  citation: string; page: string; url: string; note?: string;
+};
+export type SmeResource = { title: string; publisher: string; text: string; url: string };
+export type SmePolicies = { checked_on: string; offices: SmeOffice[]; shares: SmeShare[]; resources: SmeResource[] };
+
 export type Manifest = {
   /** Data version id (YYYY-MM-DD, then .2, .3): cited with every figure. Absent in a manifest written before v1. */
   version?: string;

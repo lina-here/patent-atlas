@@ -2,7 +2,8 @@
 // <body data-page="overview|methods|about|embed">; index.html shows the overview, a country / office page
 // for `?country=` / `?office=`, a region / continent page for `?region=` / `?continent=` (regionPage.ts), or the
 // women-inventors page for `?view=women-inventors` (womenPage.ts), or the data versions for `?view=releases` (releasesPage.ts),
-// or the dashboard for `?view=dashboard` (dashboard.ts: its `rotate` is the carousel's, never office rotation);
+// or the dashboard for `?view=dashboard` (dashboard.ts: its `rotate` is the carousel's, never office rotation), or the SMEs page
+// for `?view=smes` (smePage.ts);
 // embed.html shows one chart card (embed.ts). `?view=wallboard` = the conference wallboard (wallboard.ts): its own branch in
 // start(), with no header, footer or office rotation.
 import { loadAtlas, missingGroupsNotice, lazyMetricsFor, type Atlas, type GroupsFile } from "./atlas";
@@ -19,18 +20,20 @@ import { focusCard, renderCards, renderWorldCharts } from "./overview";
 import { renderPicker } from "./picker";
 import { renderGroupPage, resolveGroupParams } from "./regionPage";
 import { RELEASES_VIEW, renderReleases } from "./releasesPage";
+import { SME_VIEW, renderSmePage } from "./smePage";
 import { WOMEN_VIEW, renderWomenPage } from "./womenPage";
 import { WALLBOARD_THEME, WALLBOARD_VIEW, boardFetchTimeoutSeconds, startWallboard } from "./wallboard";
 import { markViewReady, startRotation } from "./rotation";
 import { applyTheme, revealPage, themeLoaded } from "./theme";
 
 type Page = "overview" | "methods" | "about" | "embed";
-/** A header nav entry: a page, or the dashboard (index.html's `?view=dashboard`). */
-type NavItem = "overview" | "dashboard" | "methods" | "about";
+/** A header nav entry: a page, or a view of index.html (`?view=dashboard`, `?view=smes`). */
+type NavItem = "overview" | "dashboard" | "smes" | "methods" | "about";
 
 const NAV: { item: NavItem; href: (cfg: Config, params: Params) => string; label: string }[] = [
   { item: "overview", href: (cfg, params) => pageLink(cfg, params, "./"), label: "Overview" },
   { item: "dashboard", href: (cfg, params) => viewLink(cfg, params, DASHBOARD_VIEW), label: "Dashboard" },
+  { item: "smes", href: (cfg, params) => viewLink(cfg, params, SME_VIEW), label: "SMEs" },
   { item: "methods", href: (cfg, params) => pageLink(cfg, params, "methods.html"), label: "Methods" },
   { item: "about", href: (cfg, params) => pageLink(cfg, params, "about.html"), label: "About" },
 ];
@@ -62,7 +65,8 @@ function themeSwitch(cfg: Config, params: Params): HTMLElement {
 
 function renderHeader(el: HTMLElement, cfg: Config, page: Page, params: Params): void {
   const dashboard = page === "overview" && params.view === DASHBOARD_VIEW;
-  const current: NavItem | undefined = dashboard ? "dashboard" : page === "embed" ? undefined : page;
+  const smes = page === "overview" && params.view === SME_VIEW;
+  const current: NavItem | undefined = dashboard ? "dashboard" : smes ? "smes" : page === "embed" ? undefined : page;
   el.replaceChildren(
     h("a", { class: "brand", href: pageLink(cfg, params, "./") },
       h("span", { class: "brand-name" }, cfg.siteName),
@@ -173,6 +177,10 @@ async function overviewAtlas(load: Promise<Atlas | Error>, cfg: Config, overview
 async function renderIndex(app: HTMLElement, cfg: Config, params: Params, manifest: Manifest): Promise<string[]> {
   if (params.view === RELEASES_VIEW) { // needs no chart data; params.ts has dropped `view` when an entity or group is asked for
     await renderReleases(app, { cfg, manifest, params });
+    return [];
+  }
+  if (params.view === SME_VIEW) { // its own data file only: drawn even when the chart data cannot load
+    await renderSmePage(app, { cfg, params });
     return [];
   }
   // preloaded with the page data when the address asks for the overview (no country or office)
@@ -289,6 +297,8 @@ async function renderAbout(app: HTMLElement, cfg: Config, params: Params, manife
         h("p", {}, "Figures come from the WIPO Statistics Database. Patent Atlas does not republish WIPO's datasets: to download data, use the ",
           first ? h("a", { href: first[1].url, rel: "noopener" }, dataCenter) : dataCenter, ". ",
           "Sources, formulas and checks are on the ", h("a", { href: pageLink(cfg, params, "methods.html") }, "methods page"), "."),
+        h("p", {}, "The ", h("a", { href: viewLink(cfg, params, SME_VIEW) }, "SMEs page"),
+          " cites patent offices' and WIPO's own pages, each linked, checked on the date shown there."),
         h("p", { class: "disclaimer" }, DISCLAIMER),
         h("p", {}, `${cfg.siteName} is independent and not affiliated with or endorsed by WIPO.`),
       ),

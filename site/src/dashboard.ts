@@ -2,7 +2,8 @@
 // tiles (world patents, world PCT, top origin, fastest grower among the top origins); row 2: the carousel (carousel.ts:
 // `dashboard.slides`, each a full card fitted to the stage) and the world map; row 3: the treemap and the share-shift card.
 // Every tile is a full chart card (Show figures, Cite, Embed, a same-tab link to its overview chart). Every figure is a
-// pipeline field of overview.json, never computed here; a missing figure reads "–" with its reason.
+// pipeline field of overview.json, never computed here; a missing figure reads "–" with its reason. Last row: the SMEs
+// panel (smePage.ts): not a chart card and not a tile id; its figure is the EPO's, from sme/policies.json.
 import type { Atlas } from "./atlas";
 import { startCarousel } from "./carousel";
 import type { CardContext } from "./chartCard";
@@ -13,6 +14,7 @@ import { MAP_CARD_ID, type MapContext } from "./map";
 import { PCT_LATE_FILINGS, WORLD_TITLES, seriesBreaksIn, seriesBreakNotes } from "./methods";
 import { WORLD_SERIES, renderCards, worldCards, type CardBuilder, type CardContent } from "./overview";
 import { SHARE_SHIFT_CARD_ID, shareShiftCard } from "./shareShift";
+import { smePanel } from "./smePage";
 import { themeLoaded } from "./theme";
 import { TREEMAP_CARD_ID, treemapCard } from "./treemap";
 
@@ -184,19 +186,22 @@ export async function renderDashboard(app: HTMLElement, ctx: DashboardContext): 
   const holders = builders.map(() => h("div", { class: "dashboard-tile" }));
   const [patents, pct, origin, grower, mapTile, treemapTile, shiftTile] = holders;
   const stage = h("section", { class: "dashboard-stage" });
+  const sme = smePanel(ctx.cfg, ctx.params);
   document.title = `Dashboard – ${ctx.cfg.siteName}`;
   app.replaceChildren(
     h("header", { class: "page-intro" },
       h("h1", {}, "Patents at a glance"),
       h("p", { class: "lede" },
-        "Key figures and charts from the WIPO Statistics Database. Each tile names its year and source and links to its full chart on the overview."),
+        "Key figures and charts from the WIPO Statistics Database. Each tile names its year and source and links to its full chart on the overview. ",
+        "The SMEs panel links to a page with patent offices' own figures."),
     ),
     h("div", { class: "dashboard" },
       h("div", { class: "dashboard-row dashboard-keys" },
         h("div", { class: "dashboard-pair" }, patents, pct),
         h("div", { class: "dashboard-pair" }, origin, grower)),
       h("div", { class: "dashboard-row" }, stage, mapTile),
-      h("div", { class: "dashboard-row" }, treemapTile, shiftTile)),
+      h("div", { class: "dashboard-row" }, treemapTile, shiftTile),
+      sme.element),
   );
   await themeLoaded();
   builders.forEach((builder, index) => renderCards(holders[index], [tileBuilder(builder)], tileCtx));
@@ -204,5 +209,6 @@ export async function renderDashboard(app: HTMLElement, ctx: DashboardContext): 
   // its `dispose` handle unused: the page never tears the carousel down (a theme or view change loads a new page);
   // carousel.spec tests dispose through a test-only build
   startCarousel(stage, ctx.cfg, ctx.manifest, ctx.params, notices, { entities: ctx.entities, overview });
+  await sme.ready;
   return notices;
 }

@@ -347,7 +347,7 @@ test("navigation links carry only the theme; the picker's carry the theme and th
   // the "Data versions", "Conference wallboard" and "Dashboard" links name their page by `view`; no figure state travels with any link
   for (const href of hrefs) {
     const keys = [...new URL(href, "http://x/").searchParams.keys()];
-    expect(keys, href).toEqual(/view=(releases|wallboard|dashboard)/.test(href) ? ["theme", "view"] : ["theme"]);
+    expect(keys, href).toEqual(/view=(releases|wallboard|dashboard|smes)/.test(href) ? ["theme", "view"] : ["theme"]);
   }
   await page.locator(".picker input").fill("Switzerland");
   const picked = await page.locator(".picker-option").first().getAttribute("data-href");

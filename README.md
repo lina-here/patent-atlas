@@ -2,8 +2,9 @@
 
 Patent and PCT statistics from the WIPO Statistics Database, with our own analysis: growth, world shares, ranks and
 comparisons between countries and offices. Every figure shows its source, WIPO release and retrieval date, and has
-text to cite it. Made for patent office staff, researchers and students. By Lina
-([lina-here](https://github.com/lina-here)). Sources, formulas and checks: the site's methods page and `docs/research/`.
+text to cite it; the SMEs page links each fact to the office's or WIPO's own page. Made for patent office staff,
+researchers and students. By Lina ([lina-here](https://github.com/lina-here)). Sources, formulas and checks: the
+site's methods page and `docs/research/`.
 
 ## Preview the site
 
@@ -38,6 +39,11 @@ page. The carousel starts paused; add `&rotate=<seconds>` to play it on an offic
 patent applications by origin in the latest year, grouped by continent, and **share shift**, the change in the top
 origins' shares of the world total, in percentage points. The map has a **PCT membership** layer: the Contracting
 States in each year, from WIPO's list. Methods: `methods.html#dashboard` and `methods.html#pct-membership`.
+
+The **SMEs page** (`index.html?view=smes`, "SMEs" in the header) compares fee reductions and other support for SMEs at
+the IP5 offices, each with that office's own definitions, and shows who files patent applications as WIPO and the EPO
+publish it. The facts come from `site/sme/policies.json`, kept by hand, each linked to its source. Method:
+`methods.html#smes`.
 
 ## Put a chart on another website
 
@@ -171,3 +177,4 @@ the site runs without any build step.
 - Figures: not covered by the code licence. Patent and PCT figures come from the WIPO Statistics Database under
   WIPO's terms of use (WIPO's disclaimer is on every page); population and GDP figures come from the World Bank's
   World Development Indicators (CC BY 4.0). Cite the sources as the site's "Cite this" text shows.
+- SME page: facts from the cited offices' and WIPO's pages, each linked; their terms apply.
