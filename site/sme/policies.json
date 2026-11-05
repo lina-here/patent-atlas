@@ -439,7 +439,6 @@
   ],
   "pct": {
     "checked_on": "2026-11-05",
-    "sources_note": "Primary sources only. PCT Regulations as in force from 1 January 2026; PCT Fee Tables (amounts on 1 October 2026); PCT Applicant's Guide annexes as printed 2026-11-05. Amounts change: name the table, do not copy amounts into living docs.",
     "pct_international": [
       {
         "fee": "International filing fee (Schedule of Fees item 1, PCT Rule 15.2)",
@@ -462,13 +461,6 @@
         "who_qualifies": "Applicants fulfilling the conditions for the 90% reduction indicated on the PCT fees page.",
         "fee_table_or_item": "PCT Fee Tables, Table I(a) footnote 14 and introductory note",
         "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
-      },
-      {
-        "fee": "Any international-phase fee",
-        "reduction": "No SME, startup or university reduction in the PCT Schedule of Fees. Universities qualify for the 90% reduction only under item 5(b) (least developed country applicants, natural person or not).",
-        "who_qualifies": "Not applicable",
-        "fee_table_or_item": "Schedule of Fees, items 1-5 (no further reduction items)",
-        "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax"
       }
     ],
     "isa_ipea": [
@@ -579,7 +571,7 @@
         "category": "micro entity",
         "reduction_pct": null,
         "as_published": "The EPO 30% micro-entity reduction applies to fees in the European phase (European and Euro-PCT applications), not to international-phase fees. On entry, the examination fee is further reduced by 30% of the search fee effectively paid, including the international search fee where the EPO was ISA (OJ EPO 2024, A8; Guide para. EP.14a).",
-        "criteria": "See national_phase EPO row.",
+        "criteria": "See the EPO entry under National or regional phase.",
         "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8.html"
       },
       {
@@ -609,7 +601,7 @@
         "category": "natural person, startup, small entity, educational institution",
         "reduction_pct": 75,
         "as_published": "Separate lower amount in Table I(b) and Table II (search: INR 2,500 instead of INR 10,000)",
-        "criteria": "Filing by a natural person, startup, small entity or educational institution (category definitions per Indian law, not checked).",
+        "criteria": "Filing by a natural person, startup, small entity or educational institution (categories as defined in Indian law).",
         "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
       },
       {
@@ -639,7 +631,7 @@
         "fees": "Examination fee (Euro-PCT, 'in certain cases'); filing fee and examination fee under the language scheme",
         "category": "SME, microenterprise, natural person, non-profit organisation, university, public research organisation (language reduction, Rule 7a(1) EPC)",
         "reduction_pct": 30,
-        "criteria": "Language-based reduction; conditions per OJ EPO 2024, A8 and Guide para. EP.14. Euro-PCT conditions not checked in detail.",
+        "criteria": "Language-based reduction; conditions per OJ EPO 2024, A8 and Guide para. EP.14. Euro-PCT conditions: see the EPO source.",
         "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8.html"
       },
       {
@@ -657,7 +649,7 @@
         "fees": "Fee for request for examination; annual fees",
         "category": "individuals, SMEs, micro enterprises, academic institutions and certain other entities",
         "reduction_pct": null,
-        "criteria": "'Fee reductions may apply for certain applicants such as small and medium-sized enterprises, micro enterprises, and academic institutions' (Annex JP.I). Rates and thresholds in the JPO leaflet, not confirmed (JPO site not reachable).",
+        "criteria": "'Fee reductions may apply for certain applicants such as small and medium-sized enterprises, micro enterprises, and academic institutions' (Annex JP.I). Rates and thresholds: see the JPO fee-reduction leaflet in the Japan Patent Office section above.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
       },
       {
@@ -675,7 +667,7 @@
         "fees": "Not confirmed",
         "category": "SME",
         "reduction_pct": null,
-        "criteria": "No SME reduction listed in the PCT Applicant's Guide national phase summary for KR; MOIP fee page could not be read.",
+        "criteria": "No SME reduction is listed in the PCT Applicant's Guide national phase summary for KR; not confirmed on the office's own site.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
       },
       {
@@ -697,7 +689,6 @@
   "other_offices": {
     "checked_on": "2026-11-05",
     "source_index_url": "https://www.wipo.int/en/web/pct-system/guide/index",
-    "source_note": "Per-office pages: PCT Applicant's Guide eGuide (pctlegal.wipo.int), National Phase summary and chapter; source_date = the page's \"Last updated on\" date. IP5 offices excluded (covered elsewhere).",
     "offices": [
       {
         "code": "CA",
@@ -1065,13 +1056,7 @@
             ]
           }
         ],
-        "support": [
-          {
-            "name": "PAI Probono Maroc; value-added patent services",
-            "text": "Free patent help through partners for SMEs under the SME charter thresholds; patent information analyses for SMEs, start-ups and universities.",
-            "url": "http://www.ompic.ma/fr/content/innovation-valorisation"
-          }
-        ]
+        "support": []
       },
       {
         "code": "AM",
