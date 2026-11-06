@@ -446,7 +446,204 @@
         "who_qualifies": "Any applicant filing in electronic form as provided for in the Administrative Instructions (e.g. ePCT) with a receiving Office that accepts electronic filing.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.189",
         "citation": "PCT Applicant's Guide, International Phase, paragraph 5.189",
-        "guide_updated": "July 3, 2026"
+        "guide_updated": "July 3, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "International filing fee",
+              "amount": 1330,
+              "currency": "CHF"
+            },
+            {
+              "fee": "Fee per sheet in excess of 30",
+              "amount": 15,
+              "currency": "CHF"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "EUR",
+              "amount": 1428,
+              "where": "Annex C (IB)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (IB)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (US)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "EUR",
+              "amount": 1428,
+              "where": "Annex C (EP)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "JPY",
+              "amount": 264900,
+              "where": "Annex C (JP)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "CHF",
+              "amount": 1330,
+              "where": "Annex C (KR)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "CNY",
+              "amount": 11220,
+              "where": "Annex C (CN)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (IN)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (PH)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "EUR",
+              "amount": 107,
+              "where": "Annex C (IB)",
+              "fee": "Electronic filing (the request not being in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 125,
+              "where": "Annex C (IB)",
+              "fee": "Electronic filing (the request not being in character coded format)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 215,
+              "where": "Annex C (IB)",
+              "fee": "Electronic filing (the request in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex C (IB)",
+              "fee": "Electronic filing (the request in character coded format)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 322,
+              "where": "Annex C (IB)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 376,
+              "where": "Annex C (IB)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 125,
+              "where": "Annex C (US)",
+              "fee": "Electronic filing (Patent Center without ePCT.zip file)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex C (US)",
+              "fee": "Electronic filing (Patent Center with ePCT.zip file)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 215,
+              "where": "Annex C (EP)",
+              "fee": "Electronic filing (the request in character coded format)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 322,
+              "where": "Annex C (EP)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "JPY",
+              "amount": 59800,
+              "where": "Annex C (JP)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "CHF",
+              "amount": 100,
+              "where": "Annex C (KR)",
+              "fee": "Electronic filing (the request not being in character-coded format)"
+            },
+            {
+              "currency": "CHF",
+              "amount": 300,
+              "where": "Annex C (KR)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "CNY",
+              "amount": 1690,
+              "where": "Annex C (CN)",
+              "fee": "Electronic filing (the request in character coded format)"
+            },
+            {
+              "currency": "CNY",
+              "amount": 2530,
+              "where": "Annex C (CN)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex C (IN)",
+              "fee": "Electronic filing (the request in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 376,
+              "where": "Annex C (IN)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex C (PH)",
+              "fee": "Electronic filing (the request in character coded format)"
+            },
+            {
+              "currency": "USD",
+              "amount": 376,
+              "where": "Annex C (PH)",
+              "fee": "Electronic filing (the request, description, claims and abstract in character coded format)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex C (IB)",
+              "updated": "October 28, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#ro"
+            },
+            {
+              "citation": "PCT Applicant's Guide, International Phase, paragraph 5.189",
+              "updated": "July 3, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.189"
+            }
+          ]
+        }
       },
       {
         "fee": "International filing fee incl. fee per sheet over 30 (item 1, after any item 4 reduction), supplementary search handling fee (item 2, PCT Rule 45bis.2), handling fee (item 3, PCT Rule 57.2)",
@@ -455,7 +652,207 @@
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.188",
         "list_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fee-reduction.pdf",
         "citation": "PCT Applicant's Guide, International Phase, paragraph 5.188",
-        "guide_updated": "July 3, 2026"
+        "guide_updated": "July 3, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "International filing fee",
+              "amount": 1330,
+              "currency": "CHF"
+            },
+            {
+              "fee": "Fee per sheet in excess of 30",
+              "amount": 15,
+              "currency": "CHF"
+            },
+            {
+              "fee": "Supplementary search handling fee (PCT Rule 45bis.2)",
+              "amount": 200,
+              "currency": "CHF"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "EUR",
+              "amount": 1428,
+              "where": "Annex C (IB)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (IB)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (US)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "EUR",
+              "amount": 1428,
+              "where": "Annex C (EP)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "JPY",
+              "amount": 264900,
+              "where": "Annex C (JP)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "CHF",
+              "amount": 1330,
+              "where": "Annex C (KR)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "CNY",
+              "amount": 11220,
+              "where": "Annex C (CN)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (IN)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 1667,
+              "where": "Annex C (PH)",
+              "fee": "International filing fee"
+            },
+            {
+              "currency": "EUR",
+              "amount": 16,
+              "where": "Annex C (IB)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "USD",
+              "amount": 19,
+              "where": "Annex C (IB)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "USD",
+              "amount": 19,
+              "where": "Annex C (US)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "EUR",
+              "amount": 16,
+              "where": "Annex C (EP)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "JPY",
+              "amount": 3000,
+              "where": "Annex C (JP)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "CHF",
+              "amount": 15,
+              "where": "Annex C (KR)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "CNY",
+              "amount": 130,
+              "where": "Annex C (CN)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "USD",
+              "amount": 19,
+              "where": "Annex C (IN)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "USD",
+              "amount": 19,
+              "where": "Annex C (PH)",
+              "fee": "Fee per sheet in excess of 30"
+            },
+            {
+              "currency": "CHF",
+              "amount": 200,
+              "where": "Annex SISA (EP)",
+              "fee": "Supplementary search handling fee (PCT Rule 45bis.2)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex E (US)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 215,
+              "where": "Annex E (EP)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            },
+            {
+              "currency": "JPY",
+              "amount": 39800,
+              "where": "Annex E (JP)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            },
+            {
+              "currency": "KRW",
+              "amount": 349000,
+              "where": "Annex E (KR)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            },
+            {
+              "currency": "CNY",
+              "amount": 1690,
+              "where": "Annex E (CN)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex E (IN)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            },
+            {
+              "currency": "USD",
+              "amount": 251,
+              "where": "Annex E (PH)",
+              "fee": "Handling fee (PCT Rule 57.1)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex C (IB)",
+              "updated": "October 28, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#ro"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex B (IB)",
+              "updated": "October 28, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#general_info"
+            },
+            {
+              "citation": "PCT Applicant's Guide, International Phase, paragraph 5.188",
+              "updated": "July 3, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.188"
+            },
+            {
+              "citation": "PCT Applicant's Guide, International Phase, paragraph 10.041",
+              "updated": "July 3, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_10.041"
+            }
+          ]
+        }
       },
       {
         "fee": "Transmittal fee payable to the International Bureau as receiving Office (RO/IB)",
@@ -463,7 +860,38 @@
         "who_qualifies": "Applicants who meet the conditions for the 90% reduction of the international filing fee.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#ro",
         "citation": "PCT Applicant's Guide, Annex C (IB)",
-        "guide_updated": "October 28, 2026"
+        "guide_updated": "October 28, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Transmittal fee",
+              "amount": 100,
+              "currency": "CHF"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "EUR",
+              "amount": 107,
+              "where": "Annex C (IB)",
+              "fee": "Transmittal fee"
+            },
+            {
+              "currency": "USD",
+              "amount": 125,
+              "where": "Annex C (IB)",
+              "fee": "Transmittal fee"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex C (IB)",
+              "updated": "October 28, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#ro"
+            }
+          ]
+        }
       }
     ],
     "isa_ipea": [
@@ -477,7 +905,81 @@
         "criteria": "Small entity status under 37 CFR 1.27 (persons, small business concerns, nonprofit organizations), established by written assertion.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D and National Chapter, Procedure (US), paragraph US.19",
-        "guide_updated": "October 13, 2026"
+        "guide_updated": "October 13, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 2400,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 960,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 766,
+              "currency": "CHF",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 822,
+              "currency": "EUR",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 1649,
+              "currency": "NZD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 15320,
+              "currency": "ZAR",
+              "category": "small entity"
+            }
+          ],
+          "other_currencies": [
+            {
+              "currency": "CHF",
+              "amount": 1915,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 2056,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "NZD",
+              "amount": 4124,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "ZAR",
+              "amount": 38300,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (US)",
+              "updated": "October 13, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#isa"
+            }
+          ]
+        }
       },
       {
         "office": "USPTO (US)",
@@ -489,7 +991,81 @@
         "criteria": "Micro entity status under 37 CFR 1.29, on the gross income basis or the institution of higher education basis; must also meet small entity requirements; certification required (Forms PTO/SB/15A, 15B).",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (US)",
-        "guide_updated": "October 13, 2026"
+        "guide_updated": "October 13, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 2400,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 480,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 383,
+              "currency": "CHF",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 411,
+              "currency": "EUR",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 825,
+              "currency": "NZD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 7660,
+              "currency": "ZAR",
+              "category": "micro entity"
+            }
+          ],
+          "other_currencies": [
+            {
+              "currency": "CHF",
+              "amount": 1915,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 2056,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "NZD",
+              "amount": 4124,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "ZAR",
+              "amount": 38300,
+              "where": "Annex D (US)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (US)",
+              "updated": "October 13, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#isa"
+            }
+          ]
+        }
       },
       {
         "office": "USPTO (US)",
@@ -501,7 +1077,43 @@
         "criteria": "37 CFR 1.27",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ipea",
         "citation": "PCT Applicant's Guide, Annex E (US)",
-        "guide_updated": "October 13, 2026"
+        "guide_updated": "October 13, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was carried out by the USPTO",
+              "amount": 705,
+              "currency": "USD"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was not carried out by the USPTO",
+              "amount": 880,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was carried out by the USPTO",
+              "amount": 282,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was not carried out by the USPTO",
+              "amount": 352,
+              "currency": "USD",
+              "category": "small entity"
+            }
+          ],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex E (US)",
+              "updated": "October 13, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "USPTO (US)",
@@ -513,7 +1125,43 @@
         "criteria": "37 CFR 1.29",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ipea",
         "citation": "PCT Applicant's Guide, Annex E (US)",
-        "guide_updated": "October 13, 2026"
+        "guide_updated": "October 13, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was carried out by the USPTO",
+              "amount": 705,
+              "currency": "USD"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was not carried out by the USPTO",
+              "amount": 880,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was carried out by the USPTO",
+              "amount": 141,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): When the international search was not carried out by the USPTO",
+              "amount": 176,
+              "currency": "USD",
+              "category": "micro entity"
+            }
+          ],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex E (US)",
+              "updated": "October 13, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "USPTO (US)",
@@ -525,7 +1173,49 @@
         "criteria": "37 CFR 1.27 and 1.29",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ro",
         "citation": "PCT Applicant's Guide, Annex C (US)",
-        "guide_updated": "October 13, 2026"
+        "guide_updated": "October 13, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Transmittal fee",
+              "amount": 285,
+              "currency": "USD"
+            },
+            {
+              "fee": "Non-electronic filing fee (filings other than by Patent Center)",
+              "amount": 400,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Transmittal fee",
+              "amount": 114,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Transmittal fee",
+              "amount": 57,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Non-electronic filing fee (filings other than by Patent Center)",
+              "amount": 200,
+              "currency": "USD",
+              "category": "small or micro entity"
+            }
+          ],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex C (US)",
+              "updated": "October 13, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ro"
+            }
+          ]
+        }
       },
       {
         "office": "JPO (JP)",
@@ -537,7 +1227,50 @@
         "criteria": "Japanese-language filing (or Japanese translation under Rule 12.3); eligibility per JPO reduction scheme (JPO leaflet linked from the Guide).",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (JP)",
-        "guide_updated": "September 22, 2026"
+        "guide_updated": "September 22, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16): For international applications filed in Japanese or for which a translation into Japanese has been furnished under PCT Rule 12.3",
+              "amount": 143000,
+              "currency": "JPY"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "CHF",
+              "amount": 718,
+              "where": "Annex D (JP)",
+              "fee": "Search fee (PCT Rule 16): For international applications filed in Japanese or for which a translation into Japanese has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "EUR",
+              "amount": 765,
+              "where": "Annex D (JP)",
+              "fee": "Search fee (PCT Rule 16): For international applications filed in Japanese or for which a translation into Japanese has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "KRW",
+              "amount": 1268000,
+              "where": "Annex D (JP)",
+              "fee": "Search fee (PCT Rule 16): For international applications filed in Japanese or for which a translation into Japanese has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "USD",
+              "amount": 896,
+              "where": "Annex D (JP)",
+              "fee": "Search fee (PCT Rule 16): For international applications filed in Japanese or for which a translation into Japanese has been furnished under PCT Rule 12.3"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (JP)",
+              "updated": "September 22, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#isa"
+            }
+          ]
+        }
       },
       {
         "office": "JPO (JP)",
@@ -549,7 +1282,25 @@
         "criteria": "As for the JPO search fee.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#ipea",
         "citation": "PCT Applicant's Guide, Annex E (JP)",
-        "guide_updated": "September 22, 2026"
+        "guide_updated": "September 22, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): applications filed in Japanese or with a translation into Japanese under PCT Rule 12.3",
+              "amount": 34000,
+              "currency": "JPY"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex E (JP)",
+              "updated": "September 22, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "JPO (JP)",
@@ -561,7 +1312,25 @@
         "criteria": "Japanese-language filing; eligibility per JPO reduction scheme.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#ro",
         "citation": "PCT Applicant's Guide, Annex C (JP)",
-        "guide_updated": "September 22, 2026"
+        "guide_updated": "September 22, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Transmittal fee",
+              "amount": 17000,
+              "currency": "JPY"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex C (JP)",
+              "updated": "September 22, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#ro"
+            }
+          ]
+        }
       },
       {
         "office": "EPO (EP)",
@@ -573,7 +1342,130 @@
         "criteria": "Natural person, national of and resident in a State listed by the World Bank as a low-income or lower-middle-income economy, on the filing date or the date of payment. Each applicant must qualify. Decision CA/D 13/19, in effect since 1 April 2020.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (EP)",
-        "guide_updated": "October 14, 2026"
+        "guide_updated": "October 14, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 1885,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Supplementary search fee (PCT Rule 45bis.3)",
+              "amount": 1734,
+              "currency": "CHF"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 2010,
+              "currency": "EUR"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "AUD",
+              "amount": 3210,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "CHF",
+              "amount": 1734,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "CNY",
+              "amount": 14870,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "DKK",
+              "amount": 14080,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "GBP",
+              "amount": 1632,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "HUF",
+              "amount": 670800,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "ISK",
+              "amount": 273600,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "JPY",
+              "amount": 345900,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "NOK",
+              "amount": 20280,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "NZD",
+              "amount": 3717,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "SEK",
+              "amount": 19950,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "SGD",
+              "amount": 2842,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "USD",
+              "amount": 2237,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "ZAR",
+              "amount": 35800,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#isa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex SISA (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#sisa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex E (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "EPO (EP)",
@@ -585,7 +1477,130 @@
         "criteria": "Natural or legal person, national of and resident in a State with a validation agreement with the EPO in force. Each applicant must qualify.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (EP)",
-        "guide_updated": "October 14, 2026"
+        "guide_updated": "October 14, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 1885,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Supplementary search fee (PCT Rule 45bis.3)",
+              "amount": 1734,
+              "currency": "CHF"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 2010,
+              "currency": "EUR"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "AUD",
+              "amount": 3210,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "CHF",
+              "amount": 1734,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "CNY",
+              "amount": 14870,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "DKK",
+              "amount": 14080,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "GBP",
+              "amount": 1632,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "HUF",
+              "amount": 670800,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "ISK",
+              "amount": 273600,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "JPY",
+              "amount": 345900,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "NOK",
+              "amount": 20280,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "NZD",
+              "amount": 3717,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "SEK",
+              "amount": 19950,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "SGD",
+              "amount": 2842,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "USD",
+              "amount": 2237,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "ZAR",
+              "amount": 35800,
+              "where": "Annex D (EP)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#isa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex SISA (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#sisa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex E (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "EPO (EP)",
@@ -597,7 +1612,19 @@
         "criteria": "See the EPO entry under National or regional phase.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14a",
-        "guide_updated": "October 14, 2026"
+        "guide_updated": "October 14, 2026",
+        "amounts": {
+          "standard": [],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14a",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "KIPO / MOIP (KR)",
@@ -609,7 +1636,103 @@
         "criteria": "Each applicant a national of, and with residence or business domicile in, Cabo Verde, Cambodia, Colombia, Indonesia, Lao People's Democratic Republic, Malaysia, Mexico, Mongolia, Peru, the Philippines, Sri Lanka, Thailand or Viet Nam. No SME reduction shown in the fee tables or Annexes D/E(KR).",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (KR)",
-        "guide_updated": "September 17, 2026"
+        "guide_updated": "September 17, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3",
+              "amount": 1200000,
+              "currency": "KRW"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3",
+              "amount": 450000,
+              "currency": "KRW"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "AUD",
+              "amount": 1166,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "CHF",
+              "amount": 688,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "EUR",
+              "amount": 733,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "NZD",
+              "amount": 1436,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "SGD",
+              "amount": 1117,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "USD",
+              "amount": 867,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in English or for which a translation into English has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "AUD",
+              "amount": 437,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "CHF",
+              "amount": 258,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "EUR",
+              "amount": 275,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "NZD",
+              "amount": 539,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "SGD",
+              "amount": 419,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3"
+            },
+            {
+              "currency": "USD",
+              "amount": 325,
+              "where": "Annex D (KR)",
+              "fee": "Search fee (PCT Rule 16): for international applications filed in Korean or for which a translation into Korean has been furnished under PCT Rule 12.3"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (KR)",
+              "updated": "September 17, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#isa"
+            }
+          ]
+        }
       },
       {
         "office": "CNIPA (CN)",
@@ -621,7 +1744,54 @@
         "criteria": "Not applicable",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (CN)",
-        "guide_updated": "September 25, 2026"
+        "guide_updated": "September 25, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 2100,
+              "currency": "CNY"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 1500,
+              "currency": "CNY"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [
+            {
+              "currency": "CHF",
+              "amount": 249,
+              "where": "Annex D (CN)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 266,
+              "where": "Annex D (CN)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "USD",
+              "amount": 310,
+              "where": "Annex D (CN)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (CN)",
+              "updated": "September 25, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#isa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex E (CN)",
+              "updated": "September 25, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "Indian Patent Office (IN), not IP5",
@@ -633,7 +1803,108 @@
         "criteria": "Filing by a natural person, startup, small entity or educational institution (categories as defined in Indian law).",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IN&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (IN)",
-        "guide_updated": "September 25, 2026"
+        "guide_updated": "September 25, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 10000,
+              "currency": "INR"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 12000,
+              "currency": "INR"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): when the international search report was prepared by the Indian Patent Office",
+              "amount": 10000,
+              "currency": "INR"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 2500,
+              "currency": "INR",
+              "category": "natural person, startup, small entity or educational institution"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 21,
+              "currency": "CHF",
+              "category": "natural person, startup, small entity or educational institution"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 22,
+              "currency": "EUR",
+              "category": "natural person, startup, small entity or educational institution"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 4200,
+              "currency": "JPY",
+              "category": "natural person, startup, small entity or educational institution"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 26,
+              "currency": "USD",
+              "category": "natural person, startup, small entity or educational institution"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 3000,
+              "currency": "INR",
+              "category": "natural person, startup, small entity or educational institution"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58): when the international search report was prepared by the Indian Patent Office",
+              "amount": 2500,
+              "currency": "INR",
+              "category": "natural person, startup, small entity or educational institution"
+            }
+          ],
+          "other_currencies": [
+            {
+              "currency": "CHF",
+              "amount": 84,
+              "where": "Annex D (IN)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 90,
+              "where": "Annex D (IN)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "JPY",
+              "amount": 16900,
+              "where": "Annex D (IN)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "USD",
+              "amount": 104,
+              "where": "Annex D (IN)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (IN)",
+              "updated": "September 25, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IN&doc-lang=en#isa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex E (IN)",
+              "updated": "September 25, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IN&doc-lang=en#ipea"
+            }
+          ]
+        }
       },
       {
         "office": "IPOPHL (PH), not IP5",
@@ -645,7 +1916,73 @@
         "criteria": "Natural or juridical person with assets of not more than PHP 100 million, or a Philippine government entity, state university or college or government-run school (Table I(b) footnote 36).",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=PH&doc-lang=en#isa",
         "citation": "PCT Applicant's Guide, Annex D (PH)",
-        "guide_updated": "May 12, 2026"
+        "guide_updated": "May 12, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 600,
+              "currency": "USD"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 300,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 200,
+              "currency": "USD",
+              "category": "small entity (assets not more than PHP 100 million) or Philippine government entity, state university or college, government-run school"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 160,
+              "currency": "CHF",
+              "category": "small entity (assets not more than PHP 100 million) or Philippine government entity, state university or college, government-run school"
+            },
+            {
+              "fee": "Search fee (PCT Rule 16)",
+              "amount": 171,
+              "currency": "EUR",
+              "category": "small entity (assets not more than PHP 100 million) or Philippine government entity, state university or college, government-run school"
+            },
+            {
+              "fee": "Preliminary examination fee (PCT Rule 58)",
+              "amount": 150,
+              "currency": "USD",
+              "category": "small entity (assets not more than PHP 100 million) or Philippine government entity, state university or college, government-run school"
+            }
+          ],
+          "other_currencies": [
+            {
+              "currency": "CHF",
+              "amount": 479,
+              "where": "Annex D (PH)",
+              "fee": "Search fee (PCT Rule 16)"
+            },
+            {
+              "currency": "EUR",
+              "amount": 514,
+              "where": "Annex D (PH)",
+              "fee": "Search fee (PCT Rule 16)"
+            }
+          ],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, Annex D (PH)",
+              "updated": "May 12, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=PH&doc-lang=en#isa"
+            },
+            {
+              "citation": "PCT Applicant's Guide, Annex E (PH)",
+              "updated": "May 12, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=PH&doc-lang=en#ipea"
+            }
+          ]
+        }
       }
     ],
     "national_phase": [
@@ -658,7 +1995,95 @@
         "criteria": "Declaration under Rule 7b(1) EPC; microenterprise as defined in Commission Recommendation 2003/361/EC; any nationality or domicile; fewer than five applications (EP or Euro-PCT) in the five years before the relevant date (for Euro-PCT: date of entry into the European phase); each applicant must qualify. In force 1 April 2024 (CA/D 16/23; OJ EPO 2024, A3 and A8). Applies only from European phase entry (Rule 159 EPC acts), not to PCT international-phase fees.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14a",
-        "guide_updated": "October 14, 2026"
+        "guide_updated": "October 14, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Filing fee: for online filings",
+              "amount": 135,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Filing fee: for non-online filings",
+              "amount": 285,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Search fee for (international applications)",
+              "amount": 1595,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Examination fee: for (international) applications for which a supplementary European search report is drawn up",
+              "amount": 2010,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Examination fee: for (international) applications for which no supplementary European search report is drawn up",
+              "amount": 2240,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Designation fee for one or more EPO Contracting States designated",
+              "amount": 720,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Fee for grant, including fee for publication of the European patent specification",
+              "amount": 1135,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 3rd year counted from the international filing date",
+              "amount": 725,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 4th year counted from the international filing date",
+              "amount": 885,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 5th year counted from the international filing date",
+              "amount": 1050,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 6th year counted from the international filing date",
+              "amount": 1215,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 7th year counted from the international filing date",
+              "amount": 1375,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 8th year counted from the international filing date",
+              "amount": 1540,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 9th year counted from the international filing date",
+              "amount": 1700,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Renewal fees for European patent applications: for the 10th and each subsequent year counted from the international filing date",
+              "amount": 1865,
+              "currency": "EUR"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex EP.I (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "EPO (EP)",
@@ -669,7 +2094,30 @@
         "criteria": "Residence or principal place of business in an EPC contracting state whose official language is not English, French or German; the request for examination is filed in an official language of that state, with a declaration of entitlement (Rule 7b(1) EPC; Form 1200 or 1011). Where the EPO established the international preliminary report on patentability, the 75% reduction applies first and then 30% of the rest: 82.5% in total.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14",
-        "guide_updated": "October 14, 2026"
+        "guide_updated": "October 14, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Examination fee: for (international) applications for which a supplementary European search report is drawn up",
+              "amount": 2010,
+              "currency": "EUR"
+            },
+            {
+              "fee": "Examination fee: for (international) applications for which no supplementary European search report is drawn up",
+              "amount": 2240,
+              "currency": "EUR"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex EP.I (EP)",
+              "updated": "October 14, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "USPTO (US)",
@@ -680,7 +2128,242 @@
         "criteria": "Small entity: 37 CFR 1.27, written assertion (may be made on Form PTO-1390 or by paying the exact small entity basic national fee). Micro entity: 37 CFR 1.29, gross income or institution of higher education basis, certification required. Rates: Guide para. US.19.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Summary (US)",
-        "guide_updated": "October 13, 2026"
+        "guide_updated": "October 13, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Basic national fee (37 CFR 1.492(a))",
+              "amount": 350,
+              "currency": "USD"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): IPRP (Chapter II) prepared by the IPEA/US or the written opinion was prepared by the ISA/US, all claims presented satisfied provisions of PCT Article 33(1) to (4)",
+              "amount": 0,
+              "currency": "USD"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): International search fee paid to the USPTO as ISA",
+              "amount": 150,
+              "currency": "USD"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): Search report has been prepared by an ISA other than the US and is provided or has been previously communicated by the IB to the USPTO",
+              "amount": 580,
+              "currency": "USD"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): All other situations",
+              "amount": 770,
+              "currency": "USD"
+            },
+            {
+              "fee": "Examination fee (37 CFR 1.492(c)): IPRP (Chapter II) prepared by the IPEA/US or the written opinion was prepared by the ISA/US, all claims presented satisfied provisions of PCT Article 33(1) to (4)",
+              "amount": 0,
+              "currency": "USD"
+            },
+            {
+              "fee": "Examination fee (37 CFR 1.492(c)): All other situations",
+              "amount": 880,
+              "currency": "USD"
+            },
+            {
+              "fee": "For every 50 sheets or fraction thereof of the specification and drawings that exceeds 100 sheets (37 CFR 1.492(j))",
+              "amount": 450,
+              "currency": "USD"
+            },
+            {
+              "fee": "Additional claims fee, for each independent claim in excess of 3 (37 CFR 1.492(d))",
+              "amount": 600,
+              "currency": "USD"
+            },
+            {
+              "fee": "Additional claims fee, for each claim in excess of 20 (37 CFR 1.492(e))",
+              "amount": 200,
+              "currency": "USD"
+            },
+            {
+              "fee": "A multiple dependent claim fee, per application (37 CFR 1.492(f))",
+              "amount": 925,
+              "currency": "USD"
+            },
+            {
+              "fee": "Surcharge for filing any of the search fee, the examination fee, or the oath or declaration after the date of commencement of the national stage (37 CFR 1.492(h))",
+              "amount": 170,
+              "currency": "USD"
+            },
+            {
+              "fee": "Processing fee for filing English translation of an international application after the time limit applicable under PCT Article 22 or 39(1) (37 CFR 1.492(i))",
+              "amount": 150,
+              "currency": "USD"
+            }
+          ],
+          "reduced": [
+            {
+              "fee": "Basic national fee (37 CFR 1.492(a))",
+              "amount": 140,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): IPRP (Chapter II) prepared by the IPEA/US or the written opinion was prepared by the ISA/US, all claims presented satisfied provisions of PCT Article 33(1) to (4)",
+              "amount": 0,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): International search fee paid to the USPTO as ISA",
+              "amount": 60,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): Search report has been prepared by an ISA other than the US and is provided or has been previously communicated by the IB to the USPTO",
+              "amount": 232,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): All other situations",
+              "amount": 308,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Examination fee (37 CFR 1.492(c)): IPRP (Chapter II) prepared by the IPEA/US or the written opinion was prepared by the ISA/US, all claims presented satisfied provisions of PCT Article 33(1) to (4)",
+              "amount": 0,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Examination fee (37 CFR 1.492(c)): All other situations",
+              "amount": 352,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "For every 50 sheets or fraction thereof of the specification and drawings that exceeds 100 sheets (37 CFR 1.492(j))",
+              "amount": 180,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Additional claims fee, for each independent claim in excess of 3 (37 CFR 1.492(d))",
+              "amount": 240,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Additional claims fee, for each claim in excess of 20 (37 CFR 1.492(e))",
+              "amount": 80,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "A multiple dependent claim fee, per application (37 CFR 1.492(f))",
+              "amount": 370,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Surcharge for filing any of the search fee, the examination fee, or the oath or declaration after the date of commencement of the national stage (37 CFR 1.492(h))",
+              "amount": 68,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Processing fee for filing English translation of an international application after the time limit applicable under PCT Article 22 or 39(1) (37 CFR 1.492(i))",
+              "amount": 60,
+              "currency": "USD",
+              "category": "small entity"
+            },
+            {
+              "fee": "Basic national fee (37 CFR 1.492(a))",
+              "amount": 70,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): IPRP (Chapter II) prepared by the IPEA/US or the written opinion was prepared by the ISA/US, all claims presented satisfied provisions of PCT Article 33(1) to (4)",
+              "amount": 0,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): International search fee paid to the USPTO as ISA",
+              "amount": 30,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): Search report has been prepared by an ISA other than the US and is provided or has been previously communicated by the IB to the USPTO",
+              "amount": 116,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Search fee (37 CFR 1.492(b)): All other situations",
+              "amount": 154,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Examination fee (37 CFR 1.492(c)): IPRP (Chapter II) prepared by the IPEA/US or the written opinion was prepared by the ISA/US, all claims presented satisfied provisions of PCT Article 33(1) to (4)",
+              "amount": 0,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Examination fee (37 CFR 1.492(c)): All other situations",
+              "amount": 176,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "For every 50 sheets or fraction thereof of the specification and drawings that exceeds 100 sheets (37 CFR 1.492(j))",
+              "amount": 90,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Additional claims fee, for each independent claim in excess of 3 (37 CFR 1.492(d))",
+              "amount": 120,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Additional claims fee, for each claim in excess of 20 (37 CFR 1.492(e))",
+              "amount": 40,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "A multiple dependent claim fee, per application (37 CFR 1.492(f))",
+              "amount": 185,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Surcharge for filing any of the search fee, the examination fee, or the oath or declaration after the date of commencement of the national stage (37 CFR 1.492(h))",
+              "amount": 34,
+              "currency": "USD",
+              "category": "micro entity"
+            },
+            {
+              "fee": "Processing fee for filing English translation of an international application after the time limit applicable under PCT Article 22 or 39(1) (37 CFR 1.492(i))",
+              "amount": 30,
+              "currency": "USD",
+              "category": "micro entity"
+            }
+          ],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex US.I (US)",
+              "updated": "October 13, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "JPO (JP)",
@@ -691,7 +2374,68 @@
         "criteria": "'Fee reductions may apply for certain applicants such as small and medium-sized enterprises, micro enterprises, and academic institutions' (Annex JP.I). Rates and thresholds: see the JPO fee-reduction leaflet in the Japan Patent Office section above.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Summary (JP)",
-        "guide_updated": "September 22, 2026"
+        "guide_updated": "September 22, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Fee for request for examination (for international applications filed on or after 1 April 2019): (a) where no international search report has been established",
+              "amount": 138000,
+              "currency": "JPY",
+              "plus_per_claim": 4000
+            },
+            {
+              "fee": "Fee for request for examination (for international applications filed on or after 1 April 2019): (b) where the international search report has been established by the Office",
+              "amount": 83000,
+              "currency": "JPY",
+              "plus_per_claim": 2400
+            },
+            {
+              "fee": "Fee for request for examination (for international applications filed on or after 1 April 2019): (c) where the international search report has been established by an International Searching Authority other than the Office",
+              "amount": 124000,
+              "currency": "JPY",
+              "plus_per_claim": 3600
+            },
+            {
+              "fee": "Fee for request for examination (for international applications filed on or after 1 April 2019): (d) where the search report has been established by a searching organization which is designated under Japanese law",
+              "amount": 110000,
+              "currency": "JPY",
+              "plus_per_claim": 3200
+            },
+            {
+              "fee": "Annual fees (per year), international applications for which an examination is requested on or after 1 April 2004: for the 1st to the 3rd years",
+              "amount": 4300,
+              "currency": "JPY",
+              "plus_per_claim": 300
+            },
+            {
+              "fee": "Annual fees (per year), international applications for which an examination is requested on or after 1 April 2004: for the 4th to the 6th years",
+              "amount": 10300,
+              "currency": "JPY",
+              "plus_per_claim": 800
+            },
+            {
+              "fee": "Annual fees (per year), international applications for which an examination is requested on or after 1 April 2004: for the 7th to the 9th years",
+              "amount": 24800,
+              "currency": "JPY",
+              "plus_per_claim": 1900
+            },
+            {
+              "fee": "Annual fees (per year), international applications for which an examination is requested on or after 1 April 2004: for the 10th to the 25th years",
+              "amount": 59400,
+              "currency": "JPY",
+              "plus_per_claim": 4600
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex JP.I (JP)",
+              "updated": "September 22, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "KIPO / MOIP (KR)",
@@ -702,7 +2446,42 @@
         "criteria": "Applicant is a natural person and the inventor; filing fee reduced by 30% only where the applicant files more than 20 applications per year (Annex KR national phase). Not an SME scheme.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Summary (KR)",
-        "guide_updated": "September 17, 2026"
+        "guide_updated": "September 17, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "National fee: when a translation of the application has been furnished, in electronic form",
+              "amount": 46000,
+              "currency": "KRW"
+            },
+            {
+              "fee": "National fee: when a translation of the application has been furnished, on paper",
+              "amount": 66000,
+              "currency": "KRW"
+            },
+            {
+              "fee": "Fee for request for examination",
+              "amount": 166000,
+              "currency": "KRW",
+              "plus_per_claim": 51000
+            },
+            {
+              "fee": "Annual fees: for the 1st to the 3rd year (must all be paid at one and the same time), per year",
+              "amount": 13000,
+              "currency": "KRW",
+              "plus_per_claim": 12000
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex KR.I (KR)",
+              "updated": "September 17, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "KIPO / MOIP (KR)",
@@ -713,7 +2492,19 @@
         "criteria": "No SME reduction is listed in the PCT Applicant's Guide, National Chapter, Summary (KR) or Annex KR.I.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Summary (KR)",
-        "guide_updated": "September 17, 2026"
+        "guide_updated": "September 17, 2026",
+        "amounts": {
+          "standard": [],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex KR.I (KR)",
+              "updated": "September 17, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       },
       {
         "office": "CNIPA (CN)",
@@ -724,14 +2515,58 @@
         "criteria": "The Guide lists no SME or individual reduction for the national phase in China. These exemptions depend on CNIPA's role in the international phase.",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#national_chapter",
         "citation": "PCT Applicant's Guide, National Chapter, Summary (CN)",
-        "guide_updated": "September 25, 2026"
+        "guide_updated": "September 25, 2026",
+        "amounts": {
+          "standard": [
+            {
+              "fee": "Filing fee",
+              "amount": 900,
+              "currency": "CNY"
+            },
+            {
+              "fee": "Additional filing fee: for each sheet of the description in excess of 30 sheets",
+              "amount": 50,
+              "currency": "CNY"
+            },
+            {
+              "fee": "Additional filing fee: for each sheet of the description in excess of 300 sheets",
+              "amount": 100,
+              "currency": "CNY"
+            },
+            {
+              "fee": "Additional filing fee: for each claim in excess of 10",
+              "amount": 150,
+              "currency": "CNY"
+            },
+            {
+              "fee": "Examination fee",
+              "amount": 2500,
+              "currency": "CNY"
+            }
+          ],
+          "reduced": [],
+          "other_currencies": [],
+          "refs": [
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Summary (CN)",
+              "updated": "September 25, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#national_chapter"
+            },
+            {
+              "citation": "PCT Applicant's Guide, National Chapter, Annex CN.I (CN)",
+              "updated": "September 25, 2026",
+              "url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#national_chapter"
+            }
+          ]
+        }
       }
     ],
     "pct_wide_sme": {
       "status": "None. The PCT Schedule of Fees (Regulations as in force from 1 January 2026) has no reduction for SMEs, startups or universities; its only reductions are e-filing (item 4) and the 90% reduction for natural persons from listed States and applicants from least developed countries (item 5). A proposal by Brazil for university fee reductions was discussed in the PCT Working Group 2016-2019; at the 12th session (2019) the Chair noted wide support but that some Group B delegations could not agree at that stage. No later adoption found.",
       "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax",
       "wg_source_url": "https://www.wipo.int/edocs/mdocs/pct/en/pct_wg_12/pct_wg_12_25_prov.pdf"
-    }
+    },
+    "amounts_checked_on": "2026-11-06"
   },
   "other_offices": {
     "checked_on": "2026-11-05",
