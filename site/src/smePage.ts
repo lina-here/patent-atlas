@@ -257,7 +257,7 @@ const secondLine = (className: string, text: string): HTMLElement => h("span", {
 
 function wipoRow(item: SmePctInternational): PctRow {
   return () => [
-    [h("strong", {}, item.fee), secondLine("sme-set-in", `Set in: ${item.fee_table_or_item}`)],
+    [h("strong", {}, item.fee)],
     [item.reduction],
     [item.who_qualifies],
     [...guideSource(item), item.list_url ? h("a", { class: "sme-list-link", href: item.list_url, rel: "noopener" }, "List of eligible States") : null],

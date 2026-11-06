@@ -9,7 +9,7 @@ type Office = { code: string; name: string; short: string; definitions: { catego
   fee_reductions: Fee[]; support: { name: string; text: string; url: string }[] };
 type Share = { id: string; year: number; scope: string; rows: { label: string; pct: number }[]; citation: string; page: string; url: string; note?: string };
 type GuideCited = { citation: string; guide_updated: string; source_url: string };
-type PctInternational = GuideCited & { fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; list_url?: string };
+type PctInternational = GuideCited & { fee: string; reduction: string; who_qualifies: string; list_url?: string };
 type PctAuthority = GuideCited & { office: string; role: string; fee: string; category: string; reduction_pct: number | null; as_published: string; criteria: string };
 type PctNational = GuideCited & { office: string; applies_on_entry: boolean | null; fees: string; category: string; reduction_pct: number | null; criteria: string };
 type Pct = { pct_international: PctInternational[]; isa_ipea: PctAuthority[]; national_phase: PctNational[]; pct_wide_sme: { status: string; source_url: string; wg_source_url?: string } };
@@ -425,7 +425,9 @@ test("PCT route (wide): the international phase is one table; WIPO rows, then se
   await expect(wipoRows).toHaveCount(pctData.pct_international.length);
   for (const [index, item] of pctData.pct_international.entries()) {
     const row = wipoRows.nth(index);
-    for (const value of [item.fee, item.reduction, item.who_qualifies, item.fee_table_or_item]) await expect(row).toContainText(value);
+    for (const value of [item.fee, item.reduction, item.who_qualifies]) await expect(row).toContainText(value);
+    // the Guide is the only source named: no "Set in" line for the Schedule of Fees or Fee Tables
+    await expect(row).not.toContainText("Set in");
     await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
     if (item.list_url) await expect(row.locator(`a[href="${item.list_url}"]`)).toHaveCount(1);
   }

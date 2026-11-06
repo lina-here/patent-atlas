@@ -417,7 +417,7 @@ export type SmeResource = { title: string; publisher: string; text: string; url:
 export type SmeGuideCited = { citation: string; guide_updated: string; source_url: string };
 /** PCT route: WIPO fees (Schedule of Fees), search/examination fees per office as ISA/IPEA, national phase entry. */
 export type SmePctInternational = SmeGuideCited & {
-  fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string;
+  fee: string; reduction: string; who_qualifies: string;
   /** WIPO's list of States for the 90% reduction, where the item has one. */
   list_url?: string;
 };

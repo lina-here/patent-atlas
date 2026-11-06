@@ -444,7 +444,6 @@
         "fee": "International filing fee (Schedule of Fees item 1, PCT Rule 15.2)",
         "reduction": "Fixed reduction for electronic filing: CHF 100 (item 4(a): request not in character coded format), CHF 200 (item 4(b): request in character coded format), CHF 300 (item 4(c): request, description, claims and abstract in character coded format). Each receiving Office publishes the equivalent in its currency.",
         "who_qualifies": "Any applicant filing in electronic form as provided for in the Administrative Instructions (e.g. ePCT) with a receiving Office that accepts electronic filing.",
-        "fee_table_or_item": "Schedule of Fees, item 4(a)-(c); PCT Fee Tables, Table I(a) column 'E-filing reductions'; PCT Applicant's Guide para. 5.189",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.189",
         "citation": "PCT Applicant's Guide, International Phase, paragraph 5.189",
         "guide_updated": "July 3, 2026"
@@ -453,7 +452,6 @@
         "fee": "International filing fee incl. fee per sheet over 30 (item 1, after any item 4 reduction), supplementary search handling fee (item 2, PCT Rule 45bis.2), handling fee (item 3, PCT Rule 57.2)",
         "reduction": "90%",
         "who_qualifies": "Item 5(a): applicant who is a natural person and a national of and resident in a listed State (per capita GDP below USD 25,000 on the UN 10-year average at constant 2005 USD, and fewer than 10 international applications per year per million population or fewer than 50 per year in absolute numbers by its natural-person nationals and residents). Item 5(b): applicant, natural person or not, who is a national of and resident in a listed State classified by the UN as a least developed country. Several applicants: each must meet 5(a) or 5(b). No beneficial owner at filing who would not meet the criteria; 2017 PCT Assembly Understanding: applicants must be sole and true owners with no obligation to assign or license to an ineligible party. Lists of States: WIPO list applicable on or after 7 January 2025.",
-        "fee_table_or_item": "Schedule of Fees, item 5(a) and 5(b); PCT Fee Tables footnote 2; WIPO list 'Applicability of 90% Reduction in Certain PCT Fees (applicable on or after 7 January 2025)'",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.188",
         "list_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fee-reduction.pdf",
         "citation": "PCT Applicant's Guide, International Phase, paragraph 5.188",
@@ -463,7 +461,6 @@
         "fee": "Transmittal fee payable to the International Bureau as receiving Office (RO/IB)",
         "reduction": "Exemption (fee not payable)",
         "who_qualifies": "Applicants who meet the conditions for the 90% reduction of the international filing fee.",
-        "fee_table_or_item": "PCT Fee Tables, Table I(a) footnote 14 and introductory note",
         "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#ro",
         "citation": "PCT Applicant's Guide, Annex C (IB)",
         "guide_updated": "October 28, 2026"
