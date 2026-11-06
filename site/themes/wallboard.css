@@ -59,6 +59,8 @@
   --page-width: 120rem;
   --page-gutter: clamp(1rem, 3vw, 3rem);
   --toc-width: 14rem;
+  --pct-office-min: 6em;
+  --pct-source-min: 9em;
   --card-min: 28rem;
   --tile-min: 12rem;
   --dashboard-key-min: 18rem;

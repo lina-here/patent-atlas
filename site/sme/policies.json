@@ -438,29 +438,35 @@
     }
   ],
   "pct": {
-    "checked_on": "2026-11-05",
+    "checked_on": "2026-11-06",
     "pct_international": [
       {
         "fee": "International filing fee (Schedule of Fees item 1, PCT Rule 15.2)",
         "reduction": "Fixed reduction for electronic filing: CHF 100 (item 4(a): request not in character coded format), CHF 200 (item 4(b): request in character coded format), CHF 300 (item 4(c): request, description, claims and abstract in character coded format). Each receiving Office publishes the equivalent in its currency.",
         "who_qualifies": "Any applicant filing in electronic form as provided for in the Administrative Instructions (e.g. ePCT) with a receiving Office that accepts electronic filing.",
         "fee_table_or_item": "Schedule of Fees, item 4(a)-(c); PCT Fee Tables, Table I(a) column 'E-filing reductions'; PCT Applicant's Guide para. 5.189",
-        "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.189",
+        "citation": "PCT Applicant's Guide, International Phase, paragraph 5.189",
+        "guide_updated": "July 3, 2026"
       },
       {
         "fee": "International filing fee incl. fee per sheet over 30 (item 1, after any item 4 reduction), supplementary search handling fee (item 2, PCT Rule 45bis.2), handling fee (item 3, PCT Rule 57.2)",
         "reduction": "90%",
         "who_qualifies": "Item 5(a): applicant who is a natural person and a national of and resident in a listed State (per capita GDP below USD 25,000 on the UN 10-year average at constant 2005 USD, and fewer than 10 international applications per year per million population or fewer than 50 per year in absolute numbers by its natural-person nationals and residents). Item 5(b): applicant, natural person or not, who is a national of and resident in a listed State classified by the UN as a least developed country. Several applicants: each must meet 5(a) or 5(b). No beneficial owner at filing who would not meet the criteria; 2017 PCT Assembly Understanding: applicants must be sole and true owners with no obligation to assign or license to an ineligible party. Lists of States: WIPO list applicable on or after 7 January 2025.",
         "fee_table_or_item": "Schedule of Fees, item 5(a) and 5(b); PCT Fee Tables footnote 2; WIPO list 'Applicability of 90% Reduction in Certain PCT Fees (applicable on or after 7 January 2025)'",
-        "source_url": "https://www.wipo.int/en/web/pct-system/texts/rules/rtax",
-        "list_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fee-reduction.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=pctip&doc-lang=en&doc-type=guide#_5.188",
+        "list_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fee-reduction.pdf",
+        "citation": "PCT Applicant's Guide, International Phase, paragraph 5.188",
+        "guide_updated": "July 3, 2026"
       },
       {
         "fee": "Transmittal fee payable to the International Bureau as receiving Office (RO/IB)",
         "reduction": "Exemption (fee not payable)",
-        "who_qualifies": "Applicants fulfilling the conditions for the 90% reduction indicated on the PCT fees page.",
+        "who_qualifies": "Applicants who meet the conditions for the 90% reduction of the international filing fee.",
         "fee_table_or_item": "PCT Fee Tables, Table I(a) footnote 14 and introductory note",
-        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IB&doc-lang=en#ro",
+        "citation": "PCT Applicant's Guide, Annex C (IB)",
+        "guide_updated": "October 28, 2026"
       }
     ],
     "isa_ipea": [
@@ -470,9 +476,11 @@
         "fee": "Search fee (PCT Rule 16)",
         "category": "small entity",
         "reduction_pct": 60,
-        "as_published": "Small entity rate in Table I(b) and Annex D(US); Annex US.19: 'reduction of 60% or 80%, respectively, in certain fees'",
+        "as_published": "Small entity amount in Annex D (US); National Chapter (US), paragraph US.19: 'reduction of 60% or 80%, respectively, in certain fees'",
         "criteria": "Small entity status under 37 CFR 1.27 (persons, small business concerns, nonprofit organizations), established by written assertion.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D and National Chapter, Procedure (US), paragraph US.19",
+        "guide_updated": "October 13, 2026"
       },
       {
         "office": "USPTO (US)",
@@ -480,9 +488,11 @@
         "fee": "Search fee (PCT Rule 16)",
         "category": "micro entity",
         "reduction_pct": 80,
-        "as_published": "Micro entity rate in Table I(b) and Annex D(US)",
+        "as_published": "Micro entity amount in Annex D (US)",
         "criteria": "Micro entity status under 37 CFR 1.29, on the gross income basis or the institution of higher education basis; must also meet small entity requirements; certification required (Forms PTO/SB/15A, 15B).",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (US)",
+        "guide_updated": "October 13, 2026"
       },
       {
         "office": "USPTO (US)",
@@ -490,9 +500,11 @@
         "fee": "Preliminary examination fee (PCT Rule 58)",
         "category": "small entity",
         "reduction_pct": 60,
-        "as_published": "Small entity rate in Table II and Annex E(US), both for searches by the USPTO and by another ISA",
+        "as_published": "Small entity amount in Annex E (US), both for searches by the USPTO and by another ISA",
         "criteria": "37 CFR 1.27",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ipea",
+        "citation": "PCT Applicant's Guide, Annex E (US)",
+        "guide_updated": "October 13, 2026"
       },
       {
         "office": "USPTO (US)",
@@ -500,9 +512,11 @@
         "fee": "Preliminary examination fee (PCT Rule 58)",
         "category": "micro entity",
         "reduction_pct": 80,
-        "as_published": "Micro entity rate in Table II and Annex E(US)",
+        "as_published": "Micro entity amount in Annex E (US)",
         "criteria": "37 CFR 1.29",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ipea",
+        "citation": "PCT Applicant's Guide, Annex E (US)",
+        "guide_updated": "October 13, 2026"
       },
       {
         "office": "USPTO (US)",
@@ -512,7 +526,9 @@
         "reduction_pct": null,
         "as_published": "Transmittal fee: separate small entity and micro entity amounts in Annex C(US). Non-electronic filing fee: lower amount for small or micro entities (Table I(a) footnote 26).",
         "criteria": "37 CFR 1.27 and 1.29",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#ro",
+        "citation": "PCT Applicant's Guide, Annex C (US)",
+        "guide_updated": "October 13, 2026"
       },
       {
         "office": "JPO (JP)",
@@ -522,7 +538,9 @@
         "reduction_pct": null,
         "as_published": "'This fee is reduced for applications filed in Japanese, or for applications in respect of which a translation into Japanese has been furnished under PCT Rule 12.3, by applicants who are eligible for fee reductions, such as small or medium-sized enterprises, micro enterprises and academic institutions.' (Table I(b) footnote 34). No rate stated.",
         "criteria": "Japanese-language filing (or Japanese translation under Rule 12.3); eligibility per JPO reduction scheme (JPO leaflet linked from the Guide).",
-        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (JP)",
+        "guide_updated": "September 22, 2026"
       },
       {
         "office": "JPO (JP)",
@@ -532,7 +550,9 @@
         "reduction_pct": null,
         "as_published": "Reduced for applications filed in Japanese or with a Japanese translation under Rule 12.3, by eligible applicants (Table II footnote 34; Annex E(JP)). No rate stated.",
         "criteria": "As for the JPO search fee.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#ipea",
+        "citation": "PCT Applicant's Guide, Annex E (JP)",
+        "guide_updated": "September 22, 2026"
       },
       {
         "office": "JPO (JP)",
@@ -542,7 +562,9 @@
         "reduction_pct": null,
         "as_published": "Reduced if the application is filed in Japanese by eligible applicants (Table I(a) footnote 18; Annex C(JP)). No rate stated.",
         "criteria": "Japanese-language filing; eligibility per JPO reduction scheme.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#ro",
+        "citation": "PCT Applicant's Guide, Annex C (JP)",
+        "guide_updated": "September 22, 2026"
       },
       {
         "office": "EPO (EP)",
@@ -552,7 +574,9 @@
         "reduction_pct": 75,
         "as_published": "Reduced by 75% (Table I(b), I(c), II footnote 33; Annexes D(EP), E(EP); EPO list as of 1 July 2026)",
         "criteria": "Natural person, national of and resident in a State listed by the World Bank as a low-income or lower-middle-income economy, on the filing date or the date of payment. Each applicant must qualify. Decision CA/D 13/19, in effect since 1 April 2020.",
-        "source_url": "https://link.epo.org/web/low_income_states_en.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (EP)",
+        "guide_updated": "October 14, 2026"
       },
       {
         "office": "EPO (EP)",
@@ -562,7 +586,9 @@
         "reduction_pct": 75,
         "as_published": "Reduced by 75% (EPO list; validation States as of 1 June 2026: Cambodia, Morocco, Tunisia, Georgia, Lao People's Democratic Republic)",
         "criteria": "Natural or legal person, national of and resident in a State with a validation agreement with the EPO in force. Each applicant must qualify.",
-        "source_url": "https://link.epo.org/web/low_income_states_en.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (EP)",
+        "guide_updated": "October 14, 2026"
       },
       {
         "office": "EPO (EP)",
@@ -572,7 +598,9 @@
         "reduction_pct": null,
         "as_published": "The EPO 30% micro-entity reduction applies to fees in the European phase (European and Euro-PCT applications), not to international-phase fees. On entry, the examination fee is further reduced by 30% of the search fee effectively paid, including the international search fee where the EPO was ISA (OJ EPO 2024, A8; Guide para. EP.14a).",
         "criteria": "See the EPO entry under National or regional phase.",
-        "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8.html"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14a",
+        "guide_updated": "October 14, 2026"
       },
       {
         "office": "KIPO / MOIP (KR)",
@@ -582,7 +610,9 @@
         "reduction_pct": 75,
         "as_published": "Reduced by 75% (Table I(b) footnote 35; Annex D(KR))",
         "criteria": "Each applicant a national of, and with residence or business domicile in, Cabo Verde, Cambodia, Colombia, Indonesia, Lao People's Democratic Republic, Malaysia, Mexico, Mongolia, Peru, the Philippines, Sri Lanka, Thailand or Viet Nam. No SME reduction shown in the fee tables or Annexes D/E(KR).",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (KR)",
+        "guide_updated": "September 17, 2026"
       },
       {
         "office": "CNIPA (CN)",
@@ -592,7 +622,9 @@
         "reduction_pct": null,
         "as_published": "No reduction shown in Table I(b), Table II or Annexes D/E(CN). CNIPA states that fees it collects for WIPO and other bodies follow the relevant agreements (Announcement No. 594, 2024).",
         "criteria": "Not applicable",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (CN)",
+        "guide_updated": "September 25, 2026"
       },
       {
         "office": "Indian Patent Office (IN), not IP5",
@@ -602,7 +634,9 @@
         "reduction_pct": 75,
         "as_published": "Separate lower amount in Table I(b) and Table II (search: INR 2,500 instead of INR 10,000)",
         "criteria": "Filing by a natural person, startup, small entity or educational institution (categories as defined in Indian law).",
-        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=IN&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (IN)",
+        "guide_updated": "September 25, 2026"
       },
       {
         "office": "IPOPHL (PH), not IP5",
@@ -612,7 +646,9 @@
         "reduction_pct": null,
         "as_published": "Separate lower amount in Table I(b) and Table II (search: USD 200 instead of USD 600)",
         "criteria": "Natural or juridical person with assets of not more than PHP 100 million, or a Philippine government entity, state university or college or government-run school (Table I(b) footnote 36).",
-        "source_url": "https://www.wipo.int/documents/d/pct-system/docs-en-fees.pdf"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=PH&doc-lang=en#isa",
+        "citation": "PCT Applicant's Guide, Annex D (PH)",
+        "guide_updated": "May 12, 2026"
       }
     ],
     "national_phase": [
@@ -623,16 +659,20 @@
         "category": "microenterprise, natural person, non-profit organisation, university, public research organisation",
         "reduction_pct": 30,
         "criteria": "Declaration under Rule 7b(1) EPC; microenterprise as defined in Commission Recommendation 2003/361/EC; any nationality or domicile; fewer than five applications (EP or Euro-PCT) in the five years before the relevant date (for Euro-PCT: date of entry into the European phase); each applicant must qualify. In force 1 April 2024 (CA/D 16/23; OJ EPO 2024, A3 and A8). Applies only from European phase entry (Rule 159 EPC acts), not to PCT international-phase fees.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14a",
+        "guide_updated": "October 14, 2026"
       },
       {
         "office": "EPO (EP)",
         "applies_on_entry": true,
-        "fees": "Examination fee (Euro-PCT, 'in certain cases'); filing fee and examination fee under the language scheme",
-        "category": "SME, microenterprise, natural person, non-profit organisation, university, public research organisation (language reduction, Rule 7a(1) EPC)",
+        "fees": "Examination fee",
+        "category": "microenterprise, SME, natural person, non-profit organisation, university, public research organisation (language reduction)",
         "reduction_pct": 30,
-        "criteria": "Language-based reduction; conditions per OJ EPO 2024, A8 and Guide para. EP.14. Euro-PCT conditions: see the EPO source.",
-        "source_url": "https://www.epo.org/en/legal/official-journal/2024/01/a8.html"
+        "criteria": "Residence or principal place of business in an EPC contracting state whose official language is not English, French or German; the request for examination is filed in an official language of that state, with a declaration of entitlement (Rule 7b(1) EPC; Form 1200 or 1011). Where the EPO established the international preliminary report on patentability, the 75% reduction applies first and then 30% of the rest: 82.5% in total.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=EP&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Procedure (EP), paragraph EP.14",
+        "guide_updated": "October 14, 2026"
       },
       {
         "office": "USPTO (US)",
@@ -641,7 +681,9 @@
         "category": "small entity (60%), micro entity (80%)",
         "reduction_pct": null,
         "criteria": "Small entity: 37 CFR 1.27, written assertion (may be made on Form PTO-1390 or by paying the exact small entity basic national fee). Micro entity: 37 CFR 1.29, gross income or institution of higher education basis, certification required. Rates: Guide para. US.19.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=US&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Summary (US)",
+        "guide_updated": "October 13, 2026"
       },
       {
         "office": "JPO (JP)",
@@ -650,7 +692,9 @@
         "category": "individuals, SMEs, micro enterprises, academic institutions and certain other entities",
         "reduction_pct": null,
         "criteria": "'Fee reductions may apply for certain applicants such as small and medium-sized enterprises, micro enterprises, and academic institutions' (Annex JP.I). Rates and thresholds: see the JPO fee-reduction leaflet in the Japan Patent Office section above.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=JP&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Summary (JP)",
+        "guide_updated": "September 22, 2026"
       },
       {
         "office": "KIPO / MOIP (KR)",
@@ -659,7 +703,9 @@
         "category": "natural person who is also the inventor",
         "reduction_pct": 70,
         "criteria": "Applicant is a natural person and the inventor; filing fee reduced by 30% only where the applicant files more than 20 applications per year (Annex KR national phase). Not an SME scheme.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Summary (KR)",
+        "guide_updated": "September 17, 2026"
       },
       {
         "office": "KIPO / MOIP (KR)",
@@ -667,17 +713,21 @@
         "fees": "Not confirmed",
         "category": "SME",
         "reduction_pct": null,
-        "criteria": "No SME reduction is listed in the PCT Applicant's Guide national phase summary for KR; not confirmed on the office's own site.",
-        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en"
+        "criteria": "No SME reduction is listed in the PCT Applicant's Guide, National Chapter, Summary (KR) or Annex KR.I.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=KR&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Summary (KR)",
+        "guide_updated": "September 17, 2026"
       },
       {
         "office": "CNIPA (CN)",
         "applies_on_entry": true,
-        "fees": "Re-examination fee and annual fees only (per CNIPA reply of 21 August 2024 citing the Patent Examination Guidelines). Application fee and substantive examination fee are not reduced on this basis; they are exempted only where CNIPA acted as RO and ISA (application fee) or issued the ISR and IPRP (examination fee).",
-        "category": "individuals, enterprises, public institutions, social organisations, non-profit research institutions",
+        "fees": "Filing fee and additional filing fee not payable where CNIPA acted as receiving Office and ISA. Examination fee not payable where CNIPA established the international search report and the international preliminary report on patentability. 50% of the examination fee refunded on early withdrawal.",
+        "category": "any applicant (not based on size)",
         "reduction_pct": null,
-        "criteria": "Measures on Reduction of Patent Fees (Caishui [2016] No. 78): 85% for a single applicant, 70% for joint applicants. Thresholds per CNIPA Announcement No. 316 (from 1 July 2019): individuals with prior-year average monthly income below CNY 5,000 (CNY 60,000 a year); enterprises with prior-year taxable income below CNY 1 million. Prior fee-reduction registration (备案) required. Eligibility of foreign applicants not confirmed.",
-        "source_url": "https://www.cnipa.gov.cn/jact/front/mailpubdetail.do?transactId=472598&sysid=6"
+        "criteria": "The Guide lists no SME or individual reduction for the national phase in China. These exemptions depend on CNIPA's role in the international phase.",
+        "source_url": "https://pctlegal.wipo.int/eGuide/view-doc.xhtml?doc-code=CN&doc-lang=en#national_chapter",
+        "citation": "PCT Applicant's Guide, National Chapter, Summary (CN)",
+        "guide_updated": "September 25, 2026"
       }
     ],
     "pct_wide_sme": {

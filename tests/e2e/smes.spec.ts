@@ -8,9 +8,10 @@ type Fee = { category: string; reduction_pct: number | null; as_published: strin
 type Office = { code: string; name: string; short: string; definitions: { category: string; text: string; source_url: string }[];
   fee_reductions: Fee[]; support: { name: string; text: string; url: string }[] };
 type Share = { id: string; year: number; scope: string; rows: { label: string; pct: number }[]; citation: string; page: string; url: string; note?: string };
-type PctInternational = { fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; source_url: string; list_url?: string };
-type PctAuthority = { office: string; role: string; fee: string; category: string; reduction_pct: number | null; as_published: string; criteria: string; source_url: string };
-type PctNational = { office: string; applies_on_entry: boolean | null; fees: string; category: string; reduction_pct: number | null; criteria: string; source_url: string };
+type GuideCited = { citation: string; guide_updated: string; source_url: string };
+type PctInternational = GuideCited & { fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; list_url?: string };
+type PctAuthority = GuideCited & { office: string; role: string; fee: string; category: string; reduction_pct: number | null; as_published: string; criteria: string };
+type PctNational = GuideCited & { office: string; applies_on_entry: boolean | null; fees: string; category: string; reduction_pct: number | null; criteria: string };
 type Pct = { pct_international: PctInternational[]; isa_ipea: PctAuthority[]; national_phase: PctNational[]; pct_wide_sme: { status: string; source_url: string; wg_source_url?: string } };
 type OtherReduction = { category: string; reduction_pct: number | null; as_published: string; fees: string; criteria: string; source_url: string; category_group: string[] };
 type OtherOffice = { code: string; name: string; guide_updated: string; fee_reductions: OtherReduction[]; support?: { name: string; text: string; url: string }[] };
@@ -54,6 +55,17 @@ async function openSmes(page: Page, search = ""): Promise<void> {
   await expect(page.locator(".sme-fee-table")).toBeAttached();
 }
 
+/** Sections in a box (closed by default): their ids, in page order. */
+const BOXED = ["sme-pct", "sme-definitions", "sme-support", "sme-other", "sme-resources"];
+const OPEN_SECTIONS = ["sme-shares", "sme-fees"];
+
+/** Opens every closed box by clicking its summary, as a reader would. */
+async function openBoxes(page: Page): Promise<void> {
+  const closed = page.locator("details.prose-box:not([open]) > summary");
+  for (let left = await closed.count(); left > 0; left -= 1) await closed.first().click();
+  await expect(page.locator("details.prose-box:not([open])")).toHaveCount(0);
+}
+
 for (const theme of config.themes as string[]) {
   test(`?view=smes renders in theme ${theme}: title, sections, checked date, disclaimer, no errors`, async ({ page }) => {
     const errors = trackErrors(page);
@@ -61,8 +73,9 @@ for (const theme of config.themes as string[]) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(page.locator("html")).toHaveClass(/theme-ready/);
     for (const id of ["sme-shares", "sme-pct", "sme-fees", "sme-definitions", "sme-support", "sme-other", "sme-resources"]) {
-      await expect(page.locator(`section#${id} > h2`), id).toBeVisible();
+      await expect(page.locator(`section#${id} h2`), id).toBeVisible();
     }
+    await expect(page.locator("nav.toc.sme-toc")).toBeVisible();
     await expect(page.locator(".page-intro .lede")).toContainText(policies.checked_on);
     await expect(page.locator(".sme-checked")).toContainText(policies.checked_on);
     await expect(page.locator("footer")).toContainText(DISCLAIMER);
@@ -75,6 +88,10 @@ test("intro names the IP5 offices from the data; headings never rank them", asyn
   const lede = page.locator(".page-intro .lede");
   await expect(lede).toContainText("IP5");
   await expect(lede).toContainText("Every fact links to the page it comes from");
+  // two or three sentences
+  const sentences = ((await lede.textContent()) ?? "").trim().split(/(?<=\.)\s+(?=[A-Z])/);
+  expect(sentences.length).toBeGreaterThanOrEqual(2);
+  expect(sentences.length).toBeLessThanOrEqual(3);
   await expect(lede).not.toContainText("office's or WIPO's page");
   for (const office of policies.offices) await expect(lede).toContainText(office.short);
   await expect(page.locator("#sme-fees > h2")).toHaveText("Fee reductions for SMEs at the IP5 offices");
@@ -88,9 +105,9 @@ test("wording claims no more than the data: no typed counts, no per-row definiti
   await expect(main).not.toContainText(/\b(two|three|four|five) published/i);
   await expect(main).not.toContainText("each row shows that office's own");
   await expect(main).not.toContainText("the office's own wording");
-  await expect(page.locator("#sme-fees > p")).toContainText("what the office's page states");
-  await expect(page.locator("#sme-definitions > p")).toContainText("Summarised from each office's own pages");
-  await expect(page.locator("#sme-support > p")).toHaveText("Other help each office lists for smaller applicants, beyond fee reductions.");
+  await expect(page.locator("#sme-fees p.sme-intro")).toContainText("what the office's page states");
+  await expect(page.locator("#sme-definitions p.sme-intro")).toContainText("Summarised from each office's own pages");
+  await expect(page.locator("#sme-support p.sme-intro")).toHaveCount(0);
 });
 
 test("text in Korean or Chinese outside the published wording carries its lang", async ({ page }) => {
@@ -221,6 +238,7 @@ test("who files: each share is its own table; labels, values, bars, note and sou
 
 test("definitions, other support and resources: every entry from the data, in order", async ({ page }) => {
   await openSmes(page);
+  await openBoxes(page);
   for (const office of policies.offices) {
     const definitions = page.locator(`#sme-definitions [data-office="${office.code}"]`);
     await expect(definitions.locator("h3")).toContainText(office.name);
@@ -302,16 +320,20 @@ for (const { wide, suffix } of FONT_VARIANTS) for (const size of [{ width: 390, 
     await page.setViewportSize(size);
     await openSmes(page);
     if (wide) await expectWideFonts(page);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow).toBeLessThanOrEqual(0);
-    const outside = await page.evaluate(() => {
-      const width = document.documentElement.clientWidth;
-      return [...document.querySelectorAll<HTMLElement>("main *")].filter((el) => {
-        const box = el.getBoundingClientRect();
-        return box.width > 0 && el.offsetParent !== null && (box.left < -1 || box.right > width + 1);
-      }).map((el) => `${el.tagName}.${el.className}`);
-    });
-    expect(outside).toEqual([]);
+    // boxes closed (as loaded), then every box open
+    for (const state of ["closed", "open"]) {
+      if (state === "open") await openBoxes(page);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, state).toBeLessThanOrEqual(0);
+      const outside = await page.evaluate(() => {
+        const width = document.documentElement.clientWidth;
+        return [...document.querySelectorAll<HTMLElement>("main *")].filter((el) => {
+          const box = el.getBoundingClientRect();
+          return box.width > 0 && el.offsetParent !== null && (box.left < -1 || box.right > width + 1);
+        }).map((el) => `${el.tagName}.${el.className}`);
+      });
+      expect(outside, state).toEqual([]);
+    }
   });
 }
 
@@ -385,61 +407,67 @@ test("section order: who files, the PCT route, the IP5 sections, other PCT offic
     .toEqual(["sme-shares", "sme-pct", "sme-fees", "sme-definitions", "sme-support", "sme-other", "sme-resources"]);
 });
 
-test("PCT route: international phase items, search and examination by office, the PCT-wide line, all from the data", async ({ page }) => {
-  await openSmes(page);
+const PCT_WIPO_OFFICE = /^const PCT_WIPO_OFFICE = "([^"]+)";/m.exec(smeSource)![1];
+const PCT_LABELS = ["Office", "Fee", "Reduction", "Who qualifies", "Source"];
+
+test("PCT route (wide): the international phase is one table; WIPO rows, then search and examination by office, all from the data", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page, "#sme-pct");
   const section = page.locator("section#sme-pct");
-  await expect(section.locator("> h2")).toHaveText("Fee reductions along the PCT route");
-  const international = section.locator('.sme-pct-column[data-phase="international"]');
-  await expect(international.locator("h3").first()).toHaveText("International phase");
-  expect(await international.locator("h4").allTextContents()).toEqual(["Reductions of the fees paid to WIPO", "Fees paid to the offices in the international phase"]);
-  await expect(section.locator("> p").first()).toContainText("receiving Office");
-  const items = international.locator(".sme-pct-wipo-item");
-  await expect(items).toHaveCount(pctData.pct_international.length);
+  await expect(section.locator("h2")).toHaveText("Fee reductions along the PCT route");
+  await expect(section.locator("p.sme-intro").first()).toContainText("receiving Office");
+  const table = section.getByRole("table", { name: "International phase" });
+  await expect(table).toBeVisible();
+  expect(await table.locator("thead th").allTextContents()).toEqual(PCT_LABELS);
+  expect(await table.locator("tbody").evaluateAll((groups) => groups.map((group) => group.getAttribute("data-office"))))
+    .toEqual([PCT_WIPO_OFFICE, ...officesOf(pctData.isa_ipea)]);
+  const wipoRows = table.locator(`tbody[data-office="${PCT_WIPO_OFFICE}"] tr`);
+  await expect(wipoRows).toHaveCount(pctData.pct_international.length);
   for (const [index, item] of pctData.pct_international.entries()) {
-    const entry = items.nth(index);
-    for (const value of [item.fee, item.reduction, item.who_qualifies, item.fee_table_or_item]) await expect(entry).toContainText(value);
-    await expect(entry.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
-    if (item.list_url) await expect(entry.locator(`a[href="${item.list_url}"]`)).toHaveCount(1);
+    const row = wipoRows.nth(index);
+    for (const value of [item.fee, item.reduction, item.who_qualifies, item.fee_table_or_item]) await expect(row).toContainText(value);
+    await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
+    if (item.list_url) await expect(row.locator(`a[href="${item.list_url}"]`)).toHaveCount(1);
   }
-  const authorities = international.locator(".sme-pct-office");
-  expect(await authorities.evaluateAll((groups) => groups.map((group) => group.getAttribute("data-office")))).toEqual(officesOf(pctData.isa_ipea));
   for (const office of officesOf(pctData.isa_ipea)) {
-    const group = international.locator(`.sme-pct-office[data-office="${office}"]`);
-    await expect(group.locator("h5")).toHaveText(office);
-    const rows = pctData.isa_ipea.filter((item) => item.office === office);
-    const entries = group.locator(".sme-pct-entry");
-    await expect(entries).toHaveCount(rows.length);
-    for (const [index, item] of rows.entries()) {
-      const entry = entries.nth(index);
-      for (const value of [item.role, item.fee, item.category, item.as_published, item.criteria]) await expect(entry).toContainText(value);
-      if (item.reduction_pct === null) await expect(entry.locator(".sme-pct")).toHaveCount(0);
-      else await expect(entry.locator(".sme-pct")).toHaveText(pct(item.reduction_pct));
-      await expect(entry.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
+    const group = table.locator(`tbody[data-office="${office}"]`);
+    await expect(group.locator("th[scope='rowgroup']")).toHaveText(office);
+    const items = pctData.isa_ipea.filter((item) => item.office === office);
+    const rows = group.locator("tr");
+    await expect(rows).toHaveCount(items.length);
+    for (const [index, item] of items.entries()) {
+      const row = rows.nth(index);
+      for (const value of [item.role, item.fee, item.category, item.as_published, item.criteria]) await expect(row).toContainText(value);
+      if (item.reduction_pct === null) await expect(row.locator(".sme-pct")).toHaveCount(0);
+      else await expect(row.locator(".sme-pct")).toHaveText(pct(item.reduction_pct));
+      await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
     }
   }
-  const wide = international.locator(".sme-pct-wide");
+  const wide = section.locator(".sme-pct-wide");
+  await expect(wide).toBeVisible();
   await expect(wide).toContainText(pctData.pct_wide_sme.status);
   await expect(wide.locator(`a[href="${pctData.pct_wide_sme.source_url}"]`)).toHaveCount(1);
   if (pctData.pct_wide_sme.wg_source_url) await expect(wide.locator(`a[href="${pctData.pct_wide_sme.wg_source_url}"]`)).toHaveCount(1);
 });
 
-test("PCT route: national or regional phase by office; entry status from applies_on_entry, null = Not confirmed with its link", async ({ page }) => {
-  await openSmes(page);
-  const national = page.locator('#sme-pct .sme-pct-column[data-phase="national"]');
-  await expect(national.locator("h3").first()).toHaveText("National or regional phase");
-  const groups = national.locator(".sme-pct-office");
-  expect(await groups.evaluateAll((items) => items.map((group) => group.getAttribute("data-office")))).toEqual(officesOf(pctData.national_phase));
+test("PCT route (wide): the national or regional phase is one table by office; entry status from applies_on_entry", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page, "#sme-pct");
+  const table = page.locator("section#sme-pct").getByRole("table", { name: "National or regional phase" });
+  await expect(table).toBeVisible();
+  expect(await table.locator("thead th").allTextContents()).toEqual(PCT_LABELS);
+  expect(await table.locator("tbody").evaluateAll((groups) => groups.map((group) => group.getAttribute("data-office")))).toEqual(officesOf(pctData.national_phase));
   for (const office of officesOf(pctData.national_phase)) {
-    const rows = pctData.national_phase.filter((item) => item.office === office);
-    const entries = national.locator(`.sme-pct-office[data-office="${office}"] .sme-pct-entry`);
-    await expect(entries).toHaveCount(rows.length);
-    for (const [index, item] of rows.entries()) {
-      const entry = entries.nth(index);
-      await expect(entry.locator(".sme-entry-status")).toHaveText(ENTRY_STATUS(item.applies_on_entry));
-      for (const value of [item.fees, item.category, item.criteria]) await expect(entry).toContainText(value);
-      if (item.reduction_pct === null) await expect(entry.locator(".sme-pct")).toHaveCount(0);
-      else await expect(entry.locator(".sme-pct")).toHaveText(pct(item.reduction_pct));
-      await expect(entry.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
+    const items = pctData.national_phase.filter((item) => item.office === office);
+    const rows = table.locator(`tbody[data-office="${office}"] tr`);
+    await expect(rows).toHaveCount(items.length);
+    for (const [index, item] of items.entries()) {
+      const row = rows.nth(index);
+      await expect(row.locator(".sme-entry-status")).toHaveText(ENTRY_STATUS(item.applies_on_entry));
+      for (const value of [item.fees, item.category, item.criteria]) await expect(row).toContainText(value);
+      if (item.reduction_pct === null) await expect(row.locator(".sme-pct")).toHaveCount(0);
+      else await expect(row.locator(".sme-pct")).toHaveText(pct(item.reduction_pct));
+      await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
     }
   }
 });
@@ -449,24 +477,29 @@ test("PCT route: applies_on_entry false reads Does not apply on entry, null read
   data.pct.national_phase[0].applies_on_entry = false;
   data.pct.national_phase[1].applies_on_entry = null;
   await servePolicies(page, data);
-  await openSmes(page);
-  const entries = page.locator('#sme-pct .sme-pct-column[data-phase="national"] .sme-pct-entry');
-  await expect(entries.nth(0).locator(".sme-entry-status")).toHaveText("Does not apply on entry");
-  await expect(entries.nth(1).locator(".sme-entry-status")).toHaveText("Not confirmed");
-  await expect(entries.nth(1).locator(`a[href="${data.pct.national_phase[1].source_url}"]`)).toHaveCount(1);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page, "#sme-pct");
+  const rows = page.locator("section#sme-pct").getByRole("table", { name: "National or regional phase" }).locator("tbody tr");
+  await expect(rows.nth(0).locator(".sme-entry-status")).toHaveText("Does not apply on entry");
+  await expect(rows.nth(1).locator(".sme-entry-status")).toHaveText("Not confirmed");
+  await expect(rows.nth(1).locator(`a[href="${data.pct.national_phase[1].source_url}"]`)).toHaveCount(1);
 });
 
-test("PCT route: two columns side by side on wide screens, stacked on phones", async ({ page }) => {
-  const columns = page.locator("#sme-pct .sme-pct-column");
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openSmes(page);
-  let [first, second] = [await columns.nth(0).boundingBox(), await columns.nth(1).boundingBox()];
-  expect(second!.x).toBeGreaterThan(first!.x + first!.width - 1);
-  expect(Math.abs(second!.y - first!.y)).toBeLessThan(2);
+test("PCT route on a phone: each phase's rows are cards with visible labels, the tables hidden; wide: the reverse", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  [first, second] = [await columns.nth(0).boundingBox(), await columns.nth(1).boundingBox()];
-  expect(second!.y).toBeGreaterThanOrEqual(first!.y + first!.height - 1);
-  expect(Math.abs(second!.x - first!.x)).toBeLessThan(2);
+  await openSmes(page, "#sme-pct");
+  await expect(page.locator("#sme-pct table")).toHaveCount(2);
+  for (const table of await page.locator("#sme-pct table").all()) await expect(table).toBeHidden();
+  const counts = { international: pctData.pct_international.length + pctData.isa_ipea.length, national: pctData.national_phase.length };
+  for (const [phase, total] of Object.entries(counts)) {
+    const cards = page.locator(`#sme-pct .sme-pct-cards[data-phase="${phase}"] .sme-pct-card`);
+    await expect(cards).toHaveCount(total);
+    await expect(cards.first()).toBeVisible();
+    for (const label of PCT_LABELS) await expect(cards.first().locator("dt", { hasText: label }).first()).toBeVisible();
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const table of await page.locator("#sme-pct table").all()) await expect(table).toBeVisible();
+  await expect(page.locator("#sme-pct .sme-pct-card").first()).toBeHidden();
 });
 
 test("other PCT offices: the counts line equals the counts from the data, each not-assessed reason named", async ({ page }) => {
@@ -490,7 +523,7 @@ test("other PCT offices: the counts line equals the counts from the data, each n
 
 test("other PCT offices (wide): one row group per office in data order, every row's values and links from the data", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await openSmes(page);
+  await openSmes(page, "#sme-other");
   const table = page.getByRole("table", { name: "Fee reductions at other PCT offices" });
   await expect(table).toBeVisible();
   // same reduction header as the IP5 table
@@ -523,7 +556,7 @@ test("other PCT offices (wide): one row group per office in data order, every ro
 
 test("other PCT offices: the filter is native checkboxes, keyboard operable, and shows only rows of the chosen groups", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await openSmes(page);
+  await openSmes(page, "#sme-other");
   const filter = page.locator("#sme-other fieldset.sme-filter");
   await expect(filter.locator("legend")).toBeVisible();
   const boxes = filter.getByRole("checkbox");
@@ -566,7 +599,7 @@ test("other PCT offices: the filter is native checkboxes, keyboard operable, and
 
 test("other PCT offices on a phone: cards with visible labels, filtered like the table; wide: the table", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await openSmes(page);
+  await openSmes(page, "#sme-other");
   await expect(page.locator(".sme-other-table")).toBeHidden();
   const offices = page.locator(".sme-other-card-office");
   expect(await offices.evaluateAll((items) => items.map((item) => item.getAttribute("data-office")))).toEqual(other.offices.map((office) => office.code));
@@ -588,7 +621,7 @@ for (const { wide, suffix } of FONT_VARIANTS) {
   test(`?view=smes at 1000px: the other-offices table fits, every column at least a few words wide${suffix}`, async ({ page }) => {
     if (wide) await useWideFonts(page);
     await page.setViewportSize({ width: 1000, height: 900 });
-    await openSmes(page);
+    await openSmes(page, "#sme-other");
     if (wide) await expectWideFonts(page);
     const table = page.locator(".sme-other-table");
     await expect(table).toBeVisible();
@@ -600,6 +633,28 @@ for (const { wide, suffix } of FONT_VARIANTS) {
     });
     expect(fit.right).toBeLessThanOrEqual(fit.page);
     for (const width of fit.columns) expect(width).toBeGreaterThanOrEqual(5);
+  });
+}
+
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [1000, 1100]) {
+  test(`?view=smes at ${width}px: both PCT route tables fit, every column at least a few words wide${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width, height: 900 });
+    await openSmes(page, "#sme-pct");
+    if (wide) await expectWideFonts(page);
+    const tables = page.locator(".sme-pct-table");
+    await expect(tables).toHaveCount(2);
+    for (const table of await tables.all()) {
+      await expect(table).toBeVisible();
+      const fit = await table.evaluate((element) => {
+        const em = parseFloat(getComputedStyle(element).fontSize);
+        const box = element.getBoundingClientRect();
+        const columns = [...element.querySelectorAll("thead th")].map((th) => th.getBoundingClientRect().width / em);
+        return { right: box.right, page: document.documentElement.clientWidth, columns };
+      });
+      expect(fit.right).toBeLessThanOrEqual(fit.page);
+      for (const column of fit.columns) expect(column).toBeGreaterThanOrEqual(5);
+    }
   });
 }
 
@@ -617,4 +672,129 @@ test("other PCT offices: an office with micro-entity reductions only counts with
   await openSmes(page);
   await expect(page.locator('#sme-other .sme-other-counts [data-count="sme"]')).toHaveText(String(withSme));
   await expect(page.locator('#sme-other .sme-other-counts [data-count="other"]')).toHaveText(String(data.other_offices.offices.length - withSme));
+});
+
+// Contents list and boxes (smePage.ts; shared box logic in boxes.ts, as on the methods page).
+test("contents list: one link per section, in page order, each to its section's title; ids stable", async ({ page }) => {
+  await openSmes(page);
+  const toc = page.locator("nav.toc.sme-toc");
+  await expect(toc).toHaveAttribute("aria-label", "On this page");
+  const links = toc.locator("a");
+  const sections = await page.locator(".sme-page > section").evaluateAll((items) => items.map((item) => ({ id: item.id, title: item.querySelector("h2")?.textContent ?? "" })));
+  expect(sections.map((item) => item.id)).toEqual(["sme-shares", "sme-pct", "sme-fees", "sme-definitions", "sme-support", "sme-other", "sme-resources"]);
+  expect(await links.evaluateAll((items) => items.map((item) => item.getAttribute("href")))).toEqual(sections.map((item) => `#${item.id}`));
+  expect(await links.allTextContents()).toEqual(sections.map((item) => item.title));
+  for (const { id } of sections) expect(id).toMatch(/^[a-z]+(-[a-z0-9]+)*$/);
+});
+
+test("boxes: every section but who files and the IP5 fee table is in a box, closed by default; summary = title and a line", async ({ page }) => {
+  await openSmes(page);
+  for (const id of OPEN_SECTIONS) {
+    await expect(page.locator(`section#${id} details`), id).toHaveCount(0);
+    await expect(page.locator(`section#${id} table`).first(), id).toBeVisible();
+  }
+  for (const id of BOXED) {
+    const box = page.locator(`section#${id} > details.prose-box`);
+    await expect(box, id).toHaveCount(1);
+    await expect(box, id).not.toHaveAttribute("open", "");
+    await expect(box.locator("> summary h2"), id).toBeVisible();
+    const line = box.locator("> summary .box-line");
+    await expect(line, id).toBeVisible();
+    expect(((await line.textContent()) ?? "").length, id).toBeGreaterThan(10);
+  }
+});
+
+test("a contents click opens the section's box and scrolls to it; back to contents returns to the list", async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 800 });
+  await openSmes(page);
+  for (const id of BOXED) {
+    await page.locator(`nav.sme-toc a[href="#${id}"]`).click();
+    await expect(page.locator(`section#${id} > details.prose-box`), id).toHaveAttribute("open", "");
+    await expect(page.locator(`section#${id} h2`), id).toBeInViewport();
+    const back = page.locator(`section#${id} .sme-back a`);
+    await expect(back, id).toHaveText("Back to contents");
+    await back.click();
+    await expect(page.locator("nav.sme-toc"), id).toBeInViewport();
+  }
+  for (const id of OPEN_SECTIONS) await expect(page.locator(`section#${id} .sme-back a[href="#sme-contents"]`), id).toHaveCount(1);
+});
+
+for (const id of BOXED) {
+  test(`loading ?view=smes#${id} opens its box and shows the section`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openSmes(page, `#${id}`);
+    await expect(page.locator(`section#${id} > details.prose-box`)).toHaveAttribute("open", "");
+    await expect(page.locator(`section#${id} h2`)).toBeInViewport();
+    // the other boxes stay closed
+    await expect(page.locator("details.prose-box[open]")).toHaveCount(1);
+  });
+}
+
+test("a hash change opens the box holding the target", async ({ page }) => {
+  await openSmes(page);
+  await page.evaluate(() => { location.hash = "#sme-resources"; });
+  await expect(page.locator("section#sme-resources > details.prose-box")).toHaveAttribute("open", "");
+});
+
+test("print opens every box; afterprint closes only the ones it opened", async ({ page }) => {
+  await openSmes(page);
+  await page.locator("section#sme-pct > details > summary").click();
+  const closedBefore = await page.locator("details.prose-box:not([open])").count();
+  expect(closedBefore).toBe(BOXED.length - 1);
+  await page.emulateMedia({ media: "print" });
+  await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+  await expect(page.locator("details.prose-box:not([open])")).toHaveCount(0);
+  await expect(page.locator("nav.sme-toc")).toBeHidden();
+  await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
+  await page.emulateMedia({ media: "screen" });
+  await expect(page.locator("details.prose-box:not([open])")).toHaveCount(closedBefore);
+  await expect(page.locator("section#sme-pct > details")).toHaveAttribute("open", "");
+});
+
+test("contents list: a sticky sidebar left of the content at 1440px; an inline list above the content at 1000px and 390px", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page);
+  const toc = page.locator("nav.sme-toc");
+  const content = page.locator(".sme-page");
+  let [nav, main] = [await toc.boundingBox(), await content.boundingBox()];
+  expect(nav!.x + nav!.width).toBeLessThanOrEqual(main!.x);
+  expect(await toc.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
+  await page.locator("section#sme-other h2").scrollIntoViewIfNeeded();
+  await expect(toc).toBeInViewport();
+  for (const size of [{ width: 1000, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(size);
+    [nav, main] = [await toc.boundingBox(), await content.boundingBox()];
+    expect(nav!.y + nav!.height, `${size.width}`).toBeLessThanOrEqual(main!.y);
+  }
+});
+
+test("at 1440px the content column keeps at least the width it had without the contents list", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page);
+  const contentWidth = () => page.locator(".sme-page").evaluate((el) => el.getBoundingClientRect().width);
+  const withList = await contentWidth();
+  // the same page without the sidebar: the page at its theme width, the list above the content
+  await page.addStyleTag({ content: ".page:has(> .sme-layout) { max-width: var(--page-width) !important; } .sme-layout { display: block !important; }" });
+  const withoutList = await contentWidth();
+  // the sidebar takes the room beside the column; a viewport narrower than both (1440px in the atlas theme) trims the
+  // column a little: measured 2026-11-06, 1096px with the list against 1207px without
+  expect(withList).toBeGreaterThanOrEqual(withoutList * 0.85);
+});
+
+test("every PCT route entry names its PCT Applicant's Guide part as the link text, with the Guide's update date", async ({ page }) => {
+  await page.goto(SMES);
+  const section = page.locator("section#sme-pct");
+  const items: GuideCited[] = [...pctData.pct_international, ...pctData.isa_ipea, ...pctData.national_phase];
+  const cells = section.locator("table td.sme-source");
+  await expect(cells).toHaveCount(items.length);
+  const expected = [...pctData.pct_international, ...officesOf(pctData.isa_ipea).flatMap((office) => pctData.isa_ipea.filter((item) => item.office === office)),
+    ...officesOf(pctData.national_phase).flatMap((office) => pctData.national_phase.filter((item) => item.office === office))];
+  for (const [index, item] of expected.entries()) {
+    const cell = cells.nth(index);
+    expect(item.citation.startsWith("PCT Applicant's Guide, ")).toBe(true);
+    const link = cell.locator("a.sme-guide-cite");
+    await expect(link).toHaveText(item.citation);
+    await expect(link).toHaveAttribute("href", item.source_url);
+    await expect(cell.locator(".sme-guide-updated")).toHaveText(`Last updated ${item.guide_updated}`);
+  }
 });

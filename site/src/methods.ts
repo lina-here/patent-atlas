@@ -3,6 +3,7 @@
 import type { GroupNullReason, GroupsFile } from "./atlas";
 import type { Config, Entities, EntityFile, EntityKind, GenderMeasure, Manifest, Overview, RatioCheck, RatioDenominator, RatioMethod, SeriesBreak, SeriesId, SourceBlock, WipoRatioId, WorldId } from "./data";
 import { DASHBOARD_TILE_IDS, type DashboardTileId } from "./dashboard";
+import { listenForBoxes } from "./boxes";
 import { h, formatCount, type Child } from "./dom";
 import { fixedHalfAway, fixedPercent } from "./format";
 import { GENDER_BASIS_LABEL, GENDER_TITLES, coverageFloorText, formatShare, genderCaveat, genderDecimals, genderNullText, unlistedMembersText } from "./genderText";
@@ -1120,37 +1121,6 @@ function methodsBoxes(data: MethodsData): Box[] {
   ];
 }
 
-/** Opens every box holding the element with this id (a link into a closed box); scrolls to it when asked. */
-function openTo(id: string, scroll: boolean): void {
-  const target = document.getElementById(id);
-  if (!target) return;
-  for (let node: Element | null = target; node; node = node.parentElement) {
-    if (node instanceof HTMLDetailsElement) node.open = true;
-  }
-  if (scroll) target.scrollIntoView();
-}
-
-function hashId(hash: string): string {
-  try { return decodeURIComponent(hash.slice(1)); } catch { return hash.slice(1); }
-}
-
-/** Window listeners (hash, print) are added on the first render only, never at import: every page loads this module. */
-let windowListening = false;
-
-// print shows every box: open the closed ones for the print, close them again after (the stylesheet does the same where
-// the browser supports ::details-content)
-const boxesOpenedForPrint = new Set<HTMLDetailsElement>();
-function openBoxesForPrint(): void {
-  for (const details of document.querySelectorAll<HTMLDetailsElement>("details.prose-box:not([open])")) {
-    details.open = true;
-    boxesOpenedForPrint.add(details);
-  }
-}
-function closeBoxesAfterPrint(): void {
-  for (const details of boxesOpenedForPrint) details.open = false;
-  boxesOpenedForPrint.clear();
-}
-
 export function renderMethods(el: HTMLElement, data: MethodsData): void {
   const boxes = methodsBoxes(data).map((box) => ({ ...box, sections: box.sections.filter((section): section is Section => section !== null) }));
   const disclaimer = disclaimerSection();
@@ -1174,17 +1144,5 @@ export function renderMethods(el: HTMLElement, data: MethodsData): void {
         sectionElement(disclaimer)),
     ),
   );
-  // a link into a closed box opens it first; the browser's own fragment scroll then finds the target drawn
-  el.addEventListener("click", (event) => {
-    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
-    if (link) openTo(hashId(link.getAttribute("href") ?? "#"), false);
-  });
-  if (!windowListening) {
-    windowListening = true;
-    window.addEventListener("hashchange", () => openTo(hashId(location.hash), true));
-    window.addEventListener("beforeprint", openBoxesForPrint);
-    window.addEventListener("afterprint", closeBoxesAfterPrint);
-  }
-  // the page draws after its data loads, past the browser's own scroll to the #hash
-  if (location.hash.length > 1) openTo(hashId(location.hash), true);
+  listenForBoxes(el);
 }

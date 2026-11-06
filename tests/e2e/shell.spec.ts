@@ -211,8 +211,9 @@ test("themes define every token base.css uses; base.css has no visual literals",
     const defined = new Set([...css.matchAll(/^\s*(--[a-z0-9-]+):/gm)].map((match) => match[1]));
     expect([...used].filter((token) => !defined.has(token)), theme).toEqual([]);
   }
-  // Colours and lengths only via tokens; 720px media query allowed (custom properties cannot be used there).
-  const literals = base.replace(/@media \(max-width: 720px\)/g, "").match(/#[0-9a-f]{3,8}\b|rgba?\(|\b\d*\.?\d+(px|em|rem|pt)\b/gi);
+  // Colours and lengths only via tokens; the 720px breakpoint and the SMEs page's 1100px sidebar breakpoint allowed
+  // (custom properties cannot be used in media queries).
+  const literals = base.replace(/@media \((max-width: 720px|min-width: 1100px)\)/g, "").match(/#[0-9a-f]{3,8}\b|rgba?\(|\b\d*\.?\d+(px|em|rem|pt)\b/gi);
   expect(literals).toBeNull();
 });
 

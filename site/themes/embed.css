@@ -60,6 +60,8 @@
   --page-width: 60rem;
   --page-gutter: 0.75rem;
   --toc-width: 10rem;
+  --pct-office-min: 6em;
+  --pct-source-min: 9em;
   --card-min: 22rem;
   --tile-min: 7rem;
   --dashboard-key-min: 13rem;

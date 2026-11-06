@@ -1,11 +1,13 @@
 // SMEs and patents page (`?view=smes`) and the dashboard's SMEs panel. Every fact, figure, label, date and link is read
 // from sme/policies.json (hand-curated from the offices' and WIPO's own pages; data.ts SmePolicies); nothing is typed
 // here, and the only computed figures are the other-offices counts (data list lengths). Offices in data order, never
-// ranked; the two share sources shown apart, never on one chart.
+// ranked; the two share sources shown apart, never on one chart. Layout: a contents list (sidebar on wide screens), then
+// the sections; all but who files and the IP5 fee table sit in boxes closed by default (boxes.ts, as on the methods page).
 import {
   loadJson, type Config, type SmeFeeReduction, type SmeOffice, type SmeOtherOffice, type SmeOtherOffices, type SmeOtherReduction,
-  type SmePct, type SmePctAuthority, type SmePctInternational, type SmePctNational, type SmePolicies, type SmeShare,
+  type SmeGuideCited, type SmePct, type SmePctAuthority, type SmePctInternational, type SmePctNational, type SmePolicies, type SmeShare,
 } from "./data";
+import { listenForBoxes } from "./boxes";
 import { h, type Child } from "./dom";
 import { pageLink, viewLink, type Params } from "./params";
 
@@ -23,6 +25,8 @@ const COMPARE_TEXT = "Compare SME fee reductions at the IP5 offices";
 export const PCT_GUIDE_URL = "https://www.wipo.int/en/web/pct-system/guide/index";
 export const PCT_SCHEDULE_URL = "https://www.wipo.int/en/web/pct-system/texts/rules/rtax";
 const PCT_TITLE = "Fee reductions along the PCT route";
+/** Office cell of the PCT Schedule of Fees rows (fees paid to WIPO). */
+const PCT_WIPO_OFFICE = "WIPO";
 const OTHER_TITLE = "Other PCT offices";
 const OTHER_TABLE_LABEL = "Fee reductions at other PCT offices";
 /** Visible marker for `as_published_lang` (the English `category` and `fees` carry the meaning). */
@@ -134,16 +138,29 @@ function feeCards(offices: SmeOffice[]): HTMLElement {
   }));
 }
 
+/** Id of the contents list; every section ends with a link back to it. */
+const TOC_ID = "sme-contents";
+
+/** A page section: its title and body, then "Back to contents". With a `line`, the body sits in a box (methods page
+ * pattern, closed by default): the summary holds the title and the line. */
+function smeSection(id: string, title: string, line: string | null, body: Child[]): HTMLElement {
+  const back = h("p", { class: "sme-back" }, h("a", { href: `#${TOC_ID}` }, "Back to contents"));
+  if (line === null) return h("section", { id, class: "sme-section" }, h("h2", {}, title), body, back);
+  return h("section", { id, class: "sme-section sme-boxed" },
+    h("details", { class: "prose-box sme-box" },
+      h("summary", {}, h("h2", { class: "box-title" }, title), h("span", { class: "box-line" }, line)),
+      h("div", { class: "sme-box-body" }, body, back)));
+}
+
 function feesSection(offices: SmeOffice[]): HTMLElement {
-  return h("section", { id: "sme-fees", class: "sme-section" },
-    h("h2", {}, FEES_TITLE),
-    h("p", {}, "The reduction is the share of the standard fee the applicant does not pay. Under it is what the office's page states; ",
+  return smeSection("sme-fees", FEES_TITLE, null, [
+    h("p", { class: "sme-intro" }, "The reduction is the share of the standard fee the applicant does not pay. Under it is what the office's page states; ",
       "where no single percentage applies, that text is all the row shows. Text from a Korean or Chinese page is shown as published, with its language named."),
     h("div", { class: "sme-fee-table-wrap" },
       h("table", { class: "data-table sme-fee-table", "aria-label": FEES_TITLE },
         h("thead", {}, h("tr", {}, FEE_HEADERS.map((text) => h("th", { scope: "col" }, text)))),
         offices.map(feeGroup))),
-    feeCards(offices));
+    feeCards(offices)]);
 }
 
 function shareBlock(share: SmeShare): HTMLElement {
@@ -165,24 +182,22 @@ function shareBlock(share: SmeShare): HTMLElement {
 }
 
 function sharesSection(shares: SmeShare[]): HTMLElement {
-  return h("section", { id: "sme-shares", class: "sme-section" },
-    h("h2", {}, "Who files"),
-    h("p", {}, "Each source counts different applications, so each is shown on its own."),
-    h("div", { class: "sme-shares" }, shares.map(shareBlock)));
+  return smeSection("sme-shares", "Who files", null, [
+    h("p", { class: "sme-intro" }, "Each source counts different applications, so each is shown on its own."),
+    h("div", { class: "sme-shares" }, shares.map(shareBlock))]);
 }
 
 /** Per office: a heading and its entries, or the stand-in when it has none. */
-function perOffice(id: string, title: string, intro: string, offices: SmeOffice[], entries: (office: SmeOffice) => HTMLElement | null): HTMLElement {
-  return h("section", { id, class: "sme-section" },
-    h("h2", {}, title),
-    h("p", {}, intro),
+function perOffice(id: string, title: string, line: string, intro: string | null, offices: SmeOffice[], entries: (office: SmeOffice) => HTMLElement | null): HTMLElement {
+  return smeSection(id, title, line, [
+    intro ? h("p", { class: "sme-intro" }, intro) : null,
     offices.map((office) => h("div", { class: "sme-office-block", "data-office": office.code },
       h("h3", {}, office.name),
-      entries(office) ?? h("p", { class: "sme-empty" }, notCovered(office)))));
+      entries(office) ?? h("p", { class: "sme-empty" }, notCovered(office))))]);
 }
 
 function definitionsSection(offices: SmeOffice[]): HTMLElement {
-  return perOffice("sme-definitions", "Who qualifies at each office",
+  return perOffice("sme-definitions", "Who qualifies at each office", "Each IP5 office's own categories and definitions, with their sources.",
     "Summarised from each office's own pages. The definitions differ between offices, so no single definition of an SME applies.",
     offices, (office) => {
       const definitions = list(office.definitions);
@@ -194,7 +209,8 @@ function definitionsSection(offices: SmeOffice[]): HTMLElement {
 }
 
 function supportSection(offices: SmeOffice[]): HTMLElement {
-  return perOffice("sme-support", "Other support", "Other help each office lists for smaller applicants, beyond fee reductions.",
+  return perOffice("sme-support", "Other support", "Help the IP5 offices list for smaller applicants, other than fee reductions.",
+    null,
     offices, (office) => {
       const support = list(office.support);
       return support.length === 0 ? null : h("ul", { class: "sme-links" }, support.map((item) => h("li", {},
@@ -203,16 +219,9 @@ function supportSection(offices: SmeOffice[]): HTMLElement {
 }
 
 function resourcesSection(policies: SmePolicies): HTMLElement {
-  return h("section", { id: "sme-resources", class: "sme-section" },
-    h("h2", {}, "Resources for SMEs"),
+  return smeSection("sme-resources", "Resources for SMEs", "Guides and other publications for SMEs, each linked.", [
     h("ul", { class: "sme-links" }, list(policies.resources).map((item) => h("li", {},
-      h("a", { href: item.url, rel: "noopener" }, item.title), ` (${item.publisher})`, h("span", { class: "sme-item-text" }, item.text)))));
-}
-
-/** Label and value pairs as a `<dl>`; a null value drops its pair. */
-function details(entries: [string, Child[] | Child | null][]): HTMLElement {
-  return h("dl", { class: "sme-entry-details" }, entries.filter(([, value]) => value !== null)
-    .map(([label, value]) => [h("dt", {}, label), h("dd", {}, value)]));
+      h("a", { href: item.url, rel: "noopener" }, item.title), ` (${item.publisher})`, h("span", { class: "sme-item-text" }, item.text))))]);
 }
 
 /** Percentage (when the data has one) and what the source states. */
@@ -228,71 +237,89 @@ function byOffice<T extends { office: string }>(items: T[]): [string, T[]][] {
   return [...groups];
 }
 
-function wipoItem(item: SmePctInternational): HTMLElement {
-  return h("div", { class: "sme-pct-wipo-item" },
-    h("p", { class: "sme-entry-title" }, h("strong", {}, item.fee)),
-    details([
-      ["Reduction", item.reduction],
-      ["Who qualifies", item.who_qualifies],
-      ["Where it is set", item.fee_table_or_item],
-      ["Source", [sourceLink(item.source_url), item.list_url ? [", ", h("a", { href: item.list_url, rel: "noopener" }, "list of eligible States")] : null]],
-    ]));
-}
-
-function authorityEntry(item: SmePctAuthority): HTMLElement {
-  return h("div", { class: "sme-pct-entry" },
-    h("p", { class: "sme-entry-title" }, h("strong", {}, `${item.role}: ${item.fee}`)),
-    details([
-      ["Who qualifies", withLang(item.category)],
-      ["Reduction", reductionWithText(item.reduction_pct, item.as_published)],
-      ["Criteria", withLang(item.criteria)],
-      ["Source", sourceLink(item.source_url)],
-    ]));
-}
-
 /** Whether the office's reduction applies on entry: data true / false / null (not confirmed). */
 function entryStatus(value: boolean | null): string {
   return value === null ? "Not confirmed" : value ? "Applies on entry" : "Does not apply on entry";
 }
 
-function nationalEntry(item: SmePctNational): HTMLElement {
-  return h("div", { class: "sme-pct-entry", "data-entry": item.applies_on_entry === null ? "unknown" : String(item.applies_on_entry) },
-    h("p", { class: "sme-entry-title" }, h("strong", { class: "sme-entry-status" }, entryStatus(item.applies_on_entry))),
-    details([
-      ["Who qualifies", withLang(item.category)],
-      ["Reduction", typeof item.reduction_pct === "number" ? h("span", { class: "sme-pct" }, percent(item.reduction_pct)) : null],
-      ["Which fees", withLang(item.fees)],
-      ["Criteria", withLang(item.criteria)],
-      ["Source", sourceLink(item.source_url)],
-    ]));
+/** PCT table columns; cards use the same labels. */
+const PCT_HEADERS = ["Office", "Fee", "Reduction", "Who qualifies", "Source"];
+const PCT_CELL_CLASSES = ["sme-fee-cell", "sme-reduction", "sme-qualifies", "sme-source"];
+/** One row's cells after the office, built fresh for the table and again for its card. */
+type PctRow = () => Child[][];
+
+/** PCT route source: the Guide part as link text, then the Guide page's update date. */
+const guideSource = (item: SmeGuideCited): Child[] => [
+  h("a", { class: "sme-guide-cite", href: item.source_url, rel: "noopener" }, item.citation),
+  h("span", { class: "sme-guide-updated" }, `Last updated ${item.guide_updated}`)];
+
+const secondLine = (className: string, text: string): HTMLElement => h("span", { class: className }, withLang(text));
+
+function wipoRow(item: SmePctInternational): PctRow {
+  return () => [
+    [h("strong", {}, item.fee), secondLine("sme-set-in", `Set in: ${item.fee_table_or_item}`)],
+    [item.reduction],
+    [item.who_qualifies],
+    [...guideSource(item), item.list_url ? h("a", { class: "sme-list-link", href: item.list_url, rel: "noopener" }, "List of eligible States") : null],
+  ];
+}
+
+function authorityRow(item: SmePctAuthority): PctRow {
+  return () => [
+    [h("strong", {}, `${item.role}: ${item.fee}`)],
+    reductionWithText(item.reduction_pct, item.as_published),
+    [h("strong", {}, withLang(item.category)), secondLine("sme-criteria-line", item.criteria)],
+    guideSource(item),
+  ];
+}
+
+function nationalRow(item: SmePctNational): PctRow {
+  return () => [
+    [withLang(item.fees)],
+    [h("strong", { class: "sme-entry-status" }, entryStatus(item.applies_on_entry)),
+      typeof item.reduction_pct === "number" ? h("span", { class: "sme-pct" }, percent(item.reduction_pct)) : null],
+    [h("strong", {}, withLang(item.category)), secondLine("sme-criteria-line", item.criteria)],
+    guideSource(item),
+  ];
+}
+
+/** One phase: a table on wide screens (one row group per office), cards with labels on phones. */
+function pctPhase(phase: string, title: string, intro: string, groups: [string, PctRow[]][]): HTMLElement {
+  const headingId = `sme-pct-${phase}-title`;
+  return h("div", { class: "sme-pct-phase", "data-phase": phase },
+    h("h3", { id: headingId }, title),
+    h("p", { class: "sme-intro" }, intro),
+    h("div", { class: "sme-pct-table-wrap" },
+      h("table", { class: "data-table sme-pct-table", "aria-labelledby": headingId },
+        h("thead", {}, h("tr", {}, PCT_HEADERS.map((text) => h("th", { scope: "col" }, text)))),
+        groups.map(([office, rows]) => h("tbody", { "data-office": office }, rows.map((row, index) => h("tr", {},
+          index === 0 ? h("th", { scope: "rowgroup", rowspan: String(rows.length), class: "sme-office" }, office) : null,
+          row().map((cell, at) => h("td", { class: PCT_CELL_CLASSES[at] }, cell)))))))),
+    h("div", { class: "sme-pct-cards", "data-phase": phase }, groups.flatMap(([office, rows]) => rows.map((row) =>
+      h("div", { class: "sme-pct-card", "data-office": office },
+        h("dl", {}, [office, ...row()].map((value, index) => [h("dt", {}, PCT_HEADERS[index]), h("dd", {}, value)])))))));
 }
 
 function pctSection(pct: SmePct | undefined): HTMLElement | null {
   if (!pct) return null;
   const wide = pct.pct_wide_sme;
-  const international = h("div", { class: "sme-pct-column", "data-phase": "international" },
-    h("h3", {}, "International phase"),
-    h("h4", {}, "Reductions of the fees paid to WIPO"),
-    h("p", {}, "Reductions in the PCT Schedule of Fees, open to any applicant who meets the conditions."),
-    list(pct.pct_international).map(wipoItem),
-    h("h4", {}, "Fees paid to the offices in the international phase"),
-    h("p", {}, "Each office sets its own fees for the work it does: the international search (ISA), the supplementary search (SISA) ",
-      "or the international preliminary examination (IPEA). RO is the receiving Office, where the application is filed."),
-    byOffice(list(pct.isa_ipea)).map(([office, items]) => h("div", { class: "sme-pct-office", "data-office": office },
-      h("h5", {}, office), items.map(authorityEntry))),
-    wide ? h("p", { class: "sme-pct-wide" }, h("strong", {}, "SME reductions in the PCT itself: "), wide.status, " Source: ", sourceLink(wide.source_url),
-      wide.wg_source_url ? [", ", h("a", { href: wide.wg_source_url, rel: "noopener" }, "PCT Working Group record")] : null, ".") : null);
-  const national = h("div", { class: "sme-pct-column", "data-phase": "national" },
-    h("h3", {}, "National or regional phase"),
-    h("p", {}, "Whether each IP5 office's reduction applies when a PCT application enters the national or regional phase there."),
-    byOffice(list(pct.national_phase)).map(([office, items]) => h("div", { class: "sme-pct-office", "data-office": office },
-      h("h4", {}, office), items.map(nationalEntry))));
-  return h("section", { id: "sme-pct", class: "sme-section" },
-    h("h2", {}, PCT_TITLE),
-    h("p", {}, "A PCT application goes through two phases. In the international phase the applicant pays WIPO's fees, the receiving Office's ",
+  const international = pctPhase("international", "International phase",
+    "WIPO's reductions come from the PCT Schedule of Fees and are open to any applicant who meets the conditions. Each office sets its own fees " +
+      "for the work it does: the international search (ISA), the supplementary search (SISA) or the international preliminary examination (IPEA). " +
+      "RO is the receiving Office, where the application is filed.",
+    [[PCT_WIPO_OFFICE, list(pct.pct_international).map(wipoRow)],
+      ...byOffice(list(pct.isa_ipea)).map(([office, items]): [string, PctRow[]] => [office, items.map(authorityRow)])]);
+  const national = pctPhase("national", "National or regional phase",
+    "Whether each IP5 office's reduction applies when a PCT application enters the national or regional phase there.",
+    byOffice(list(pct.national_phase)).map(([office, items]): [string, PctRow[]] => [office, items.map(nationalRow)]));
+  return smeSection("sme-pct", PCT_TITLE, "WIPO's fees, search and examination fees, and whether each IP5 office's reduction applies on entry.", [
+    h("p", { class: "sme-intro" }, "A PCT application goes through two phases. In the international phase the applicant pays WIPO's fees, the receiving Office's ",
       "transmittal fee and the fees of the office that searches and examines the application. In the national or regional phase the applicant pays ",
       "each office where it wants a patent."),
-    h("div", { class: "sme-pct-columns" }, international, national));
+    international,
+    wide ? h("p", { class: "sme-pct-wide" }, h("strong", {}, "SME reductions in the PCT itself: "), wide.status, " Source: ", sourceLink(wide.source_url),
+      wide.wg_source_url ? [", ", h("a", { href: wide.wg_source_url, rel: "noopener" }, "PCT Working Group record")] : null, ".") : null,
+    national]);
 }
 
 /** `not_assessed` key of the IP5 offices: its own sentence, not a reason. */
@@ -412,16 +439,15 @@ function otherSection(policies: SmePolicies): HTMLElement | null {
       box.checked = true;
       return h("label", {}, box, " ", label);
     }));
-  const section = h("section", { id: "sme-other", class: "sme-section" },
-    h("h2", {}, OTHER_TITLE),
-    h("p", {}, "Fee reductions by type of applicant at PCT offices outside the IP5, mostly from the national chapters of the ",
+  const section = smeSection("sme-other", OTHER_TITLE, "Fee reductions at PCT offices outside the IP5, with a filter by type of applicant.", [
+    h("p", { class: "sme-intro" }, "Fee reductions by type of applicant at PCT offices outside the IP5, mostly from the national chapters of the ",
       h("a", { href: other.source_index_url, rel: "noopener" }, "PCT Applicant's Guide"),
       ". These are national or regional phase fees. Each row links its source, and the criteria note any limits, such as a reduction only for ",
       "applications first filed in that country."),
     otherCounts(other),
     filter, status,
     otherTable(offices, groups),
-    otherCards(offices, groups));
+    otherCards(offices, groups)]);
   filter.addEventListener("change", () => applyFilter(section, status, offices.length));
   applyFilter(section, status, offices.length);
   return section;
@@ -441,29 +467,36 @@ export async function renderSmePage(el: HTMLElement, ctx: SmeContext): Promise<v
   const header = h("header", { class: "page-intro" },
     h("h1", {}, SME_TITLE),
     h("p", { class: "lede" },
-      "What the IP5 offices offer small and medium-sized enterprises (SMEs) and individual inventors: fee reductions, other support and ",
-      "resources, with published figures on who files patent applications. It also shows which reductions apply in each phase of a PCT ",
-      "application, and the reductions at other PCT offices. ",
+      "What patent offices offer small and medium-sized enterprises (SMEs) and individual inventors, from fee reductions along the PCT route to ",
+      "other support, with published figures on who files patent applications; each office defines SMEs its own way. ",
       offices.length ? `IP5 is the forum in which the five largest intellectual property offices work together: ${joinNames(offices.map((office) => office.short))}. ` : "",
-      "Each office defines SMEs its own way, so the page shows each office's own categories and definitions.",
-      policies ? ` Every fact links to the page it comes from; all were checked on ${policies.checked_on}.` : ""));
+      policies ? `Every fact links to the page it comes from; all were checked on ${policies.checked_on}.` : ""));
   if (!policies) {
     el.replaceChildren(header, h("p", { class: "notice sme-missing" }, `The SMEs data could not be loaded: ${(loaded as Error).message}`));
     return;
   }
   const methodsLink = `${pageLink(ctx.cfg, ctx.params, "methods.html")}#smes`;
+  const sections = [
+    sharesSection(list(policies.shares)),
+    pctSection(policies.pct),
+    feesSection(offices),
+    definitionsSection(offices),
+    supportSection(offices),
+    otherSection(policies),
+    resourcesSection(policies),
+  ].filter((section): section is HTMLElement => section !== null);
+  const contents = h("nav", { class: "toc sme-toc", id: TOC_ID, "aria-label": "On this page" },
+    h("p", { class: "toc-title", "aria-hidden": "true" }, "On this page"),
+    h("ul", {}, sections.map((section) => h("li", {}, h("a", { href: `#${section.id}` }, section.querySelector("h2")?.textContent ?? section.id)))));
   el.replaceChildren(header,
-    h("div", { class: "sme-page" },
-      sharesSection(list(policies.shares)),
-      pctSection(policies.pct),
-      feesSection(offices),
-      definitionsSection(offices),
-      supportSection(offices),
-      otherSection(policies),
-      resourcesSection(policies),
-      h("p", { class: "sme-checked" },
-        `Fees and rules change, so the office's own page is the reference. Everything here was checked on ${policies.checked_on}. `,
-        "Sources and method: ", h("a", { href: methodsLink }, "SMEs and patents on the methods page"), ".")));
+    h("div", { class: "sme-layout" },
+      contents,
+      h("div", { class: "sme-page" },
+        sections,
+        h("p", { class: "sme-checked" },
+          `Fees and rules change, so the office's own page is the reference. Everything here was checked on ${policies.checked_on}. `,
+          "Sources and method: ", h("a", { href: methodsLink }, "SMEs and patents on the methods page"), "."))));
+  listenForBoxes(el);
 }
 
 /** The dashboard's SMEs panel (its own row, not a chart card): the EPO share row with its scope, year and source, and a

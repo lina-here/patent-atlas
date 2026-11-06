@@ -1,7 +1,7 @@
 /* Layout and components. Every visual value (colour, font, size, space, radius, line) is a custom
    property defined by the active theme in site/themes/<name>.css; nothing visual is fixed here.
    Literals left are structural, not look: 0 resets, 100% / 1fr / minmax grid structure, 50% radius (a
-   circle), the 720px breakpoint (custom properties cannot be used in media queries). */
+   circle), the 720px breakpoint and the SMEs page's 1100px sidebar breakpoint (custom properties cannot be used in media queries). */
 
 *,
 *::before,
@@ -532,7 +532,7 @@ input {
 .prose li { margin-bottom: var(--space-1); }
 /* a long URL in a link or a WIPO method note wraps at phone width */
 .prose { overflow-wrap: break-word; }
-/* Methods: sections grouped in themed boxes, native <details> closed by default; a #hash inside opens its box (methods.ts
+/* Methods: sections grouped in themed boxes, native <details> closed by default; a #hash inside opens its box (boxes.ts
    openTo). Title + one line in the summary; the marker stays native. */
 .prose-box {
   margin-bottom: var(--space-3);
@@ -732,17 +732,28 @@ input {
 .dashboard-sme { min-width: 0; }
 .dashboard-sme .tiles.key-figures { max-width: var(--measure); }
 .sme-tile-scope { max-width: var(--measure-wide); margin-top: var(--space-2); }
-/* PCT route: two columns, stacked below the breakpoint; each entry a short labelled list */
-.sme-pct-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: start; }
-.sme-pct-column { min-width: 0; overflow-wrap: break-word; }
-.sme-pct-column h3 { font-size: var(--size-h3); margin-bottom: var(--space-2); }
-.sme-pct-column h4 { margin: var(--space-4) 0 var(--space-2); }
-.sme-pct-column h5 { margin: var(--space-3) 0 var(--space-1); font-size: var(--size-base); }
-.sme-pct-wipo-item, .sme-pct-entry { border-top: var(--rule-width) solid var(--rule-strong); padding: var(--space-2) 0; font-family: var(--font-ui); font-size: var(--size-small); }
-.sme-entry-title { margin: 0 0 var(--space-1); }
-.sme-entry-details { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
-.sme-entry-details dt { color: var(--muted); }
-.sme-entry-details dd { margin: 0 0 var(--space-2); }
+/* contents list: an inline list above the content; a sticky sidebar from the wide breakpoint (below) */
+.sme-toc { position: static; margin-bottom: var(--space-5); }
+.sme-toc .toc-title { margin: 0 0 var(--space-2); color: var(--muted); }
+.sme-toc ul { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+/* boxed sections (methods page pattern): the summary holds the section's h2 at its usual size and a line */
+.sme-box > summary > h2.box-title { display: inline; margin: 0; font-size: var(--size-h2); }
+.sme-box-body > .sme-intro:first-child { margin-top: 0; }
+.sme-back { margin: var(--space-3) 0 0; font-family: var(--font-ui); font-size: var(--size-small); }
+.sme-back a { color: var(--muted); }
+/* PCT route: one table per phase, cards below the breakpoint */
+.sme-pct-phase + .sme-pct-phase, .sme-pct-wide + .sme-pct-phase { margin-top: var(--space-5); }
+.sme-pct-phase h3 { margin-bottom: var(--space-2); }
+.sme-pct-table { margin: 0; }
+.sme-pct-table tbody { border-top: var(--rule-width) solid var(--rule-strong); }
+.sme-set-in, .sme-criteria-line { display: block; color: var(--muted); }
+.sme-fee-cell strong, .sme-reduction .sme-entry-status { display: block; }
+.sme-pct-cards { display: none; }
+.sme-pct-card { border-top: var(--rule-width) solid var(--rule-strong); padding: var(--space-3) 0; font-family: var(--font-ui); font-size: var(--size-small); overflow-wrap: break-word; }
+.sme-pct-card dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.sme-pct-card dt { font-weight: var(--weight-strong); }
+.sme-pct-card dd { margin: 0 0 var(--space-2); }
+.sme-pct-card strong { display: block; }
 .sme-pct-wide { margin-top: var(--space-4); font-family: var(--font-ui); font-size: var(--size-small); }
 /* other PCT offices: filter, table above the breakpoint, cards below */
 .sme-filter { border: var(--rule-width) solid var(--rule-strong); padding: var(--space-2) var(--space-3); margin: 0;
@@ -755,6 +766,9 @@ input {
 .sme-other-table tbody[hidden], .sme-other-row[hidden], .sme-other-card[hidden], .sme-other-card-office[hidden] { display: none; }
 .sme-guide-updated, .sme-group-tags { display: block; color: var(--muted); }
 .sme-guide-updated { font-family: var(--font-ui); font-size: var(--size-small); font-weight: normal; }
+.sme-list-link { display: block; }
+.sme-pct-table .sme-office { min-width: var(--pct-office-min); }
+.sme-pct-table .sme-source { min-width: var(--pct-source-min); }
 .sme-other-head strong { display: block; }
 .sme-other-support { font-family: var(--font-ui); font-size: var(--size-small); }
 .sme-other-support .sme-links { margin-top: var(--space-1); }
@@ -770,6 +784,7 @@ input {
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
 @media (max-width: 720px) {
+  .sme-guide-cite { overflow-wrap: anywhere; }
   .prose-layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
   .toc { position: static; }
   .facts { grid-template-columns: minmax(0, 1fr); }
@@ -783,9 +798,24 @@ input {
   .data-table td { padding-right: var(--space-2); overflow-wrap: anywhere; hyphens: auto; }
   .sme-fee-table-wrap { display: none; }
   .sme-fee-cards { display: block; }
-  .sme-pct-columns { grid-template-columns: minmax(0, 1fr); }
+  .sme-pct-table-wrap { display: none; }
+  .sme-pct-cards { display: block; }
   .sme-other-table-wrap { display: none; }
   .sme-other-cards { display: block; }
+}
+
+/* SMEs page from 1100px: the contents list becomes a sticky sidebar; the page widens by its width (room allowing) so the
+   content column keeps its width */
+@media (min-width: 1100px) {
+  .page:has(> .sme-layout) { max-width: calc(var(--page-width) + var(--toc-width) + var(--space-5)); }
+  .sme-layout {
+    display: grid;
+    grid-template-columns: minmax(0, var(--toc-width)) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .sme-toc ul { display: grid; gap: var(--space-2); }
+  .sme-toc { position: sticky; top: var(--space-4); margin-bottom: 0; max-height: calc(100vh - 2 * var(--space-4)); overflow-y: auto; }
 }
 
 @media print {
@@ -796,10 +826,12 @@ input {
   .chart-tools,
   button { display: none; }
   /* sources and notes print open: a closed <details> hides its content in the ::details-content slot (the beforeprint
-     handlers in chartCard.ts and methods.ts cover engines without it) */
+     handlers in chartCard.ts and boxes.ts cover engines without it) */
   details.card-details::details-content,
   details.prose-box::details-content { content-visibility: visible; display: block; }
   .prose-layout { display: block; }
+  .sme-layout { display: block; }
+  .sme-back { display: none; }
   a { color: inherit; }
 }
 
