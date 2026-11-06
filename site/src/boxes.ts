@@ -20,11 +20,11 @@ export function hashId(hash: string): string {
 /** Window listeners (hash, print) are added once per document, never at import: every page loads this module. */
 let windowListening = false;
 
-// print shows every box: open the closed ones for the print, close them again after (the stylesheet does the same where
+// print shows every box (sections, and the SMEs page's amounts boxes): open the closed ones for the print, close them again after (the stylesheet does the same where
 // the browser supports ::details-content)
 const boxesOpenedForPrint = new Set<HTMLDetailsElement>();
 function openBoxesForPrint(): void {
-  for (const details of document.querySelectorAll<HTMLDetailsElement>("details.prose-box:not([open])")) {
+  for (const details of document.querySelectorAll<HTMLDetailsElement>("details.prose-box:not([open]), details.sme-amounts-box:not([open])")) {
     details.open = true;
     boxesOpenedForPrint.add(details);
   }

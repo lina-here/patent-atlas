@@ -414,7 +414,15 @@ export type SmeShare = {
 export type SmeResource = { title: string; publisher: string; text: string; url: string };
 /** A PCT route entry's source: the PCT Applicant's Guide part (`citation`, shown as the link text), its link and the
  * Guide page's "Last updated" date as printed. */
-export type SmeGuideCited = { citation: string; guide_updated: string; source_url: string };
+export type SmeGuideCited = { citation: string; guide_updated: string; source_url: string; amounts: SmePctAmounts };
+/** One fee amount as the PCT Applicant's Guide prints it: ISO currency; `plus_per_claim` = the added amount per claim. */
+export type SmePctFee = { fee: string; amount: number; currency: string; plus_per_claim?: number };
+/** A PCT route entry's fee amounts: the standard fee in the office's own currency (empty = the Guide prints none), the
+ * reduced amounts by category, the same fees in other currencies (`where` = the Guide part), and the Guide parts cited. */
+export type SmePctAmounts = {
+  standard: SmePctFee[]; reduced: (SmePctFee & { category: string })[]; other_currencies: (SmePctFee & { where: string })[];
+  refs: { citation: string; updated: string; url: string }[];
+};
 /** PCT route: WIPO fees (Schedule of Fees), search/examination fees per office as ISA/IPEA, national phase entry. */
 export type SmePctInternational = SmeGuideCited & {
   fee: string; reduction: string; who_qualifies: string;
@@ -432,7 +440,7 @@ export type SmePctNational = SmeGuideCited & {
   fees: string; category: string; reduction_pct: number | null; criteria: string;
 };
 export type SmePct = {
-  checked_on: string;
+  checked_on: string; amounts_checked_on: string;
   pct_international: SmePctInternational[]; isa_ipea: SmePctAuthority[]; national_phase: SmePctNational[];
   /** No SME reduction in the PCT Schedule of Fees; `wg_source_url` = the Working Group record. */
   pct_wide_sme: { status: string; source_url: string; wg_source_url?: string };
