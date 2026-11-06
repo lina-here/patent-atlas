@@ -746,7 +746,7 @@ input {
 .sme-pct-phase h3 { margin-bottom: var(--space-2); }
 .sme-pct-table { margin: 0; }
 .sme-pct-table tbody { border-top: var(--rule-width) solid var(--rule-strong); }
-.sme-set-in, .sme-criteria-line { display: block; color: var(--muted); }
+.sme-criteria-line { display: block; color: var(--muted); }
 .sme-fee-cell strong, .sme-reduction .sme-entry-status { display: block; }
 .sme-pct-cards { display: none; }
 .sme-pct-card { border-top: var(--rule-width) solid var(--rule-strong); padding: var(--space-3) 0; font-family: var(--font-ui); font-size: var(--size-small); overflow-wrap: break-word; }
