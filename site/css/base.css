@@ -766,6 +766,8 @@ input {
 .sme-other-table tbody[hidden], .sme-other-row[hidden], .sme-other-card[hidden], .sme-other-card-office[hidden] { display: none; }
 .sme-guide-updated, .sme-group-tags { display: block; color: var(--muted); }
 .sme-guide-updated { font-family: var(--font-ui); font-size: var(--size-small); font-weight: normal; }
+.sme-list-link { display: block; }
+.sme-guide-cite { overflow-wrap: anywhere; }
 .sme-other-head strong { display: block; }
 .sme-other-support { font-family: var(--font-ui); font-size: var(--size-small); }
 .sme-other-support .sme-links { margin-top: var(--space-1); }

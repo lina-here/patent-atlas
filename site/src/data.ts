@@ -412,21 +412,24 @@ export type SmeShare = {
   citation: string; page: string; url: string; note?: string;
 };
 export type SmeResource = { title: string; publisher: string; text: string; url: string };
+/** A PCT route entry's source: the PCT Applicant's Guide part (`citation`, shown as the link text), its link and the
+ * Guide page's "Last updated" date as printed. */
+export type SmeGuideCited = { citation: string; guide_updated: string; source_url: string };
 /** PCT route: WIPO fees (Schedule of Fees), search/examination fees per office as ISA/IPEA, national phase entry. */
-export type SmePctInternational = {
-  fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; source_url: string;
+export type SmePctInternational = SmeGuideCited & {
+  fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string;
   /** WIPO's list of States for the 90% reduction, where the item has one. */
   list_url?: string;
 };
-export type SmePctAuthority = {
+export type SmePctAuthority = SmeGuideCited & {
   office: string; role: string; fee: string; category: string; reduction_pct: number | null;
-  as_published: string; criteria: string; source_url: string;
+  as_published: string; criteria: string;
 };
-export type SmePctNational = {
+export type SmePctNational = SmeGuideCited & {
   office: string;
   /** The office's reduction applies on national/regional phase entry: true, false, or null = not confirmed. */
   applies_on_entry: boolean | null;
-  fees: string; category: string; reduction_pct: number | null; criteria: string; source_url: string;
+  fees: string; category: string; reduction_pct: number | null; criteria: string;
 };
 export type SmePct = {
   checked_on: string;

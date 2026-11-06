@@ -5,7 +5,7 @@
 // the sections; all but who files and the IP5 fee table sit in boxes closed by default (boxes.ts, as on the methods page).
 import {
   loadJson, type Config, type SmeFeeReduction, type SmeOffice, type SmeOtherOffice, type SmeOtherOffices, type SmeOtherReduction,
-  type SmePct, type SmePctAuthority, type SmePctInternational, type SmePctNational, type SmePolicies, type SmeShare,
+  type SmeGuideCited, type SmePct, type SmePctAuthority, type SmePctInternational, type SmePctNational, type SmePolicies, type SmeShare,
 } from "./data";
 import { listenForBoxes } from "./boxes";
 import { h, type Child } from "./dom";
@@ -248,6 +248,11 @@ const PCT_CELL_CLASSES = ["sme-fee-cell", "sme-reduction", "sme-qualifies", "sme
 /** One row's cells after the office, built fresh for the table and again for its card. */
 type PctRow = () => Child[][];
 
+/** PCT route source: the Guide part as link text, then the Guide page's update date. */
+const guideSource = (item: SmeGuideCited): Child[] => [
+  h("a", { class: "sme-guide-cite", href: item.source_url, rel: "noopener" }, item.citation),
+  h("span", { class: "sme-guide-updated" }, `Last updated ${item.guide_updated}`)];
+
 const secondLine = (className: string, text: string): HTMLElement => h("span", { class: className }, withLang(text));
 
 function wipoRow(item: SmePctInternational): PctRow {
@@ -255,7 +260,7 @@ function wipoRow(item: SmePctInternational): PctRow {
     [h("strong", {}, item.fee), secondLine("sme-set-in", `Set in: ${item.fee_table_or_item}`)],
     [item.reduction],
     [item.who_qualifies],
-    [sourceLink(item.source_url), item.list_url ? [", ", h("a", { href: item.list_url, rel: "noopener" }, "list of eligible States")] : null],
+    [...guideSource(item), item.list_url ? h("a", { class: "sme-list-link", href: item.list_url, rel: "noopener" }, "List of eligible States") : null],
   ];
 }
 
@@ -264,7 +269,7 @@ function authorityRow(item: SmePctAuthority): PctRow {
     [h("strong", {}, `${item.role}: ${item.fee}`)],
     reductionWithText(item.reduction_pct, item.as_published),
     [h("strong", {}, withLang(item.category)), secondLine("sme-criteria-line", item.criteria)],
-    [sourceLink(item.source_url)],
+    guideSource(item),
   ];
 }
 
@@ -274,7 +279,7 @@ function nationalRow(item: SmePctNational): PctRow {
     [h("strong", { class: "sme-entry-status" }, entryStatus(item.applies_on_entry)),
       typeof item.reduction_pct === "number" ? h("span", { class: "sme-pct" }, percent(item.reduction_pct)) : null],
     [h("strong", {}, withLang(item.category)), secondLine("sme-criteria-line", item.criteria)],
-    [sourceLink(item.source_url)],
+    guideSource(item),
   ];
 }
 

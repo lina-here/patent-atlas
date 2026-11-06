@@ -8,9 +8,10 @@ type Fee = { category: string; reduction_pct: number | null; as_published: strin
 type Office = { code: string; name: string; short: string; definitions: { category: string; text: string; source_url: string }[];
   fee_reductions: Fee[]; support: { name: string; text: string; url: string }[] };
 type Share = { id: string; year: number; scope: string; rows: { label: string; pct: number }[]; citation: string; page: string; url: string; note?: string };
-type PctInternational = { fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; source_url: string; list_url?: string };
-type PctAuthority = { office: string; role: string; fee: string; category: string; reduction_pct: number | null; as_published: string; criteria: string; source_url: string };
-type PctNational = { office: string; applies_on_entry: boolean | null; fees: string; category: string; reduction_pct: number | null; criteria: string; source_url: string };
+type GuideCited = { citation: string; guide_updated: string; source_url: string };
+type PctInternational = GuideCited & { fee: string; reduction: string; who_qualifies: string; fee_table_or_item: string; list_url?: string };
+type PctAuthority = GuideCited & { office: string; role: string; fee: string; category: string; reduction_pct: number | null; as_published: string; criteria: string };
+type PctNational = GuideCited & { office: string; applies_on_entry: boolean | null; fees: string; category: string; reduction_pct: number | null; criteria: string };
 type Pct = { pct_international: PctInternational[]; isa_ipea: PctAuthority[]; national_phase: PctNational[]; pct_wide_sme: { status: string; source_url: string; wg_source_url?: string } };
 type OtherReduction = { category: string; reduction_pct: number | null; as_published: string; fees: string; criteria: string; source_url: string; category_group: string[] };
 type OtherOffice = { code: string; name: string; guide_updated: string; fee_reductions: OtherReduction[]; support?: { name: string; text: string; url: string }[] };
@@ -756,4 +757,22 @@ test("at 1440px the content column keeps at least the width it had without the c
   // the sidebar takes the room beside the column; a viewport narrower than both (1440px in the atlas theme) trims the
   // column a little: measured 2026-11-06, 1096px with the list against 1207px without
   expect(withList).toBeGreaterThanOrEqual(withoutList * 0.85);
+});
+
+test("every PCT route entry names its PCT Applicant's Guide part as the link text, with the Guide's update date", async ({ page }) => {
+  await page.goto(SMES);
+  const section = page.locator("section#sme-pct");
+  const items: GuideCited[] = [...pctData.pct_international, ...pctData.isa_ipea, ...pctData.national_phase];
+  const cells = section.locator("table td.sme-source");
+  await expect(cells).toHaveCount(items.length);
+  const expected = [...pctData.pct_international, ...officesOf(pctData.isa_ipea).flatMap((office) => pctData.isa_ipea.filter((item) => item.office === office)),
+    ...officesOf(pctData.national_phase).flatMap((office) => pctData.national_phase.filter((item) => item.office === office))];
+  for (const [index, item] of expected.entries()) {
+    const cell = cells.nth(index);
+    expect(item.citation.startsWith("PCT Applicant's Guide, ")).toBe(true);
+    const link = cell.locator("a.sme-guide-cite");
+    await expect(link).toHaveText(item.citation);
+    await expect(link).toHaveAttribute("href", item.source_url);
+    await expect(cell.locator(".sme-guide-updated")).toHaveText(`Last updated ${item.guide_updated}`);
+  }
 });
