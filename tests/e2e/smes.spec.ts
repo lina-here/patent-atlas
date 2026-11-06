@@ -107,7 +107,7 @@ test("wording claims no more than the data: no typed counts, no per-row definiti
   await expect(main).not.toContainText("the office's own wording");
   await expect(page.locator("#sme-fees p.sme-intro")).toContainText("what the office's page states");
   await expect(page.locator("#sme-definitions p.sme-intro")).toContainText("Summarised from each office's own pages");
-  await expect(page.locator("#sme-support p.sme-intro")).toHaveText("Other help each office lists for smaller applicants, beyond fee reductions.");
+  await expect(page.locator("#sme-support p.sme-intro")).toHaveCount(0);
 });
 
 test("text in Korean or Chinese outside the published wording carries its lang", async ({ page }) => {
@@ -633,6 +633,28 @@ for (const { wide, suffix } of FONT_VARIANTS) {
     });
     expect(fit.right).toBeLessThanOrEqual(fit.page);
     for (const width of fit.columns) expect(width).toBeGreaterThanOrEqual(5);
+  });
+}
+
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [1000, 1100]) {
+  test(`?view=smes at ${width}px: both PCT route tables fit, every column at least a few words wide${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width, height: 900 });
+    await openSmes(page, "#sme-pct");
+    if (wide) await expectWideFonts(page);
+    const tables = page.locator(".sme-pct-table");
+    await expect(tables).toHaveCount(2);
+    for (const table of await tables.all()) {
+      await expect(table).toBeVisible();
+      const fit = await table.evaluate((element) => {
+        const em = parseFloat(getComputedStyle(element).fontSize);
+        const box = element.getBoundingClientRect();
+        const columns = [...element.querySelectorAll("thead th")].map((th) => th.getBoundingClientRect().width / em);
+        return { right: box.right, page: document.documentElement.clientWidth, columns };
+      });
+      expect(fit.right).toBeLessThanOrEqual(fit.page);
+      for (const column of fit.columns) expect(column).toBeGreaterThanOrEqual(5);
+    }
   });
 }
 

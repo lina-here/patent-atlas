@@ -532,7 +532,7 @@ input {
 .prose li { margin-bottom: var(--space-1); }
 /* a long URL in a link or a WIPO method note wraps at phone width */
 .prose { overflow-wrap: break-word; }
-/* Methods: sections grouped in themed boxes, native <details> closed by default; a #hash inside opens its box (methods.ts
+/* Methods: sections grouped in themed boxes, native <details> closed by default; a #hash inside opens its box (boxes.ts
    openTo). Title + one line in the summary; the marker stays native. */
 .prose-box {
   margin-bottom: var(--space-3);
@@ -767,7 +767,8 @@ input {
 .sme-guide-updated, .sme-group-tags { display: block; color: var(--muted); }
 .sme-guide-updated { font-family: var(--font-ui); font-size: var(--size-small); font-weight: normal; }
 .sme-list-link { display: block; }
-.sme-guide-cite { overflow-wrap: anywhere; }
+.sme-pct-table .sme-office { min-width: var(--pct-office-min); }
+.sme-pct-table .sme-source { min-width: var(--pct-source-min); }
 .sme-other-head strong { display: block; }
 .sme-other-support { font-family: var(--font-ui); font-size: var(--size-small); }
 .sme-other-support .sme-links { margin-top: var(--space-1); }
@@ -783,6 +784,7 @@ input {
 /* ---- Small screens and print ------------------------------------------------------------------- */
 
 @media (max-width: 720px) {
+  .sme-guide-cite { overflow-wrap: anywhere; }
   .prose-layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
   .toc { position: static; }
   .facts { grid-template-columns: minmax(0, 1fr); }
@@ -824,7 +826,7 @@ input {
   .chart-tools,
   button { display: none; }
   /* sources and notes print open: a closed <details> hides its content in the ::details-content slot (the beforeprint
-     handlers in chartCard.ts and methods.ts cover engines without it) */
+     handlers in chartCard.ts and boxes.ts cover engines without it) */
   details.card-details::details-content,
   details.prose-box::details-content { content-visibility: visible; display: block; }
   .prose-layout { display: block; }

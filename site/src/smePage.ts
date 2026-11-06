@@ -188,9 +188,9 @@ function sharesSection(shares: SmeShare[]): HTMLElement {
 }
 
 /** Per office: a heading and its entries, or the stand-in when it has none. */
-function perOffice(id: string, title: string, line: string, intro: string, offices: SmeOffice[], entries: (office: SmeOffice) => HTMLElement | null): HTMLElement {
+function perOffice(id: string, title: string, line: string, intro: string | null, offices: SmeOffice[], entries: (office: SmeOffice) => HTMLElement | null): HTMLElement {
   return smeSection(id, title, line, [
-    h("p", { class: "sme-intro" }, intro),
+    intro ? h("p", { class: "sme-intro" }, intro) : null,
     offices.map((office) => h("div", { class: "sme-office-block", "data-office": office.code },
       h("h3", {}, office.name),
       entries(office) ?? h("p", { class: "sme-empty" }, notCovered(office))))]);
@@ -210,7 +210,7 @@ function definitionsSection(offices: SmeOffice[]): HTMLElement {
 
 function supportSection(offices: SmeOffice[]): HTMLElement {
   return perOffice("sme-support", "Other support", "Help the IP5 offices list for smaller applicants, other than fee reductions.",
-    "Other help each office lists for smaller applicants, beyond fee reductions.",
+    null,
     offices, (office) => {
       const support = list(office.support);
       return support.length === 0 ? null : h("ul", { class: "sme-links" }, support.map((item) => h("li", {},
