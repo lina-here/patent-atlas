@@ -692,6 +692,8 @@ input {
 /* SMEs page (smePage.ts) and the dashboard's SMEs panel. The fee table shows above the small-screen breakpoint, one card per
    row (a <dl> with visible labels) below it: restyling table cells as blocks would drop their table roles. */
 .sme-page { display: grid; gap: var(--space-5); }
+/* grid items may shrink below their content (a wide table then scrolls in its own box, never the page) */
+.sme-page > .sme-section { min-width: 0; }
 .sme-section > h2 { margin-bottom: var(--space-3); }
 .sme-section > p { max-width: var(--measure-wide); }
 .sme-shares {
@@ -744,6 +746,7 @@ input {
 /* PCT route: one table per phase, cards below the breakpoint */
 .sme-pct-phase + .sme-pct-phase, .sme-pct-wide + .sme-pct-phase { margin-top: var(--space-5); }
 .sme-pct-phase h3 { margin-bottom: var(--space-2); }
+.sme-pct-table-wrap { overflow-x: auto; }
 .sme-pct-table { margin: 0; }
 .sme-pct-table tbody { border-top: var(--rule-width) solid var(--rule-strong); }
 .sme-criteria-line { display: block; color: var(--muted); }
@@ -761,7 +764,7 @@ input {
 .sme-amounts-label, .sme-amounts-box > summary { margin-top: var(--space-1); color: var(--muted); }
 .sme-amounts-box > summary { cursor: pointer; }
 .sme-amounts-box > summary:hover { color: var(--ink); }
-.sme-standard .sme-guide-cite { display: block; margin-top: var(--space-1); }
+.sme-amounts-ref { display: block; margin-top: var(--space-1); }
 /* other PCT offices: filter, table above the breakpoint, cards below */
 .sme-filter { border: var(--rule-width) solid var(--rule-strong); padding: var(--space-2) var(--space-3); margin: 0;
   display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-family: var(--font-ui); font-size: var(--size-small); }
@@ -836,7 +839,8 @@ input {
   /* sources and notes print open: a closed <details> hides its content in the ::details-content slot (the beforeprint
      handlers in chartCard.ts and boxes.ts cover engines without it) */
   details.card-details::details-content,
-  details.prose-box::details-content { content-visibility: visible; display: block; }
+  details.prose-box::details-content,
+  details.sme-amounts-box::details-content { content-visibility: visible; display: block; }
   .prose-layout { display: block; }
   .sme-layout { display: block; }
   .sme-back { display: none; }

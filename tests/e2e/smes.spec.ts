@@ -508,8 +508,12 @@ test("PCT route on a phone: each phase's rows are cards with visible labels, the
 });
 
 // Standard fee column: every PCT route entry's `amounts` (lines, folds, Guide references) from the data.
-const AMOUNT = new Intl.NumberFormat("en");
-const money = (amount: number, currency: string): string => `${AMOUNT.format(amount)} ${currency}`;
+/** Every digit of the data's amount, thousands grouped with commas (built from String(amount), not Intl). */
+const grouped = (amount: number): string => {
+  const [whole, fraction] = String(amount).split(".");
+  return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${fraction === undefined ? "" : `.${fraction}`}`;
+};
+const money = (amount: number, currency: string): string => `${grouped(amount)} ${currency}`;
 const standardLine = (fee: AmountFee): string =>
   `${fee.fee}: ${money(fee.amount, fee.currency)}${fee.plus_per_claim === undefined ? "" : ` plus ${money(fee.plus_per_claim, fee.currency)} per claim`}`;
 /** Reduced amounts fold into a closed box above this many lines (smePage.ts constant). */
@@ -520,9 +524,15 @@ const PHASE_ENTRIES: [string, string, GuideCited[]][] = [
   ["international", "International phase", [...pctData.pct_international, ...tableOrder(pctData.isa_ipea)]],
   ["national", "National or regional phase", tableOrder(pctData.national_phase)],
 ];
+/** The row's fee text as the Fee column shows it: WIPO `fee`, ISA/IPEA `role: fee`, national `fees`. */
+const feeName = (item: GuideCited): string => {
+  const entry = item as Partial<PctInternational & PctAuthority & PctNational>;
+  return entry.role !== undefined ? `${entry.role}: ${entry.fee}` : entry.fees ?? entry.fee ?? "";
+};
 const isOpen = (box: Locator): Promise<boolean> => box.evaluate((element) => (element as HTMLDetailsElement).open);
 
-async function expectStandardFee(cell: Locator, amounts: Amounts, where: string): Promise<void> {
+async function expectStandardFee(cell: Locator, item: GuideCited, where: string): Promise<void> {
+  const amounts = item.amounts;
   const texts = (selector: string): Promise<string[]> => cell.locator(selector).allTextContents();
   if (amounts.standard.length === 0) await expect(cell.locator(".sme-amount-none"), where).toHaveText("No amount printed in the Guide");
   else await expect(cell.locator(".sme-amount-none"), where).toHaveCount(0);
@@ -532,6 +542,7 @@ async function expectStandardFee(cell: Locator, amounts: Amounts, where: string)
   const reducedBox = cell.locator("details.sme-amounts-reduced");
   if (amounts.reduced.length > REDUCED_FOLD_OVER) {
     await expect(reducedBox.locator("> summary"), where).toHaveText(`Reduced amounts (${amounts.reduced.length})`);
+    await expect(reducedBox.locator("> summary"), where).toHaveAttribute("aria-label", `Reduced amounts (${amounts.reduced.length}) for ${feeName(item)}`);
     await expect(reducedBox.locator(".sme-amount-reduced"), where).toHaveCount(amounts.reduced.length);
     expect(await isOpen(reducedBox), where).toBe(false);
     await expect(cell.locator(".sme-amounts-label"), where).toHaveCount(0);
@@ -543,6 +554,7 @@ async function expectStandardFee(cell: Locator, amounts: Amounts, where: string)
   const otherBox = cell.locator("details.sme-amounts-other");
   if (amounts.other_currencies.length) {
     await expect(otherBox.locator("> summary"), where).toHaveText(`Other currencies (${amounts.other_currencies.length})`);
+    await expect(otherBox.locator("> summary"), where).toHaveAttribute("aria-label", `Other currencies (${amounts.other_currencies.length}) for ${feeName(item)}`);
     expect(await otherBox.locator(".sme-amount-other").allTextContents(), where)
       .toEqual(amounts.other_currencies.map((fee) => `${money(fee.amount, fee.currency)}, ${fee.fee} (${fee.where})`));
     expect(await isOpen(otherBox), where).toBe(false);
@@ -552,6 +564,8 @@ async function expectStandardFee(cell: Locator, amounts: Amounts, where: string)
   expect(await refs.allTextContents(), where).toEqual(amounts.refs.map((ref) => ref.citation));
   expect(await refs.evaluateAll((links) => links.map((link) => link.getAttribute("href"))), where).toEqual(amounts.refs.map((ref) => ref.url));
   expect(await texts(".sme-guide-updated"), where).toEqual(amounts.refs.map((ref) => `Last updated ${ref.updated}`));
+  // each Guide reference on its own line, in the table and in the cards alike
+  expect(await refs.evaluateAll((links) => links.map((link) => getComputedStyle(link).display)), where).toEqual(amounts.refs.map(() => "block"));
 }
 
 test("PCT route (wide): the Standard fee column shows every entry's amounts and Guide references from the data", async ({ page }) => {
@@ -568,7 +582,7 @@ test("PCT route (wide): the Standard fee column shows every entry's amounts and 
       // column 4 of the header: the cell sits right after Reduction (the office header spans the group's rows)
       expect(await rows.nth(index).locator("td").evaluateAll((cells) => cells.map((td) => td.className)), `${name} ${index}`)
         .toEqual(["sme-fee-cell", "sme-reduction", "sme-standard", "sme-qualifies", "sme-source"]);
-      await expectStandardFee(cell, item.amounts, `${name} ${index}`);
+      await expectStandardFee(cell, item, `${name} ${index}`);
     }
   }
 });
@@ -582,7 +596,7 @@ test("PCT route on a phone: each card's Standard fee holds the same amounts and 
     for (const [index, item] of entries.entries()) {
       const card = cards.nth(index);
       await expect(card.locator("dt").nth(PCT_LABELS.indexOf("Standard fee"))).toHaveText("Standard fee");
-      await expectStandardFee(card.locator("dd").nth(PCT_LABELS.indexOf("Standard fee")), item.amounts, `${phase} card ${index}`);
+      await expectStandardFee(card.locator("dd").nth(PCT_LABELS.indexOf("Standard fee")), item, `${phase} card ${index}`);
     }
   }
 });
@@ -597,7 +611,23 @@ test("PCT route: an entry with no standard amount reads No amount printed in the
   const office = data.pct.national_phase[0].office;
   const cell = page.locator("section#sme-pct").getByRole("table", { name: "National or regional phase" })
     .locator(`tbody[data-office="${office}"] tr`).first().locator("td.sme-standard");
-  await expectStandardFee(cell, entry.amounts, "emptied entry");
+  await expectStandardFee(cell, entry, "emptied entry");
+});
+
+test("PCT route: amounts keep every digit the data gives, thousands grouped", async ({ page }) => {
+  const data = clone();
+  const entry = data.pct.national_phase[0];
+  const [first] = entry.amounts.standard;
+  entry.amounts = { ...entry.amounts, standard: [{ ...first, amount: 1234.56789 }, ...entry.amounts.standard.slice(1)] };
+  await servePolicies(page, data);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page, "#sme-pct");
+  const cell = page.locator("section#sme-pct").getByRole("table", { name: "National or regional phase" })
+    .locator(`tbody[data-office="${entry.office}"] tr`).first().locator("td.sme-standard");
+  const line = await cell.locator(".sme-amount-standard").first().textContent();
+  expect(line).toBe(`${first.fee}: 1,234.56789 ${first.currency}`);
+  expect(line!.slice(`${first.fee}: `.length).split(" ")[0].replace(/,/g, "")).toBe(String(1234.56789));
+  await expectStandardFee(cell, entry, "fractional amount");
 });
 
 test("other PCT offices: the counts line equals the counts from the data, each not-assessed reason named", async ({ page }) => {
@@ -734,6 +764,28 @@ for (const { wide, suffix } of FONT_VARIANTS) {
   });
 }
 
+for (const { wide, suffix } of FONT_VARIANTS) for (const width of [721, 800]) {
+  test(`?view=smes at ${width}px: the PCT route tables scroll inside their own box, never the page${suffix}`, async ({ page }) => {
+    if (wide) await useWideFonts(page);
+    await page.setViewportSize({ width, height: 900 });
+    await openSmes(page, "#sme-pct");
+    if (wide) await expectWideFonts(page);
+    const wraps = page.locator(".sme-pct-table-wrap");
+    await expect(wraps).toHaveCount(2);
+    for (const wrap of await wraps.all()) {
+      await expect(wrap.locator("table")).toBeVisible();
+      // a scrolling box is keyboard reachable and named by its phase heading
+      await expect(wrap).toHaveAttribute("tabindex", "0");
+      await expect(wrap).toHaveAttribute("role", "region");
+      const heading = await wrap.getAttribute("aria-labelledby");
+      await expect(page.locator(`[id="${heading}"]`)).toHaveText(await wrap.locator("table").evaluate((table) => document.getElementById(table.getAttribute("aria-labelledby")!)!.textContent!));
+      const box = await wrap.boundingBox();
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+  });
+}
+
 for (const { wide, suffix } of FONT_VARIANTS) for (const width of [1000, 1100]) {
   test(`?view=smes at ${width}px: both PCT route tables fit, every column at least a few words wide${suffix}`, async ({ page }) => {
     if (wide) await useWideFonts(page);
@@ -842,10 +894,16 @@ test("print opens every box; afterprint closes only the ones it opened", async (
   await page.emulateMedia({ media: "print" });
   await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
   await expect(page.locator("details.prose-box:not([open])")).toHaveCount(0);
+  // the amounts boxes in the Standard fee column print open too
+  const amountsBoxes = page.locator("details.sme-amounts-box");
+  const amountsTotal = await amountsBoxes.count();
+  expect(amountsTotal).toBeGreaterThan(0);
+  await expect(page.locator("details.sme-amounts-box:not([open])")).toHaveCount(0);
   await expect(page.locator("nav.sme-toc")).toBeHidden();
   await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
   await page.emulateMedia({ media: "screen" });
   await expect(page.locator("details.prose-box:not([open])")).toHaveCount(closedBefore);
+  await expect(page.locator("details.sme-amounts-box:not([open])")).toHaveCount(amountsTotal);
   await expect(page.locator("section#sme-pct > details")).toHaveAttribute("open", "");
 });
 

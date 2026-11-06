@@ -257,27 +257,30 @@ const guideSource = (item: SmeGuideCited): Child[] => [
 
 const secondLine = (className: string, text: string): HTMLElement => h("span", { class: className }, withLang(text));
 
-const AMOUNT_FORMAT = new Intl.NumberFormat("en");
+/** en grouping; every fraction digit the data gives (the default rounds to 3). */
+const AMOUNT_FORMAT = new Intl.NumberFormat("en", { maximumFractionDigits: 20 });
 const money = (amount: number, currency: string): string => `${AMOUNT_FORMAT.format(amount)} ${currency}`;
 const amountLine = (className: string, text: string): HTMLElement => h("span", { class: `sme-amount ${className}` }, withLang(text));
-/** Lines in a native box closed by default; summary = label and line count. */
-const amountsBox = (className: string, label: string, lines: HTMLElement[]): HTMLElement =>
-  h("details", { class: `sme-amounts-box ${className}` }, h("summary", {}, `${label} (${lines.length})`), lines);
+/** Lines in a native box closed by default; summary = label and line count, its accessible name adds the row's fee. */
+function amountsBox(className: string, label: string, feeName: string, lines: HTMLElement[]): HTMLElement {
+  const summary = `${label} (${lines.length})`;
+  return h("details", { class: `sme-amounts-box ${className}` }, h("summary", { "aria-label": `${summary} for ${feeName}` }, summary), lines);
+}
 
 /** Standard fee column: the Guide's standard amounts (office currency), the reduced amounts, the other currencies
  * (closed box), then the Guide parts cited with their update dates. All text and figures from `amounts`. */
-function standardCell(amounts: SmePctAmounts): Child[] {
+function standardCell(amounts: SmePctAmounts, feeName: string): Child[] {
   const standard = list(amounts.standard).map((fee: SmePctFee) => amountLine("sme-amount-standard",
     `${fee.fee}: ${money(fee.amount, fee.currency)}${typeof fee.plus_per_claim === "number" ? ` plus ${money(fee.plus_per_claim, fee.currency)} per claim` : ""}`));
   const reduced = list(amounts.reduced).map((fee) => amountLine("sme-amount-reduced", `${fee.category}, ${fee.fee}: ${money(fee.amount, fee.currency)}`));
   const other = list(amounts.other_currencies).map((fee) => amountLine("sme-amount-other", `${money(fee.amount, fee.currency)}, ${fee.fee} (${fee.where})`));
   return [
     standard.length ? standard : h("span", { class: "sme-amount sme-amount-none" }, "No amount printed in the Guide"),
-    reduced.length > REDUCED_FOLD_OVER ? amountsBox("sme-amounts-reduced", "Reduced amounts", reduced)
+    reduced.length > REDUCED_FOLD_OVER ? amountsBox("sme-amounts-reduced", "Reduced amounts", feeName, reduced)
       : reduced.length ? [h("span", { class: "sme-amounts-label" }, "Reduced amounts"), reduced] : null,
-    other.length ? amountsBox("sme-amounts-other", "Other currencies", other) : null,
+    other.length ? amountsBox("sme-amounts-other", "Other currencies", feeName, other) : null,
     list(amounts.refs).map((ref) => [
-      h("a", { class: "sme-guide-cite", href: ref.url, rel: "noopener" }, ref.citation),
+      h("a", { class: "sme-guide-cite sme-amounts-ref", href: ref.url, rel: "noopener" }, ref.citation),
       h("span", { class: "sme-guide-updated" }, `Last updated ${ref.updated}`)]),
   ];
 }
@@ -286,7 +289,7 @@ function wipoRow(item: SmePctInternational): PctRow {
   return () => [
     [h("strong", {}, item.fee)],
     [item.reduction],
-    standardCell(item.amounts),
+    standardCell(item.amounts, item.fee),
     [item.who_qualifies],
     [...guideSource(item), item.list_url ? h("a", { class: "sme-list-link", href: item.list_url, rel: "noopener" }, "List of eligible States") : null],
   ];
@@ -296,7 +299,7 @@ function authorityRow(item: SmePctAuthority): PctRow {
   return () => [
     [h("strong", {}, `${item.role}: ${item.fee}`)],
     reductionWithText(item.reduction_pct, item.as_published),
-    standardCell(item.amounts),
+    standardCell(item.amounts, `${item.role}: ${item.fee}`),
     [h("strong", {}, withLang(item.category)), secondLine("sme-criteria-line", item.criteria)],
     guideSource(item),
   ];
@@ -307,7 +310,7 @@ function nationalRow(item: SmePctNational): PctRow {
     [withLang(item.fees)],
     [h("strong", { class: "sme-entry-status" }, entryStatus(item.applies_on_entry)),
       typeof item.reduction_pct === "number" ? h("span", { class: "sme-pct" }, percent(item.reduction_pct)) : null],
-    standardCell(item.amounts),
+    standardCell(item.amounts, item.fees),
     [h("strong", {}, withLang(item.category)), secondLine("sme-criteria-line", item.criteria)],
     guideSource(item),
   ];
@@ -319,7 +322,8 @@ function pctPhase(phase: string, title: string, intro: string, groups: [string, 
   return h("div", { class: "sme-pct-phase", "data-phase": phase },
     h("h3", { id: headingId }, title),
     h("p", { class: "sme-intro" }, intro),
-    h("div", { class: "sme-pct-table-wrap" },
+    // the table scrolls inside its own box where the columns need more room than the page; the box is keyboard reachable
+    h("div", { class: "sme-pct-table-wrap", tabindex: "0", role: "region", "aria-labelledby": headingId },
       h("table", { class: "data-table sme-pct-table", "aria-labelledby": headingId },
         h("thead", {}, h("tr", {}, PCT_HEADERS.map((text) => h("th", { scope: "col" }, text)))),
         groups.map(([office, rows]) => h("tbody", { "data-office": office }, rows.map((row, index) => h("tr", {},
