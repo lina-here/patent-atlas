@@ -755,6 +755,13 @@ input {
 .sme-pct-card dd { margin: 0 0 var(--space-2); }
 .sme-pct-card strong { display: block; }
 .sme-pct-wide { margin-top: var(--space-4); font-family: var(--font-ui); font-size: var(--size-small); }
+/* Standard fee column: one line per amount; reduced amounts (when long) and other currencies in boxes closed by default */
+.sme-amount, .sme-amounts-label { display: block; }
+.sme-amount + .sme-amount { margin-top: var(--space-1); }
+.sme-amounts-label, .sme-amounts-box > summary { margin-top: var(--space-1); color: var(--muted); }
+.sme-amounts-box > summary { cursor: pointer; }
+.sme-amounts-box > summary:hover { color: var(--ink); }
+.sme-standard .sme-guide-cite { display: block; margin-top: var(--space-1); }
 /* other PCT offices: filter, table above the breakpoint, cards below */
 .sme-filter { border: var(--rule-width) solid var(--rule-strong); padding: var(--space-2) var(--space-3); margin: 0;
   display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-family: var(--font-ui); font-size: var(--size-small); }
@@ -769,6 +776,7 @@ input {
 .sme-list-link { display: block; }
 .sme-pct-table .sme-office { min-width: var(--pct-office-min); }
 .sme-pct-table .sme-source { min-width: var(--pct-source-min); }
+.sme-pct-table .sme-standard { min-width: var(--pct-amounts-min); }
 .sme-other-head strong { display: block; }
 .sme-other-support { font-family: var(--font-ui); font-size: var(--size-small); }
 .sme-other-support .sme-links { margin-top: var(--space-1); }

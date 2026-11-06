@@ -814,6 +814,7 @@ test("methods.html#smes opens its box; the section names its sources and scope",
   await expect(section.getByRole("link", { name: "PCT Applicant's Guide" })).toHaveAttribute("href", /^https:\/\/www\.wipo\.int\//);
   await expect(section.getByRole("link", { name: "PCT Schedule of Fees" })).toHaveAttribute("href", /^https:\/\/www\.wipo\.int\//);
   await expect(section).toContainText("What the office's page states is shown with every percentage");
+  await expect(section).toContainText("The standard fee amounts on the PCT route come from the annexes and national chapters of the PCT Applicant's Guide, as printed on the date shown with each amount.");
   // scope of each share is the data's, shown on the page; no typed count of sources, no wrong owner of member states
   await expect(section).not.toContainText(/\b(two|three) published/i);
   await expect(section).not.toContainText("its member states");

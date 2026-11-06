@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "./fixtures";
+import { test, expect, type Locator, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 import { FONT_VARIANTS, expectWideFonts, useWideFonts } from "./wideFonts";
 
@@ -8,7 +8,10 @@ type Fee = { category: string; reduction_pct: number | null; as_published: strin
 type Office = { code: string; name: string; short: string; definitions: { category: string; text: string; source_url: string }[];
   fee_reductions: Fee[]; support: { name: string; text: string; url: string }[] };
 type Share = { id: string; year: number; scope: string; rows: { label: string; pct: number }[]; citation: string; page: string; url: string; note?: string };
-type GuideCited = { citation: string; guide_updated: string; source_url: string };
+type AmountFee = { fee: string; amount: number; currency: string; plus_per_claim?: number };
+type Amounts = { standard: AmountFee[]; reduced: (AmountFee & { category: string })[]; other_currencies: (AmountFee & { where: string })[];
+  refs: { citation: string; updated: string; url: string }[] };
+type GuideCited = { citation: string; guide_updated: string; source_url: string; amounts: Amounts };
 type PctInternational = GuideCited & { fee: string; reduction: string; who_qualifies: string; list_url?: string };
 type PctAuthority = GuideCited & { office: string; role: string; fee: string; category: string; reduction_pct: number | null; as_published: string; criteria: string };
 type PctNational = GuideCited & { office: string; applies_on_entry: boolean | null; fees: string; category: string; reduction_pct: number | null; criteria: string };
@@ -408,7 +411,7 @@ test("section order: who files, the PCT route, the IP5 sections, other PCT offic
 });
 
 const PCT_WIPO_OFFICE = /^const PCT_WIPO_OFFICE = "([^"]+)";/m.exec(smeSource)![1];
-const PCT_LABELS = ["Office", "Fee", "Reduction", "Who qualifies", "Source"];
+const PCT_LABELS = ["Office", "Fee", "Reduction", "Standard fee", "Who qualifies", "Source"];
 
 test("PCT route (wide): the international phase is one table; WIPO rows, then search and examination by office, all from the data", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -428,8 +431,8 @@ test("PCT route (wide): the international phase is one table; WIPO rows, then se
     for (const value of [item.fee, item.reduction, item.who_qualifies]) await expect(row).toContainText(value);
     // the Guide is the only source named: no "Set in" line for the Schedule of Fees or Fee Tables
     await expect(row).not.toContainText("Set in");
-    await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
-    if (item.list_url) await expect(row.locator(`a[href="${item.list_url}"]`)).toHaveCount(1);
+    await expect(row.locator(`.sme-source a[href="${item.source_url}"]`)).toHaveCount(1);
+    if (item.list_url) await expect(row.locator(`.sme-source a[href="${item.list_url}"]`)).toHaveCount(1);
   }
   for (const office of officesOf(pctData.isa_ipea)) {
     const group = table.locator(`tbody[data-office="${office}"]`);
@@ -442,7 +445,7 @@ test("PCT route (wide): the international phase is one table; WIPO rows, then se
       for (const value of [item.role, item.fee, item.category, item.as_published, item.criteria]) await expect(row).toContainText(value);
       if (item.reduction_pct === null) await expect(row.locator(".sme-pct")).toHaveCount(0);
       else await expect(row.locator(".sme-pct")).toHaveText(pct(item.reduction_pct));
-      await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
+      await expect(row.locator(`.sme-source a[href="${item.source_url}"]`)).toHaveCount(1);
     }
   }
   const wide = section.locator(".sme-pct-wide");
@@ -469,7 +472,7 @@ test("PCT route (wide): the national or regional phase is one table by office; e
       for (const value of [item.fees, item.category, item.criteria]) await expect(row).toContainText(value);
       if (item.reduction_pct === null) await expect(row.locator(".sme-pct")).toHaveCount(0);
       else await expect(row.locator(".sme-pct")).toHaveText(pct(item.reduction_pct));
-      await expect(row.locator(`a[href="${item.source_url}"]`)).toHaveCount(1);
+      await expect(row.locator(`.sme-source a[href="${item.source_url}"]`)).toHaveCount(1);
     }
   }
 });
@@ -484,7 +487,7 @@ test("PCT route: applies_on_entry false reads Does not apply on entry, null read
   const rows = page.locator("section#sme-pct").getByRole("table", { name: "National or regional phase" }).locator("tbody tr");
   await expect(rows.nth(0).locator(".sme-entry-status")).toHaveText("Does not apply on entry");
   await expect(rows.nth(1).locator(".sme-entry-status")).toHaveText("Not confirmed");
-  await expect(rows.nth(1).locator(`a[href="${data.pct.national_phase[1].source_url}"]`)).toHaveCount(1);
+  await expect(rows.nth(1).locator(`.sme-source a[href="${data.pct.national_phase[1].source_url}"]`)).toHaveCount(1);
 });
 
 test("PCT route on a phone: each phase's rows are cards with visible labels, the tables hidden; wide: the reverse", async ({ page }) => {
@@ -502,6 +505,99 @@ test("PCT route on a phone: each phase's rows are cards with visible labels, the
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const table of await page.locator("#sme-pct table").all()) await expect(table).toBeVisible();
   await expect(page.locator("#sme-pct .sme-pct-card").first()).toBeHidden();
+});
+
+// Standard fee column: every PCT route entry's `amounts` (lines, folds, Guide references) from the data.
+const AMOUNT = new Intl.NumberFormat("en");
+const money = (amount: number, currency: string): string => `${AMOUNT.format(amount)} ${currency}`;
+const standardLine = (fee: AmountFee): string =>
+  `${fee.fee}: ${money(fee.amount, fee.currency)}${fee.plus_per_claim === undefined ? "" : ` plus ${money(fee.plus_per_claim, fee.currency)} per claim`}`;
+/** Reduced amounts fold into a closed box above this many lines (smePage.ts constant). */
+const REDUCED_FOLD_OVER = Number(/^const REDUCED_FOLD_OVER = (\d+);/m.exec(smeSource)![1]);
+/** Entries in table order: grouped by office, offices in first-appearance order, data order within each. */
+const tableOrder = <T extends { office: string }>(items: T[]): T[] => officesOf(items).flatMap((office) => items.filter((item) => item.office === office));
+const PHASE_ENTRIES: [string, string, GuideCited[]][] = [
+  ["international", "International phase", [...pctData.pct_international, ...tableOrder(pctData.isa_ipea)]],
+  ["national", "National or regional phase", tableOrder(pctData.national_phase)],
+];
+const isOpen = (box: Locator): Promise<boolean> => box.evaluate((element) => (element as HTMLDetailsElement).open);
+
+async function expectStandardFee(cell: Locator, amounts: Amounts, where: string): Promise<void> {
+  const texts = (selector: string): Promise<string[]> => cell.locator(selector).allTextContents();
+  if (amounts.standard.length === 0) await expect(cell.locator(".sme-amount-none"), where).toHaveText("No amount printed in the Guide");
+  else await expect(cell.locator(".sme-amount-none"), where).toHaveCount(0);
+  expect(await texts(".sme-amount-standard"), where).toEqual(amounts.standard.map(standardLine));
+  expect(await texts(".sme-amount-reduced"), where)
+    .toEqual(amounts.reduced.map((fee) => `${fee.category}, ${fee.fee}: ${money(fee.amount, fee.currency)}`));
+  const reducedBox = cell.locator("details.sme-amounts-reduced");
+  if (amounts.reduced.length > REDUCED_FOLD_OVER) {
+    await expect(reducedBox.locator("> summary"), where).toHaveText(`Reduced amounts (${amounts.reduced.length})`);
+    await expect(reducedBox.locator(".sme-amount-reduced"), where).toHaveCount(amounts.reduced.length);
+    expect(await isOpen(reducedBox), where).toBe(false);
+    await expect(cell.locator(".sme-amounts-label"), where).toHaveCount(0);
+  } else {
+    await expect(reducedBox, where).toHaveCount(0);
+    if (amounts.reduced.length) await expect(cell.locator(".sme-amounts-label"), where).toHaveText("Reduced amounts");
+    else await expect(cell.locator(".sme-amounts-label"), where).toHaveCount(0);
+  }
+  const otherBox = cell.locator("details.sme-amounts-other");
+  if (amounts.other_currencies.length) {
+    await expect(otherBox.locator("> summary"), where).toHaveText(`Other currencies (${amounts.other_currencies.length})`);
+    expect(await otherBox.locator(".sme-amount-other").allTextContents(), where)
+      .toEqual(amounts.other_currencies.map((fee) => `${money(fee.amount, fee.currency)}, ${fee.fee} (${fee.where})`));
+    expect(await isOpen(otherBox), where).toBe(false);
+  } else await expect(otherBox, where).toHaveCount(0);
+  await expect(cell.locator(".sme-amount-other"), where).toHaveCount(amounts.other_currencies.length);
+  const refs = cell.locator("a.sme-guide-cite");
+  expect(await refs.allTextContents(), where).toEqual(amounts.refs.map((ref) => ref.citation));
+  expect(await refs.evaluateAll((links) => links.map((link) => link.getAttribute("href"))), where).toEqual(amounts.refs.map((ref) => ref.url));
+  expect(await texts(".sme-guide-updated"), where).toEqual(amounts.refs.map((ref) => `Last updated ${ref.updated}`));
+}
+
+test("PCT route (wide): the Standard fee column shows every entry's amounts and Guide references from the data", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page, "#sme-pct");
+  for (const [, name, entries] of PHASE_ENTRIES) {
+    const table = page.locator("section#sme-pct").getByRole("table", { name });
+    await expect(table).toBeVisible();
+    const rows = table.locator("tbody tr");
+    await expect(rows).toHaveCount(entries.length);
+    for (const [index, item] of entries.entries()) {
+      const cell = rows.nth(index).locator("td.sme-standard");
+      await expect(cell, `${name} ${index}`).toHaveCount(1);
+      // column 4 of the header: the cell sits right after Reduction (the office header spans the group's rows)
+      expect(await rows.nth(index).locator("td").evaluateAll((cells) => cells.map((td) => td.className)), `${name} ${index}`)
+        .toEqual(["sme-fee-cell", "sme-reduction", "sme-standard", "sme-qualifies", "sme-source"]);
+      await expectStandardFee(cell, item.amounts, `${name} ${index}`);
+    }
+  }
+});
+
+test("PCT route on a phone: each card's Standard fee holds the same amounts and references", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openSmes(page, "#sme-pct");
+  for (const [phase, , entries] of PHASE_ENTRIES) {
+    const cards = page.locator(`#sme-pct .sme-pct-cards[data-phase="${phase}"] .sme-pct-card`);
+    await expect(cards).toHaveCount(entries.length);
+    for (const [index, item] of entries.entries()) {
+      const card = cards.nth(index);
+      await expect(card.locator("dt").nth(PCT_LABELS.indexOf("Standard fee"))).toHaveText("Standard fee");
+      await expectStandardFee(card.locator("dd").nth(PCT_LABELS.indexOf("Standard fee")), item.amounts, `${phase} card ${index}`);
+    }
+  }
+});
+
+test("PCT route: an entry with no standard amount reads No amount printed in the Guide, with its references", async ({ page }) => {
+  const data = clone();
+  const entry = data.pct.national_phase[0];
+  entry.amounts = { ...entry.amounts, standard: [], reduced: [], other_currencies: [] };
+  await servePolicies(page, data);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSmes(page, "#sme-pct");
+  const office = data.pct.national_phase[0].office;
+  const cell = page.locator("section#sme-pct").getByRole("table", { name: "National or regional phase" })
+    .locator(`tbody[data-office="${office}"] tr`).first().locator("td.sme-standard");
+  await expectStandardFee(cell, entry.amounts, "emptied entry");
 });
 
 test("other PCT offices: the counts line equals the counts from the data, each not-assessed reason named", async ({ page }) => {
